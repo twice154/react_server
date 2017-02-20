@@ -1,15 +1,18 @@
 var webpack = require('webpack');
+var path = require('path');
 
 module.exports = {
 
     entry: [
+        'babel-polyfill',
         './src/index.js',
         'webpack-dev-server/client?http://0.0.0.0:4000',
-        'webpack/hot/only-dev-server'
+        'webpack/hot/only-dev-server',
+        './src/style.css'
     ],
 
     output: {
-        path:'/',
+        path: '/',
         filename: 'bundle.js'
     },
 
@@ -20,7 +23,7 @@ module.exports = {
         historyApiFallback: true,
         contentBase: './public',
         proxy: {
-            "**": "http://localhost:3000"
+            "*": "http://localhost:3000"
         },
         stats: {
           // Config for minimal console.log mess.
@@ -48,8 +51,16 @@ module.exports = {
                     presets: ['es2015', 'react']
                 })],
                 exclude: /node_modules/,
+            },
+            {
+                test: /\.css$/,
+                loader: 'style!css-loader'
             }
         ]
+    },
+
+    resolve: {
+        root: path.resolve('./src')
     }
 
 

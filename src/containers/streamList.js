@@ -1,5 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
+import {Link} from 'react-router';
 
 class streamList extends React.Component {
 	constructor(props){
@@ -11,9 +12,21 @@ class streamList extends React.Component {
 			isConnected: false,
             spanLog:[],
             streams:[],
-            ws: null
+            ws: null,
+            isUnmounted: false
 		};
 	}
+
+    componentWillUnmount(){
+        if(this.props.isConnected){
+            this.state.ws.close();
+            this.setState({
+                isConnected: false,
+                streams: [],
+                isUnmounted: true
+            });
+        }
+    }
 
 	clearLog(){
 		this.setState({
@@ -22,7 +35,7 @@ class streamList extends React.Component {
 	}
 
 	doLog(Logstr){
-        console.log(Logstr);
+        //console.log(Logstr);
         //document.getElement('spanLog').innerHTML+= Logstr+'<br/>';
     }
 
@@ -35,9 +48,12 @@ class streamList extends React.Component {
             if(this.state.isConnected){
                  this.state.ws.close();
                  //then(()=>{
-                 	this.setState({
-                 		isConnected: false
-                 	});
+                 this.setState({
+                 	isConnected: false,
+                    streams: []
+                 });
+                 this.clearLog();
+                 
                  	//document.getElementById("streams").innerHTML = "";
                  //})
             }
@@ -49,10 +65,12 @@ class streamList extends React.Component {
                 ws.onopen = function(){
                     let updatedLog = this.state.spanLog;
                     updatedLog.push("INFO: WebSocket is open: " + wsURL);
+
                 	this.setState({
                 		isConnected: true,
                         spanLog: updatedLog
                 	});
+                    
                     //this.updateControls();
                     //this.doLog("INFO: WebSocket is open: " + wsURL);
                 }.bind(this);
@@ -63,17 +81,14 @@ class streamList extends React.Component {
                     //this.doLog("INFO: Receive text message: "+msgData);
                     let newLog = this.state.spanLog;
                     newLog.push("INFO: Receive text message: " + msgData);
-                    this.setState({
-                        spanLog: newLog
-                    })
                     let parser = new DOMParser();
                     let xmlDoc = parser.parseFromString(msgData, "text/xml");
                     let stream_count = xmlDoc.getElementsByTagName('stream').length;
                     //this.doLog("stream_count: " + stream_count);
                     let stream_names = [];
-                    let stream_tag = document.getElementById("streams");
-                    stream_tag.innerHTML = "";
-                    let newList=this.state.streams;
+                    //let stream_tag = document.getElementById("streams");
+                    //stream_tag.innerHTML = "";
+                    let newList=[];
                     
                     for(var i=0; i<stream_count; i++) {
                         let stream_name = xmlDoc.getElementsByTagName('stream')[i].childNodes[0].nodeValue;
@@ -82,18 +97,16 @@ class streamList extends React.Component {
                         //stream_tag.innerHTML += '<img style= \"user-select: none;\" src=\"' + thumbnail_link + '\" width=\"640\" height= \"360\"></p>'
                         newList.push(stream_name);
                     }
-                    this.setState({
-                        streams: newList
-                    });
-                    }.bind(this);
+                    if(!this.state.isUnmounted){
+                        this.setState({
+                            spanLog: newLog,
+                            streams: newList
+                        });
+                    }
+                }.bind(this);
 
                     ws.onclose = function(){
                         console.log("INFO: WebSocket connection is closed");
-                        this.setState({
-                 			isConnected: false,
-                            streams:[]
-                 		});
-                        this.clearLog();
                     }.bind(this);
 
                     this.setState({
@@ -110,15 +123,15 @@ class streamList extends React.Component {
 				<input type="button" className="clear" value="clearLog" onClick={this.clearLog}/>
 				<div id="streams">{
                     this.state.streams.map((streamName, i)=>{
-                        let link = './player/' + encodeURIComponent(streamName);
+                        let link = '/player/' + encodeURIComponent(streamName);
                         let thumbnail_link = "http://localhost:8086/thumbnail?application=live&streamname=" + streamName + "&size=640x360&fitmode=letterbox";
                         return <div key= {i}>
-                            <a href={link}>{streamName}<br/>                            
+                            <li><Link to={link} activeClassName="active" onClick={this.connect}>{streamName}<br/>                            
                                 <img
                                     style={{width: 50, height: 50}}
                                     src={thumbnail_link} 
                                 />
-                            </a>
+                            </Link></li>
                             
                         </div>
                     })
