@@ -1,8 +1,17 @@
 import express from 'express';
+import orientDB from 'orientjs';
 
 const router = express.Router();
+const server =  orientDB({
+	host: "localhost",
+	port: 2424,
+	username: 'root',
+	password: 'ssh2159'
+});
+const db = server.use('usersinfo');
 
-router.post('./signup', (req, res)=>{
+router.post('/signup', (req, res)=>{
+	console.log("AAA");
 	let usernameRegex = /^[a-z0-9]+$/;
 
 	if(!usernameRegex.test(req.body.id)){
@@ -19,16 +28,17 @@ router.post('./signup', (req, res)=>{
 		});
 	}
 
-	db.query("SELECT * FROM User WHERE id='" + req.body.id + "'").then((exist)=>{
-		if(exist){
+	db.query("SELECT * FROM User WHERE id='" + req.body.username + "'").then((exist)=>{
+		if(exist.length !== 0){
 			return res.status(400).json({
 				error: "USERNAME EXiSTS",
 				code: 3
 			});
 		}
+		console.log(req.body);
 		db.class.get('User').then((user)=>{
 			user.create({
-				id: req.body.id,
+				id: req.body.username,
 				password: req.body.password
 			}).then((new_user)=>{
 				console.log('created record: ' + new_user.id);
@@ -38,7 +48,7 @@ router.post('./signup', (req, res)=>{
 	})
 });
 
-router.post('./signin', (req, res)=>{
+router.post('/signin', (req, res)=>{
 	
 	if(typeof req.body.password!== 'string'){
 		return res.status(401).json({
@@ -47,8 +57,8 @@ router.post('./signin', (req, res)=>{
 		});
 	}
 
-	db.query("SELECT * FROM User WHERE id='" + req.body.id + "'").then((exist)=>{
-		if(!exist){
+	db.query("SELECT * FROM User WHERE id='" + req.body.username + "'").then((exist)=>{
+		if(!exist[0]){
 			return res.status(401).json({
 				error: "LOGIN FAILED",
 				code: 1
