@@ -24,7 +24,7 @@ class Header extends React.Component {
 						<Link to="/" className="brand-logo center">5437</Link>
 
 						<ul>
-							<li><i className="material-icons">search</i></li>
+							<li><Link to="/c"><i className="material-icons">search</i></Link></li>
 						</ul>
 
 						<div className="right">

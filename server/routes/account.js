@@ -1,5 +1,6 @@
 import express from 'express';
 import orientDB from 'orientjs';
+import session from 'express-session';
 
 const router = express.Router();
 const server =  orientDB({
@@ -8,6 +9,11 @@ const server =  orientDB({
 	username: 'root',
 	password: 'ssh2159'
 });
+router.use(session({
+    secret: '1234234',
+    resave: false,
+    saveUninitialized: true
+}));
 const db = server.use('usersinfo');
 
 router.post('/signup', (req, res)=>{
@@ -72,11 +78,10 @@ router.post('/signin', (req, res)=>{
 			});
 		}
 
-		let session = req.session;
-		session.loginInfo = {
-			_id: exist[0].id,
-			password: exist[0].password
+		req.session.loginInfo = {
+			username: exist[0].id
 		};
+		console.log("session saved: " + req.session.loginInfo.username); 
 
 		return res.json({
 			success: true
@@ -86,7 +91,7 @@ router.post('/signin', (req, res)=>{
 
 router.get('/getinfo', (req, res)=>{
 	if(typeof req.session.loginInfo === "undefined"){
-		return res.statusP(401).json({
+		return res.status(401).json({
 			error: 1
 		});
 	}

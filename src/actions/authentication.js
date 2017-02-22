@@ -21,6 +21,7 @@ export function loginRequest(username, password) {
 
             return axios.post('/api/account/signin', { username, password })
             .then((response) => {
+                console.log(username);
                 dispatch(loginSuccess(username));
             }).catch((error) => {
                 dispatch(loginFailure());
@@ -88,6 +89,7 @@ export function getStatusRequest() {
         dispatch(getStatus());
         return axios.get('/api/account/getinfo')
         .then((response) => {
+            console.log("getinfo: " + response.data.info.username);
             dispatch(getStatusSuccess(response.data.info.username));
         }).catch((error) => {
             dispatch(getStatusFailure());

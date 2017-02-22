@@ -1,7 +1,8 @@
 import React from 'react';
 import {Header} from 'components';
 import {connect} from 'react-redux';
-import {logoutRequest} from 'actions/authentication';
+import {logoutRequest, getStatusRequest} from 'actions/authentication';
+
 
 class App extends React.Component{
 
@@ -26,7 +27,6 @@ class App extends React.Component{
 	}
 
 	componentDidMount(){
-
 		function getCookie(name){
 			var value = ";" + document.cookie;
 			var parts = value.split("; " + name + "=");
@@ -43,6 +43,7 @@ class App extends React.Component{
 
 		this.props.getStatusRequest().then(
 			()=> {
+				console.log("FSDFS");
 				console.log(this.props.status);
 				if(!this.props.status.valid){
 						loginData = {
@@ -68,6 +69,7 @@ class App extends React.Component{
 			<div>
 				{isAuth ? undefined: <Header isLoggedIn={this.props.status.isLoggedIn}
 												onLogout={this.handleLogout}/>}
+				{this.props.status.currentUser}
 				{this.props.children}
 			</div>
 		);
