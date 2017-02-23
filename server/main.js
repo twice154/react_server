@@ -59,30 +59,47 @@ if(process.env.NODE_ENV == 'development') {
 
 ///////////////////////////////
 ///socket.io 설정 부분/////////
-var users = [];
+var users = {};
+var rooms = {};
 io.sockets.on('connection', (socket) =>{
     console.log("socket is connected");
     socket.on('user:joined', (data)=>{
         console.log(data + " has joined");
-        console.log(users);
-        socket.broadcast.emit('user:join', {name: data});
-        users.push(data);
+        if(!rooms[data.room]){
+            rooms[data.room] = [];
+        }
+        if(users[data.name]){
+            let prevroom = users[data.name];
+            console.log(data.name + " has left from " + prevroom);
+            rooms[prevroom].splice(rooms[prevroom].indexOf(data.name), 1);
+            users[data.name]='';
+            socket.leave(prevroom);
+            socket.broadcast.to(prevroom).emit('user:left', {name: data.name});
+        }
+        socket.join(data.room);
+        socket.emit('init', rooms[data.room]);
+        socket.broadcast.to(data.room).emit('user:join', {name: data.name});
+        rooms[data.room].push(data.name);
+        users[data.name] = data.room;
+        console.log(rooms);
     });
 
     socket.on('user:left', (data)=>{
-        console.log(data.name + " has left");
-        users.splice(users.indexOf(data.name), 1);
-        socket.broadcast.emit('user:left', {name: data.name});
-    })
+        let prevroom = users[data.name];
+        console.log(data.name + " has left from " + prevroom);
+        rooms[prevroom].splice(rooms[prevroom].indexOf(data.name), 1);
+        users[data.name]='';
+        socket.leave(prevroom);
+        socket.broadcast.to(prevroom).emit('user:left', {name: data.name});
+    });
 
     socket.on('send:message', (data)=>{
-        socket.broadcast.emit("send:message", data);
+        socket.broadcast.to(data.room).emit("send:message", data.msg);
     });
 
     socket.on('disconnect', function(){
         console.log("user disconnected");
     });
-    socket.emit('init', users);
 });
 
 /////////////////////////////

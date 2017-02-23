@@ -7,7 +7,7 @@ class StreamingView extends React.Component{
 		return(
 			<div>
 			<Player streamname={this.props.params.streamname}/>
-			<Chatting />
+			<Chatting room={this.props.params.streamname}/>
 			</div>
 		);
 	}

@@ -10,7 +10,7 @@ class Chatting extends React.Component{
 
 	constructor(props){
 		super(props);
-		this.state = {users: [], messages:[], text: ''};
+		this.state = {users: [], messages:[], text: '', room: ""};
 		this.init = this.init.bind(this);
 		this.onUserJoin = this.onUserJoin.bind(this);
 		this.onUserLeft = this.onUserLeft.bind(this);
@@ -32,13 +32,14 @@ class Chatting extends React.Component{
 					socket.on('user:left', this.onUserLeft);
 					socket.on('init', this.init);
 					console.log("status is valid: " + this.props.status.currentUser);
-					socket.emit('user:joined',this.props.status.currentUser);
+					socket.emit('user:joined',{name: this.props.status.currentUser, room: this.props.room});
 				}
 			}
 		)
 	}
 
 	componentWillUnmount(){
+		console.log("Component will unmount");
 		this.props.getStatusRequest().then(
 			()=>{
 				if(this.props.status.valid){
@@ -50,12 +51,21 @@ class Chatting extends React.Component{
 		)
 	}
 
+	componentWillReceiveProps(nextProps){
+		console.log("Component will receive props " + this.state.room + this.props.status.currentUser);
+		if(this.props.status.currentUser){
+			socket.emit("user:left", {name:this.props.status.currentUser});
+		}
+		//console.log(this.props.room);
+	}
+
 	init(data){
 		data.push(this.props.status.currentUser);
 		this.setState({
 			users: data,
 			messages: [],
-			text: []
+			text: [],
+			room: this.props.room
 		});
 		//console.log("INIT: " + this.state.users);
 	}
@@ -97,7 +107,7 @@ class Chatting extends React.Component{
 		let {messages} = this.state;
 		messages.push(msg);
 		this.setState({messages});
-		socket.emit('send:message', msg);
+		socket.emit('send:message', {msg:msg, room:this.props.room});
 	}
 
 	render(){
