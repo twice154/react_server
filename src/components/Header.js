@@ -21,7 +21,7 @@ class Header extends React.Component {
 			<div>
 				<nav>
 					<div className="nav-wrapper blue darken-1">
-						<Link to="/" className="brand-logo center">5437</Link>
+						<Link to="/" className="brand-logo center" >5437</Link>
 
 						<ul>
 							<li><Link to="/c"><i className="material-icons">search</i></Link></li>

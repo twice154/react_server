@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, browserHistory, IndexRoute, Link} from 'react-router';
-import {App, Login, StreamingView, Register, StreamList} from 'containers';
+import {App, Login, StreamingView, Register, StreamList, NewStreamList} from 'containers';
 
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
@@ -15,7 +15,7 @@ ReactDOM.render(
 	<Provider store={store}>
 		<Router history={browserHistory}>
 			<Route path="/" component={App}>
-				<IndexRoute component={StreamList}/>
+				<IndexRoute component={NewStreamList}/>
 				<Route path="player/:streamname" component={StreamingView}/>
 				<Route path="login" component={Login}/>
 				<Route path="register" component={Register}/>

@@ -26,6 +26,8 @@ class App extends React.Component{
 		)
 	}
 
+
+
 	componentDidMount(){
 		function getCookie(name){
 			var value = ";" + document.cookie;

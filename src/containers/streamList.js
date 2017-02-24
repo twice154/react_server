@@ -1,7 +1,9 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router';
-import {Chatting} from 'components'; 
+import {Chatting} from 'components';
+import {getStatusRequest} from 'actions/authentication'; 
+import {getStreamsRequest} from 'actions/Stream';
 
 class streamList extends React.Component {
 	constructor(props){
@@ -27,6 +29,19 @@ class streamList extends React.Component {
                 isUnmounted: true
             });
         }
+    }
+
+    componentDidMount(){
+        console.log("Component did mount");
+        this.props.getStatusRequest().then(
+            ()=>{
+                this.props.getStreamsRequest().then(()=>
+                    {
+                        console.log(this.props.stream_status);
+                    }
+                )
+            }
+        )
     }
 
 	clearLog(){
@@ -149,4 +164,22 @@ class streamList extends React.Component {
 	}
 }
 
-export default streamList;
+const mapStateToProps = (state) =>{
+    return{
+        status: state.authentication.status,
+        stream_status: state.Stream.list
+    };
+};
+
+const mapDispatchtoProps = (dispatch) => {
+    return {
+        getStatusRequest: ()=> {
+            return  dispatch(getStatusRequest());
+        },
+        getStreamsRequest: ()=>{
+            return dispatch(getStreamsRequest());
+        }
+    };
+}
+
+export default connect(mapStateToProps, mapDispatchtoProps)(streamList);

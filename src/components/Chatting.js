@@ -53,7 +53,7 @@ class Chatting extends React.Component{
 
 	componentWillReceiveProps(nextProps){
 		console.log("Component will receive props " + this.state.room + this.props.status.currentUser);
-		if(this.props.status.currentUser){
+		if(socket&&this.props.status.currentUser){
 			socket.emit("user:left", {name:this.props.status.currentUser});
 		}
 		//console.log(this.props.room);

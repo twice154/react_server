@@ -1,6 +1,7 @@
 import express from 'express';
 import orientDB from 'orientjs';
 import session from 'express-session';
+import request from 'request';
 
 const router = express.Router();
 const server =  orientDB({
@@ -95,7 +96,6 @@ router.get('/getinfo', (req, res)=>{
 			error: 1
 		});
 	}
-
 	res.json({info: req.session.loginInfo});
 });
 
@@ -103,7 +103,5 @@ router.post('/logout', (req, res)=>{
 	req.session.destroy(err=> {if(err) throw err; });
 	return res.json({success: true});
 });
-
-
 
 export default router;
