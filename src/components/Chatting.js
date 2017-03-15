@@ -19,7 +19,7 @@ class Chatting extends React.Component{
 		this.handleMessageSubmit = this.handleMessageSubmit.bind(this);
 	}
 
-	componentDidMount(){
+	componentWillMount(){
 		//socket.on('init', this.init);
 		//let socket = io.connect('http://localhost:4000');
 		console.log("Compoenent did mount!");
@@ -51,10 +51,13 @@ class Chatting extends React.Component{
 		)
 	}
 
+
 	componentWillReceiveProps(nextProps){
 		console.log("Component will receive props " + this.state.room + this.props.status.currentUser);
 		if(socket&&this.props.status.currentUser){
+			console.log("left signal emitted " +this.props.status);
 			socket.emit("user:left", {name:this.props.status.currentUser});
+			this.props.getStatusRequest();
 		}
 		//console.log(this.props.room);
 	}
@@ -115,8 +118,11 @@ class Chatting extends React.Component{
 			<div>
 				<UserList users={this.state.users}/>
 				<MessageList messages={this.state.messages}/>
+				{this.props.status.valid?
 				<MessageForm onMessageSubmit = {this.handleMessageSubmit}
 								user={this.props.status.currentUser}/>
+				: undefined
+				}
 			</div>
 		);
 	}
@@ -184,7 +190,8 @@ class MessageForm extends React.Component {
 	constructor(props){
 		super(props);
 		this.state={
-			text: ''
+			text: '',
+			isAuth: false
 		};
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.handleChange = this.handleChange.bind(this);
@@ -209,12 +216,16 @@ class MessageForm extends React.Component {
 		return(
 			<div className='message_form'>
 				<h3>Write new Message</h3>
-				<form onSubmit={this.handleSubmit}>
-					<input
-						onChange={this.handleChange}
-						value={this.state.text}
-					/>
-				</form>
+				{
+					<form onSubmit={this.handleSubmit}>
+					{
+						<input
+							onChange={this.handleChange}
+							value={this.state.text}
+						/>
+					}
+					</form>
+				}
 			</div>
 		)
 	}

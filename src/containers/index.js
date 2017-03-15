@@ -4,5 +4,7 @@ import StreamingView from './StreamingView';
 import Register from './Register';
 import StreamList from './StreamList';
 import NewStreamList from './NewStreamList';
+import Moonlight from './Moonlight';
 
-export {App, Login, StreamingView, Register, StreamList, NewStreamList};
+export {App, Login, StreamingView, Register, StreamList, NewStreamList, Moonlight};
+																				

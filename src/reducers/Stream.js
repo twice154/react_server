@@ -20,8 +20,7 @@ export default function Stream(state, action){
 			console.log(action.data);
 			return update(state, {
 				list: {
-					status: {$set: 'WAITING'},
-					error: {$set: -1}
+					status: {$set: 'WAITING'}
 				}
 			});
 

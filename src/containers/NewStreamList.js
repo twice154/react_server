@@ -20,7 +20,7 @@ class NewStreamList extends React.Component {
             <div>
                 <h1>Streaming List</h1>
                 <form>
-                    <input type='BUTTON' value="renew" onClick={this.componentDidMount}/>
+                    <input type='BUTTON' defaultValue="renew" onClick={this.componentDidMount}/>
                 </form>
             </div>
 			<div id="streams">{

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, browserHistory, IndexRoute, Link} from 'react-router';
-import {App, Login, StreamingView, Register, StreamList, NewStreamList} from 'containers';
+import {App, Login, StreamingView, Register, StreamList, NewStreamList, Moonlight} from 'containers';
 
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
@@ -19,6 +19,7 @@ ReactDOM.render(
 				<Route path="player/:streamname" component={StreamingView}/>
 				<Route path="login" component={Login}/>
 				<Route path="register" component={Register}/>
+				<Route path="c" component={Moonlight}/>
 			</Route>
 		</Router>
 	</Provider>, rootElement
