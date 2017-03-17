@@ -88,6 +88,7 @@ export function addHostRequest(hostIp){
 		
 		return axios.post('/api/moonlight/addhost', {hostIp: hostIp})
 		.then((response)=>{
+			console.log("Successed!");
 			dispatch(addHostSuccess(respnse.data));
 		}).catch((error)=>{
 			dispatch(addHostFailure());

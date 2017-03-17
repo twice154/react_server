@@ -83,7 +83,8 @@ class Moonlight extends React.Component {
 						console.log("ADDED SUCCESSFULLY!");
 					}
 					else{
-						console.log("Failed to Add");
+						console.log('Failed to add new host');
+						Materialize.toast('Failed to add new host', 2000);
 					}
 				}
 			)

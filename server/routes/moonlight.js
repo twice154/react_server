@@ -54,10 +54,12 @@ router.post('/addhost', (req, res)=>{
 			}
 			client.once('data', function(data){
 				data = JSON.parse(data);
+				console.log(data);
 				if(data.error){
 					res.status(403).json({error: "Failed to add Host"});
 					return;
 				}
+				console.log(data.pairingNum);
 				res.json(data);
 			})
 		})
