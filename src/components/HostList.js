@@ -22,7 +22,7 @@ class HostList extends React.Component{
 							{this.props.hostsList[i].online?
 								<a onClick = {this.handleClick} id={this.props.hostsList[i].hostId}>{this.props.hostsList[i].hostname}</a>
 								:
-								<span>{this.props.hostsList[i].hostname} :not online</span>
+								<span>{this.props.hostsList[i].hostname} :offline</span>
 							}
 						</ul>
 					</div>	

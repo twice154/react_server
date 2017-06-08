@@ -13,6 +13,11 @@ const initialState = {
 	startGame: {
 		status: 'INIT',
 		currentGame: 'INIT'
+	},
+	newHost : {
+		status: 'INIT',
+		data: [],
+		pairingNum: ""
 	}
 }
 
@@ -71,6 +76,9 @@ export default function moonlight(state, action){
 			return update(state, {
 				hostsList: {
 					status: {$set: 'ADD_WAITING'}
+				},
+				newHost:{
+					pairingNum: {$set: action.pairingNum}
 				}
 			})
 
@@ -79,6 +87,9 @@ export default function moonlight(state, action){
 				hostsList: {
 					status: {$set: 'ADD_SUCCESS'},
 					data: {$push: [action.data]}
+				},
+				newHost: {
+					data: {$set: action.data}
 				}
 			})
 

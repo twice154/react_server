@@ -82,30 +82,31 @@ export function getAppsFailure(){
 	};
 }
 
-export function addHostRequest(hostIp){
+export function addHostRequest(hostIp, pairingNum){
 	return (dispatch)=>{
-		dispatch(addHost());
-		
-		return axios.post('/api/moonlight/addhost', {hostIp: hostIp})
+		dispatch(addHost(pairingNum));
+		return axios.post('/api/moonlight/addhost', {hostIp: hostIp, pairingNum: pairingNum})
 		.then((response)=>{
-			console.log("Successed!");
-			dispatch(addHostSuccess(respnse.data));
+			console.log("Success!");
+			console.log(response.data);
+			dispatch(addHostSuccess(response.data));
 		}).catch((error)=>{
 			dispatch(addHostFailure());
 		})
 	}
 }
 
-export function addHost(){
+export function addHost(pairingNum){
 	return {
-		type: MOONLIGHT_ADD_HOST
+		type: MOONLIGHT_ADD_HOST,
+		pairingNum
 	}
 }
 
-export function addHostSuccess(hostname){
+export function addHostSuccess(data){
 	return {
 		type: MOONLIGHT_ADD_HOST_SUCCESS,
-		hostname
+		data
 	}
 }
 
@@ -115,11 +116,11 @@ export function addHostFailure(){
 	}
 }
 
-export function startGameRequest(hostId, appId){
+export function startGameRequest(hostId, appId, option){
 	return (dispatch) => {
 		dispatch(startGame());
 
-		return axios.post('/api/moonlight/startgame', {hostId: hostId, appId: appId})
+		return axios.post('/api/moonlight/startgame', {hostId: hostId, appId: appId, option: option})
 		.then((response)=>{
 			dispatch(startGameSuccess(appId));
 		}).catch((error)=>{

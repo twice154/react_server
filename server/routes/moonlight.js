@@ -48,18 +48,17 @@ router.post('/getapps', (req, res)=>{
 
 router.post('/addhost', (req, res)=>{
 	if(client){
-		client.write(JSON.stringify({command: "addHost", hostIp: req.body.hostIp}), function(err){
+		var randomNumber = req.body.pairingNum;
+		client.write(JSON.stringify({command: "addHost", hostIp: req.body.hostIp, randomNumber: randomNumber}), function(err){
 			if(err){
 				console.log("error occured: " + err);
 			}
 			client.once('data', function(data){
 				data = JSON.parse(data);
-				console.log(data);
 				if(data.error){
 					res.status(403).json({error: "Failed to add Host"});
 					return;
 				}
-				console.log(data.pairingNum);
 				res.json(data);
 			})
 		})
@@ -71,7 +70,7 @@ router.post('/addhost', (req, res)=>{
 
 router.post('/startgame', (req, res)=>{
 	if(client){
-		client.write(JSON.stringify({command: "startGame", appId: req.body.appId, hostId: req.body.hostId}), function(err){
+		client.write(JSON.stringify({command: "startGame", appId: req.body.appId, hostId: req.body.hostId, option: req.body.option}), function(err){
 			if(err){
 				console.log("error occured: " + err);
 			}
@@ -82,7 +81,7 @@ router.post('/startgame', (req, res)=>{
 					return;
 				}
 				res.json(data);
-			})
+			});
 		})
 	}else{
 		res.status(404).json({error: 'Failed to start game'});
