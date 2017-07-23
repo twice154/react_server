@@ -5,6 +5,7 @@ const router = express.Router();
 var client = null;
 var hostname_to_id = {}
 
+//get moonlight host list
 router.post('/gethosts', (req, res)=>{
 	if(client){
 		client.write(JSON.stringify({command: "getHosts"}), function(err){
@@ -27,6 +28,7 @@ router.post('/gethosts', (req, res)=>{
 	}
 });
 
+//get game list of the selected host
 router.post('/getapps', (req, res)=>{
 	if(client){
 		client.write(JSON.stringify({command: "getAppList", hostId: req.body.hostId}),function(err){
@@ -46,6 +48,7 @@ router.post('/getapps', (req, res)=>{
 	}
 })
 
+//add new moonlight host
 router.post('/addhost', (req, res)=>{
 	if(client){
 		var randomNumber = req.body.pairingNum;
@@ -68,6 +71,7 @@ router.post('/addhost', (req, res)=>{
 	}
 })
 
+//start the game of selected host
 router.post('/startgame', (req, res)=>{
 	if(client){
 		client.write(JSON.stringify({command: "startGame", appId: req.body.appId, hostId: req.body.hostId, option: req.body.option}), function(err){
@@ -88,7 +92,8 @@ router.post('/startgame', (req, res)=>{
 	}
 })
 
-////////////////////////////////////////// tcp Server
+
+////// tcp Server for communicating with moonlight-chrome
 
 var tcpPort=4001;
 

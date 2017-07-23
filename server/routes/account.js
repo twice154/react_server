@@ -18,7 +18,6 @@ router.use(session({
 const db = server.use('usersinfo');
 
 router.post('/signup', (req, res)=>{
-	console.log("AAA");
 	let usernameRegex = /^[a-z0-9]+$/;
 
 	if(!usernameRegex.test(req.body.id)){
