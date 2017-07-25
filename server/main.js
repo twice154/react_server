@@ -59,38 +59,22 @@ if(process.env.NODE_ENV == 'development') {
 
 ///////////////////////////////
 ///socket.io 설정 부분/////////
-var users = {};
+var usersinfo = {}; 
 var rooms = {};
 io.sockets.on('connection', (socket) =>{
     console.log("socket is connected");
-    socket.on('user:joined', (data)=>{
+    var currentUser = "";
+    socket.on('user:join', (data)=>{
         console.log(data + " has joined");
-        if(!rooms[data.room]){
-            rooms[data.room] = [];
+        makeRoom(data.room);
+        if(usersinfo[data.username]){
+            leftRoom(socket, data);
         }
-        if(users[data.name]){
-            let prevroom = users[data.name];
-            console.log(data.name + " has left from " + prevroom);
-            rooms[prevroom].splice(rooms[prevroom].indexOf(data.name), 1);
-            users[data.name]='';
-            socket.leave(prevroom);
-            socket.broadcast.to(prevroom).emit('user:left', {name: data.name});
-        }
-        socket.join(data.room);
-        socket.emit('init', rooms[data.room]);
-        socket.broadcast.to(data.room).emit('user:join', {name: data.name});
-        rooms[data.room].push(data.name);
-        users[data.name] = data.room;
-        console.log(rooms);
+        joinRoom(socket, data);
     });
 
     socket.on('user:left', (data)=>{
-        let prevroom = users[data.name];
-        console.log(data.name + " has left from " + prevroom);
-        rooms[prevroom].splice(rooms[prevroom].indexOf(data.name), 1);
-        users[data.name]='';
-        socket.leave(prevroom);
-        socket.broadcast.to(prevroom).emit('user:left', {name: data.name});
+        leftRoom(socket, data);
     });
 
     socket.on('send:message', (data)=>{
@@ -101,6 +85,29 @@ io.sockets.on('connection', (socket) =>{
         console.log("user disconnected");
     });
 });
+
+function makeRoom(room){ //TODO: Change the way of storing the information => db
+    if(!rooms[room]){
+        rooms[room] = [];
+    }    
+}
+
+function leftRoom(socket, data){
+    let prevroom = usersinfo[data.username];
+    console.log(data.username + " has left from " + prevroom);
+    rooms[prevroom].splice(rooms[prevroom].indexOf(data.username), 1);
+    usersinfo[data.username]='';
+    socket.leave(prevroom);
+    socket.broadcast.to(prevroom).emit('user:left', {username: data.username});
+}
+
+function joinRoom(socket, data){
+    socket.join(data.room);
+    socket.emit('init', rooms[data.room]);
+    socket.broadcast.to(data.room).emit('user:join', {username: data.username});
+    rooms[data.room].push(data.username);
+    usersinfo[data.username] = data.room;
+}
 
 /////////////////////////////
 /////////////////////////////

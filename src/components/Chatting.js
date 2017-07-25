@@ -20,19 +20,17 @@ class Chatting extends React.Component{
 	}
 
 	componentWillMount(){
-		//socket.on('init', this.init);
-		//let socket = io.connect('http://localhost:4000');
 		console.log("Compoenent did mount!");
 		this.props.getStatusRequest().then(
 			()=>{
 				if(this.props.status.valid){
 					socket = io.connect('http://localhost:4000', {'forceNew' : true});
+					socket.on('init', this.init);
 					socket.on('send:message', this.onReceiveMsg);
 					socket.on('user:join', this.onUserJoin);
 					socket.on('user:left', this.onUserLeft);
-					socket.on('init', this.init);
 					console.log("status is valid: " + this.props.status.currentUser);
-					socket.emit('user:joined',{name: this.props.status.currentUser, room: this.props.room});
+					socket.emit('user:join',{username: this.props.status.currentUser, room: this.props.room});
 				}
 			}
 		)
@@ -44,7 +42,7 @@ class Chatting extends React.Component{
 			()=>{
 				if(this.props.status.valid){
 					//this.onUserLeft({name:this.props.status.currentUser});
-					socket.emit("user:left", {name: this.props.status.currentUser});
+					socket.emit("user:left", {username: this.props.status.currentUser});
 					socket.disconnect();
 				}
 			}
@@ -56,10 +54,9 @@ class Chatting extends React.Component{
 		console.log("Component will receive props " + this.state.room + this.props.status.currentUser);
 		if(socket&&this.props.status.currentUser){
 			console.log("left signal emitted " +this.props.status);
-			socket.emit("user:left", {name:this.props.status.currentUser});
+			socket.emit("user:left", {username:this.props.status.currentUser});
 			this.props.getStatusRequest();
 		}
-		//console.log(this.props.room);
 	}
 
 	init(data){
@@ -83,24 +80,23 @@ class Chatting extends React.Component{
 		console.log('new user has joined');
 		this.setState(update(this.state,{
 			users :{
-				$push: [data.name]
+				$push: [data.username]
 			},
 			messages: {
-				$push: [{user:"APPLICATION BOT", text: data.name + " Joined"}]
+				$push: [{user:"APPLICATION BOT", text: data.username + " Joined"}]
 			}
 		}));
 	}
 
 	onUserLeft(data){
-		let users = this.state.users;
-		let index = users.indexOf(data.name);
+		let index = this.state.users.indexOf(data.username);
 		this.setState(
 			update(this.state, {
 				users: {
 					$splice: [[index, 1]]
 				},
 				messages: {
-					$push: [{user: 'APPLICATION BOT', text: data.name + ' Left'}]
+					$push: [{user: 'APPLICATION BOT', text: data.username + ' Left'}]
 				}
 			})
 		);
@@ -129,9 +125,6 @@ class Chatting extends React.Component{
 }
 
 class UserList extends React.Component{
-	componentDidMount(){
-		console.log(this.props.users);
-	}
 
 	render(){
 		return (

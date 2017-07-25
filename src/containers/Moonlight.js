@@ -2,22 +2,33 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {HostList} from 'components';
 import {getHostsRequest, getAddRequest, getAppsRequest, startGameRequest, addHostRequest} from 'actions/moonlight';
+import update from 'react-addons-update';
+
+class AppView extends React.Component {
+	 render(){
+
+	 }
+}
 
 class Moonlight extends React.Component {
 	constructor(props){
 		super(props);
 		this.state = {
-			online:false,
-			hostsList: [],
+			isMoonlightOnline:false,
+			hostList: [],
 			appList: [],
-			mode : true,  //true: hostView, false: apps(games)View
+			mode : true,  //true: hostsView, false: apps(games)View
 			selectedHost: "", //id of selected host
-			newhostIp: "",
-			addingHost: false,
-			resolution: "1280:720",
-			fps:"60",
-			bitrate:"10",
-			remote_audio_enabled: true
+			newHost:{
+				ip:"",
+				inProgress:false
+			},
+			streamSettings:{
+				resolution: "1280:720",
+				fps:"60",
+				bitrate:"10",
+				remote_audio_enabled: true		
+			} 
 		}
 		this.showApps = this.showApps.bind(this);
 		this.startGame = this.startGame.bind(this);
@@ -32,32 +43,35 @@ class Moonlight extends React.Component {
 		$("#fps").on('change', this.handleChange);
 		this.props.getHostsRequest().then(
 			()=>{
-				if(this.props.hostsList.status == "GET_SUCCESS"){
-					this.setState({
-						hostsList: this.props.hostsList.data,
-						status: true
-					});
+				if(this.props.hostList.status == "GET_SUCCESS"){
+					this.setState(update(this.state, {
+						hostList: {$set: this.props.hostList.data},
+						isMoonlightOnline: {$set: true}
+						})
+					);
+					console.log("Successfullly got hosts");
 				}
 				else{
 					console.log("Fail to get hosts");
-					this.setState({
-						status: false
-					})
+					this.setState(update(this.state, {
+						isMoonlightOnline: {$set: false}
+						})
+					)
 				}
 			}
 		)
 	}
 
 	showApps(hostId){
-		console.log("Selected host changed");
 		this.props.getAppsRequest(hostId).then(
 			()=>{
 				if(this.props.appList.status == "SUCCESS"){
-					this.setState({
-						mode: false,
-						selectedHost: hostId,
-						appList: this.props.appList.data
-					});
+					this.setState(update(this.state, {
+						mode: {$set: false},
+						selectedHost: {$set: hostId},
+						appList: {$set: this.props.appList.data}
+						})
+					);
 				}
 				else{
 					Materialize.toast('Failed to get the host', 2000);
@@ -89,23 +103,28 @@ class Moonlight extends React.Component {
 
 	addHost(e){
 		if(e.charCode==13){
-			this.setState({
-				newhostIp: "",
-				addingHost: true
-			});
+			this.setState(update(this.state, {
+				newHost:{
+					ip: {$set:""},
+					inProgress: {$set: true}
+				}
+			}));
 			let randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
 			this.props.addHostRequest(e.target.value, randomNumber).then(
 				()=>{
-					if(this.props.hostsList.status === "ADD_SUCCESS"){
+					if(this.props.hostList.status === "ADD_SUCCESS"){
 						console.log("ADDED SUCCESSFULLY!");
 						Materialize.toast("Added Successfullly", 2000);
-						this.setState({hostsList: this.props.hostsList.data});
+						this.setState(update(this.state, {
+							hostList: {$set: this.props.hostList.data}}));
 					}
 					else{
 						console.log('Failed to add new host');
 						Materialize.toast('Failed to add new host', 2000);
 					}
-					this.setState({addingHost: false});
+					this.setState(update(this.state, 
+						{newHost:{
+							inProgress: {$set: false}}}));
 				}
 			)
 		}
@@ -113,32 +132,30 @@ class Moonlight extends React.Component {
 
 	handleChange(e){
 		let nextState = {};
-		nextState[e.target.name] = e.target.value;
+		nextState[e.target.id] = this.state[e.target.id];
+		nextState[e.target.id][e.target.name] = e.target.value;
 		this.setState(nextState);
-		console.log(e.target.name + " : " + e.target.value);
 	}
 
 	handleCheck(e){
 		let nextState = {};
-		nextState[e.target.name] = e.target.checked;
-		console.log(e.target.checked);
+		nextState[e.target.id] = this.state[e.target.id]
+		nextState[e.target.id][e.target.name] = e.target.checked;
 		this.setState(nextState);
 	}
 
 	render(){
-		let canAddnewHost = this.state.status && !this.state.addingHost;
+		let canAddnewHost = this.state.isMoonlightOnline && !this.state.newHost.inProgress;
 		$(document).ready(function() {
  			$('select').material_select();
 		});
 
-
-		return (
+		const settingView = (
 			<div>
-				{this.state.status? <div className="col s12">Moonlight-chrome is online</div>: <div>Moonlight-chrome is offline</div>}
 				<div className="switch">
 					<p>
     				<label>
-      					<input type="checkbox" name="remote_audio_enabled" onChange={this.handleCheck} checked={this.state.remote_audio_enabled}/>
+      					<input type="checkbox" id="streamSettings" name="remote_audio_enabled" onChange={this.handleCheck} checked={this.state.streamSettings.remote_audio_enabled}/>
       					<span className="lever"></span>
       						Remote audio off/on
    					</label>
@@ -146,7 +163,7 @@ class Moonlight extends React.Component {
   				</div>
 				<div className="row">
 					<div className="input-field col s6">
-						<select id="res" name="resolution">
+						<select id="res" id="streamSettings" name="resolution">
 							<option value="" disabled>Choose your resolution</option>
 							<option value="1280:720">720p</option>
 							<option value="1920:1080">1080p</option>
@@ -155,7 +172,7 @@ class Moonlight extends React.Component {
 						<label>resolution</label>
 					</div>
 					<div className="input-field col s6">
-						<select id="fps" name="fps">
+						<select id="fps" id="streamSettings" name="fps">
 							<option value="" disabled>Choose your fps</option>
 							<option value="30">30</option>
 							<option value="60">60</option>
@@ -166,44 +183,56 @@ class Moonlight extends React.Component {
 				<div className="row">
 					<div className="col s12">
 						<form action="#">
-							<label>{"bitrate: " + this.state.bitrate}</label>
+							<label>{"bitrate: " + this.state.streamSettings.bitrate}</label>
     						<p className="range-field">
-      							<input type="range" name="bitrate" min="0" max="100" onChange={this.handleChange} value={this.state.bitrate}/>
+      							<input type="range" id="streamSettings" name="bitrate" min="0" max="100" onChange={this.handleChange} value={this.state.bitrate}/>
     						</p>
   						</form>
   					</div>
   				</div>
+  			</div>	
+		)
+
+		const appListView = (
+			this.state.appList.map((apps, i)=>{
+				return <div key={i}>
+					<li>
+						<a onClick={this.startGame} id={apps.id} name={apps.title}>{apps.title}</a>
+					</li>
+				</div>
+			})
+		);
+
+
+		return (
+			<div>
+				{this.state.isMoonlightOnline? <div className="col s12">Moonlight-chrome is online</div>: <div>Moonlight-chrome is offline</div>}
+				{settingView}
+
 				{this.state.mode?
 					<div className="row">
-						<HostList hostsList={this.state.hostsList} onClick={this.showApps}/>
+						<HostList hostList={this.state.hostList} onClick={this.showApps}/>
 						{canAddnewHost?
 							<div className="input-field col s12">
 							<input
-								id="hostip"
-	                   	 		name="newhostIp"
+								id="newHost"
+	                   	 		name="ip"
 		                    	type="text"
 		                    	className="validate"
 		                    	onChange={this.handleChange}
-		                    	value={this.state.newhostIp}
+		                    	value={this.state.newHost.ip}
 		                    	onKeyPress={this.addHost}/>
 		                    <label>add new host</label>
 		                    </div>
 							: undefined
 		               	}
-		               	{this.state.addingHost?
+		               	{this.state.newHost.inProgress?
 		               		<span>{"Please enter the number " + this.props.newHost.pairingNum + " on the GFE dialog on the computer."}</span>
 							: undefined
 						}
 
 					</div>
-					:
-						this.state.appList.map((apps, i)=>{
-							return <div key={i}>
-								<li>
-									<a onClick={this.startGame} id={apps.id} name={apps.title}>{apps.title}</a>
-								</li>
-							</div>
-						})
+					: {appListView}
 				}
 			</div>
 		)
@@ -212,7 +241,7 @@ class Moonlight extends React.Component {
 
 const mapStateToProps = (state) => {
 	return {
-		hostsList: state.moonlight.hostsList,
+		hostList: state.moonlight.hostList,
 		appList: state.moonlight.appList,
 		startGame: state.moonlight.startGame,
 		newHost: state.moonlight.newHost

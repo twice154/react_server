@@ -9,7 +9,8 @@ var dbServer = orientDB({  //connecting to orientdb
     username: 'root',
     password: 'ssh2159'
 });
-dbServer.drop('usersinfo');
+
+//dbServer.drop('usersinfo');
 var db = dbServer.create({  //userinfo라는 이름의 database를 만든다
     name: "usersinfo",
     type: "graph",
@@ -18,15 +19,17 @@ var db = dbServer.create({  //userinfo라는 이름의 database를 만든다
     db.class.create('User').then(function(user){ //사용자 정보 저장을 위한 User 클래스를 정의
         user.property.create({
             name: 'id',
-            type: 'String'
-        },{
-            name: 'password',
-            type: 'String'
-        },{
-            name: 'room',
-            type: 'String'
-        }).then(function (properties) {
-            console.log("Properties created");
+                type: 'String'
+            },{
+                name: 'password',
+                type: 'String'
+            },{
+                name: 'room',
+                type: 'String'
+            }).then(function (properties) {
+                console.log("Properties created");
+                db.close();
+                dbServer.close();
+            });
         });
     });
-});

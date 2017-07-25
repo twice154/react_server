@@ -12,14 +12,16 @@ class HostList extends React.Component{
 	}
 
 	render(){
-		let hostview = "";
+			let hostempty = (this.props.hostList === null);
 		return(
+
 			<div>
 			{	
-				this.props.hostsList.map((host, i)=>{
+				hostempty?
+				this.props.hostList.map((host, i)=>{
 					return <div key={i}>
 						<ul>
-							{this.props.hostsList[i].online?
+							{this.props.hostList[i].online?
 								<a onClick = {this.handleClick} id={this.props.hostsList[i].hostId}>{this.props.hostsList[i].hostname}</a>
 								:
 								<span>{this.props.hostsList[i].hostname} :offline</span>
@@ -27,6 +29,7 @@ class HostList extends React.Component{
 						</ul>
 					</div>	
 				})
+				: undefined
 			}
 			</div>
 		)

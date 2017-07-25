@@ -2,7 +2,7 @@ import * as types from 'actions/ActionTypes';
 import update from 'react-addons-update';
 
 const initialState = {
-	hostsList: {
+	hostList: {
 		status: 'INIT',
 		data: []
 	},
@@ -29,14 +29,14 @@ export default function moonlight(state, action){
 	switch(action.type){
 		case types.MOONLIGHT_GET_HOSTS:
 			return update(state, {
-				hostsList: {
+				hostList: {
 					status: {$set: 'GET_WAITING'}
 				}
 			})
 
 		case types.MOONLIGHT_GET_HOSTS_SUCCESS:
 			return update(state, {
-				hostsList: {
+				hostList: {
 					status: {$set: 'GET_SUCCESS'},
 					data: {$set: action.data}
 				}
@@ -44,7 +44,7 @@ export default function moonlight(state, action){
 
 		case types.MOONLIGHT_GET_HOSTS_FAILURE:
 			return update(state, {
-				hostsList: {
+				hostList: {
 					status: {$set: 'GET_FAILURE'},
 					data: {$set: action.data}
 				}
@@ -74,7 +74,7 @@ export default function moonlight(state, action){
 
 		case types.MOONLIGHT_ADD_HOST:
 			return update(state, {
-				hostsList: {
+				hostList: {
 					status: {$set: 'ADD_WAITING'}
 				},
 				newHost:{
@@ -84,7 +84,7 @@ export default function moonlight(state, action){
 
 		case types.MOONLIGHT_ADD_HOST_SUCCESS:
 			return update(state, {
-				hostsList: {
+				hostList: {
 					status: {$set: 'ADD_SUCCESS'},
 					data: {$push: [action.data]}
 				},
@@ -95,7 +95,7 @@ export default function moonlight(state, action){
 
 		case types.MOONLIGHT_ADD_HOST_FAILURE:
 			return update(state, {
-				hostsList: {
+				hostList: {
 					status: {$set: "ADD_FAILURE"}
 				}
 			})

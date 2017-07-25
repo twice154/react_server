@@ -17,31 +17,32 @@ class NewStreamList extends React.Component {
 	render(){
 		return(
             <div>
-            <div>
-                <h1>Streaming List</h1>
-                <form>
-                    <input type='BUTTON' defaultValue="renew" onClick={this.componentDidMount}/>
-                </form>
-            </div>
-			<div id="streams">{
-				this.props.streamList.map((streamname, i)=>{
-					let link = '/player/' + encodeURIComponent(streamname);
-               		let thumbnail_link = "http://localhost:8086/thumbnail?application=live&streamname=" + streamname + "&size=640x360&fitmode=letterbox";
-                	return <div key={i}>
-                		      <li>
-                				<Link to={link}>
-                                    <h3>
-                                        {streamname}
-                                    </h3>
-                                        <img
-                                            style={{width: 160, height: 90}}
-                                            src={thumbnail_link} 
-                                        />
-                                </Link>
-                			  </li>
-                		  </div>
-                })}
-            </div>
+                <div>
+                    <h1>Streaming List</h1>
+                    {this.props.status}
+                    <form>
+                        <input type='BUTTON' defaultValue="renew" onClick={this.componentDidMount}/>
+                    </form>
+                </div>
+    			<div id="streams">{
+    				this.props.streamList.map((streamname, i)=>{
+    					let link = '/player/' + encodeURIComponent(streamname);
+                   		let thumbnail_link = "http://localhost:8086/thumbnail?application=live&streamname=" + streamname + "&size=640x360&fitmode=letterbox";
+                    	return <div key={i}>
+                    		      <li>
+                    				<Link to={link}>
+                                        <h3>
+                                            {streamname}
+                                        </h3>
+                                            <img
+                                                style={{width: 160, height: 90}}
+                                                src={thumbnail_link} 
+                                            />
+                                    </Link>
+                    			  </li>
+                    		  </div>
+                    })}
+                </div>
             </div>
 		)
 	}
@@ -49,8 +50,8 @@ class NewStreamList extends React.Component {
 
 const mapStateToProps = (state) =>{
     return{
-        status: state.authentication.status,
-        streamList: state.Stream.list.data
+        status: state.Stream.status,
+        streamList: state.Stream.streamList
     };
 };
 

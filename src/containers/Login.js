@@ -16,7 +16,7 @@ class Login extends React.Component{
 				if(this.props.status === "SUCCESS"){
 					let loginData = {
 						isLoggedIn: true,
-						username: id
+						id
 					};
 
 					document.cookie = 'keys=' + btoa(JSON.stringify(loginData));
@@ -36,7 +36,7 @@ class Login extends React.Component{
 	render(){
 		return (
 			<div>
-				<Authentication mode={true}
+				<Authentication mode={"Login"}
 					onLogin={this.handleLogin}/>
 			</div>
 		);

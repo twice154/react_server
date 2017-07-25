@@ -17,10 +17,9 @@ export function getStreamsRequest(){
 			for(let i=0; i<xmlDoc.getElementsByTagName("Stream").length; i++){
 				streamList.push(xmlDoc.getElementsByTagName("Stream")[i].childNodes[0].childNodes[0].nodeValue);
 			}
-			console.log(streamList);
   			dispatch(getStreamsSuccess(streamList, false));
   		}).catch((error)=>{
-        console.log(error);
+        	console.log("error occured while getting stream list: " + error);
   			dispatch(getStreamsFailure());
   		});
 	}

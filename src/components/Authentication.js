@@ -5,7 +5,7 @@ class Authentication extends React.Component {
 	constructor(props){
 		super(props);
 		this.state = {
-			username:"",
+			id:"",
 			password:""
 		};
 		this.handleChange = this.handleChange.bind(this);
@@ -15,7 +15,7 @@ class Authentication extends React.Component {
 	}
 
 	handleLogin(){
-		let id = this.state.username;
+		let id = this.state.id;
 		let pw = this.state.password;
 
 		this.props.onLogin(id, pw).then(
@@ -30,14 +30,14 @@ class Authentication extends React.Component {
 	}
 
 	handleRegister(){
-		let id = this.state.username;
+		let id = this.state.id;
 		let pw = this.state.password;
 
 		this.props.onRegister(id, pw).then(
 			(result)=> {
 				if(!result){
 					this.setState({
-						username:'',
+						id:'',
 						password:''
 					});
 				}
@@ -53,10 +53,10 @@ class Authentication extends React.Component {
 
 	handleKeyPress(e){
 		if(e.charCode==13){
-			if(this.props.mode){
+			if(this.props.mode == "Login"){
 				this.handleLogin();
 			}
-			else{
+			else if(this.props.mode == "Register"){
 				this.handleRegister();
 			}
 		}
@@ -66,13 +66,13 @@ class Authentication extends React.Component {
 		const inputBoxes = (   //loginView와 registerView에서 겹치는 부분을 따로뺌
             <div>
                 <div className="input-field col s12 username">
-                    <label>Username</label>
+                    <label>Id</label>
                     <input
-                    name="username"
+                    name="id"
                     type="text"
                     className="validate"
                     onChange={this.handleChange}
-                    value={this.state.username}/>
+                    value={this.state.id}/>
                 </div>
                 <div className="input-field col s12">
                     <label>Password</label>
@@ -121,9 +121,9 @@ class Authentication extends React.Component {
 				<Link className="logo" to="/">5437</Link>
 				<div className="card">
 					<div className="header blue white-text center">
-						<div className="card-content">{this.props.mode? "LOGIN" : "REGISTER"}</div>
+						<div className="card-content">{this.props.mode=="Login"? "LOGIN" : "REGISTER"}</div>
 					</div>
-					{this.props.mode? loginView : registerView}
+					{this.props.mode=="Login"? loginView : registerView}
 				</div>
 			</div>
 		);
@@ -131,7 +131,7 @@ class Authentication extends React.Component {
 }
 
 Authentication.propTypes = {
-	mode: React.PropTypes.bool,
+	mode: React.PropTypes.string,
 	onLogin: React.PropTypes.func,
 	onRegister: React.PropTypes.func
 };
@@ -139,10 +139,10 @@ Authentication.propTypes = {
 Authentication.defaultProps = {
 	mode: true,
 	onLogin: (id, pw) => {
-		console.log("login function not defined");
+		console.log("login handler not defined");
 	},
 	onRegister: (id, pw) =>{
-		console.log("register function not defined");
+		console.log("register handler not defined");
 	}
 };
 

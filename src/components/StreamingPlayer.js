@@ -1,6 +1,6 @@
 import React from 'react';
 
-class Player extends React.Component{
+class StreamingPlayer extends React.Component{
 
 	componentDidMount(){
 		WowzaPlayer.create('playerElement',
@@ -33,4 +33,4 @@ class Player extends React.Component{
 	}
 }
 
-export default Player;
+export default StreamingPlayer;
