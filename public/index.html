@@ -3,8 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <!--Import Google Icon Font-->
+    <!--Import Wowza Player-->
     <script src="//player.wowza.com/player/latest/wowzaplayer.min.js"></script>
+    <!--Import Iamport payment module-->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="https://service.iamport.kr/js/iamport.payment-1.1.2.js"></script>
+    <!--Import Google Icon Font-->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!--Import materialize.css-->
     <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css"  media="screen,projection"/ />
@@ -18,12 +22,8 @@
 <body>
     <div id="root"></div>
     <div id="playerElement" style="width:100%; height:0; padding:0 0 56.25% 0"></div>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
-    <script>
-        //var socket = io.connect('http://localhost:4000', {secure: false});
-        //socket.emit('user:join', "aaa");
-    </script>   
+   
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>   
     <script src="/bundle.js"></script>
 </body>
 

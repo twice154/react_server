@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, browserHistory, IndexRoute, Link} from 'react-router';
 import {App, Login, StreamingView, Register, StreamList, NewStreamList, Moonlight} from 'containers';
-
+import {Payment} from 'components';
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
 import reducers from 'reducers';
@@ -20,6 +20,7 @@ ReactDOM.render(
 				<Route path="login" component={Login}/>
 				<Route path="register" component={Register}/>
 				<Route path="c" component={Moonlight}/>
+				<Route path="pay" component={Payment}/>
 			</Route>
 		</Router>
 	</Provider>, rootElement

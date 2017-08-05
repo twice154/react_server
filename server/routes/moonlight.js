@@ -18,7 +18,7 @@ router.post('/gethosts', (req, res)=>{
 			client.once('data', function(data){
 				var hostsList = JSON.parse(data).list;
 				for(var host in hostsList){
-					hostname_to_id[host.hostname] = host.hostId; 	
+					hostname_to_id[host.hostname] = host.hostId;
 				}
 				res.json(data);
 			});
@@ -90,6 +90,7 @@ router.post('/startgame', (req, res)=>{
 
 
 ////// tcp Server for communicating with moonlight-chrome
+///TODO: Separate this tcp Server
 
 var tcpPort=4001;
 
