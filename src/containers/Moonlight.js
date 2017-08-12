@@ -2,18 +2,14 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {HostList} from 'components';
 import {getHostsRequest, getAddRequest, getAppsRequest, startGameRequest, addHostRequest} from 'actions/moonlight';
+import {getStatusRequest} from 'actions/authentication';
 import update from 'react-addons-update';
-
-class AppView extends React.Component {
-	 render(){
-
-	 }
-}
 
 class Moonlight extends React.Component {
 	constructor(props){
 		super(props);
 		this.state = {
+			currentUser:"",
 			isMoonlightOnline:false,
 			hostList: [],
 			appList: [],
@@ -41,21 +37,30 @@ class Moonlight extends React.Component {
 
 		$("#res").on('change', this.handleChange);
 		$("#fps").on('change', this.handleChange);
-		this.props.getHostsRequest().then(
+		this.props.getStatusRequest().then(
 			()=>{
-				if(this.props.hostList.status == "GET_SUCCESS"){
+				if(this.props.status.valid){
 					this.setState(update(this.state, {
-						hostList: {$set: this.props.hostList.data},
-						isMoonlightOnline: {$set: true}
-						})
-					);
-					console.log("Successfullly got hosts");
-				}
-				else{
-					console.log("Fail to get hosts");
-					this.setState(update(this.state, {
-						isMoonlightOnline: {$set: false}
-						})
+						currentUser: {$set: this.props.status.currentUser}
+					}));
+					this.props.getHostsRequest(this.props.status.currentUser).then(
+						()=>{
+							if(this.props.hostList.status == "GET_SUCCESS"){
+								this.setState(update(this.state, {
+										hostList: {$set: this.props.hostList.data},
+										isMoonlightOnline: {$set: true}
+									})
+								);
+								console.log("Successfullly got hosts");
+							}
+							else{
+								console.log("Fail to get hosts");
+								this.setState(update(this.state, {
+									isMoonlightOnline: {$set: false}
+									})
+								)
+							}
+						}
 					)
 				}
 			}
@@ -63,7 +68,7 @@ class Moonlight extends React.Component {
 	}
 
 	showApps(hostId){
-		this.props.getAppsRequest(hostId).then(
+		this.props.getAppsRequest(this.state.currentUser, hostId).then(
 			()=>{
 				if(this.props.appList.status == "SUCCESS"){
 					this.setState(update(this.state, {
@@ -88,7 +93,7 @@ class Moonlight extends React.Component {
 			"remote_audio_enabled": this.state.remote_audio_enabled? 1 : 0,
 			"bitrate": this.state.bitrate
 		}
-		this.props.startGameRequest(this.state.selectedHost, e.target.id, option).then(
+		this.props.startGameRequest(this.state.currentUser, this.state.selectedHost, e.target.id, option).then(
 			()=>{
 				if(this.props.startGame.status == "SUCCESS"){
 					let $toastContent = $('<span style="color: $FFB4BA">Game will be started soon</span>');
@@ -110,7 +115,7 @@ class Moonlight extends React.Component {
 				}
 			}));
 			let randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
-			this.props.addHostRequest(e.target.value, randomNumber).then(
+			this.props.addHostRequest(this.state.currentUser, e.target.value, randomNumber).then(
 				()=>{
 					if(this.props.hostList.status === "ADD_SUCCESS"){
 						console.log("ADDED SUCCESSFULLY!");
@@ -244,23 +249,27 @@ const mapStateToProps = (state) => {
 		hostList: state.moonlight.hostList,
 		appList: state.moonlight.appList,
 		startGame: state.moonlight.startGame,
-		newHost: state.moonlight.newHost
+		newHost: state.moonlight.newHost,
+		status: state.authentication.status
 	};
 };
 
 const mapDispatchToProps = (dispatch) => {
 	return {
-		getHostsRequest: ()=>{
-			return dispatch(getHostsRequest());
+		getHostsRequest: (userId)=>{
+			return dispatch(getHostsRequest(userId));
 		},
-		getAppsRequest: (hostId)=>{
-			return dispatch(getAppsRequest(hostId));
+		getAppsRequest: (userId, hostId)=>{
+			return dispatch(getAppsRequest(userId, hostId));
 		},
-		startGameRequest: (hostId, appId, option)=>{
-			return dispatch(startGameRequest(hostId, appId, option));
+		startGameRequest: (userId, hostId, appId, option)=>{
+			return dispatch(startGameRequest(userId, hostId, appId, option));
 		},
-		addHostRequest: (hostIp, randomNumber)=>{
-			return dispatch(addHostRequest(hostIp, randomNumber));
+		addHostRequest: (userId,hostIp, randomNumber)=>{
+			return dispatch(addHostRequest(userId, hostIp, randomNumber));
+		},
+		getStatusRequest: ()=>{
+			return dispatch(getStatusRequest());
 		}
 	};
 };
