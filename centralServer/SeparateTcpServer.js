@@ -28,23 +28,28 @@ serverForMoonlight.on('connection', function(socket){
 	});
 	socket.once('data', function(data){
 		data = JSON.parse(data);
-		if(data.commmand === "isAccount"){
+		if(data.command === "isAccount"){
 			db.query("SELECT * FROM User WHERE id='" + data.userID + "'").then((exist)=>{
 				if(!exist[0]){
-					socket.write(JSON.stringify({isApproved: false}), function(err){
+					socket.write(JSON.stringify({command: "loginApproval", isApproved: false}), function(err){
 						console.log("Login failed: no such a id");						
 					})
 				}
 
-				else if(exist[0].password!=data.userPassword){
-					socket.write(JSON.stringify({isApproved: false}), function(err){
+				else if(exist[0].password!=data.userPW){
+					socket.write(JSON.stringify({command: "loginApproval", isApproved: false}), function(err){
 						console.log("Login failed: wrong password");					
 					})
 				}
 
 				else{
-					socket.write(JSON.stringify({isApproved: true, userID: data.userID}), function(err){
-						console.log("Login Success!!");						
+					socket.write(JSON.stringify({command: "loginApproval", isApproved: true, userID: data.userID}), function(err){
+						console.log("Login Success!!: " + data.userID);
+						clients[data.userID] = socket;
+						socket.on('close', function(){
+							console.log("Connection closed: " + data.userID);
+							delete clients[data.userID];
+						})						
 					});
 				}
 			});		
