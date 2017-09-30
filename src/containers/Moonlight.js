@@ -47,11 +47,12 @@ class Moonlight extends React.Component {
 						()=>{
 							if(this.props.hostList.status == "GET_SUCCESS"){
 								this.setState(update(this.state, {
-										hostList: {$set: this.props.hostList.data},
+										hostList: {$set: this.props.hostList.data.list},
 										isMoonlightOnline: {$set: true}
 									})
 								);
-								console.log("Successfullly got hosts");
+
+								console.log(this.state.hostList);
 							}
 							else{
 								console.log("Fail to get hosts");
@@ -87,11 +88,11 @@ class Moonlight extends React.Component {
 
 	startGame(e){
 		let option = {
-			"frameRate" : this.state.fps,
-			"streamWidth": this.state.resolution.split(':')[0],
-			"streamHeight": this.state.resolution.split(':')[1],
-			"remote_audio_enabled": this.state.remote_audio_enabled? 1 : 0,
-			"bitrate": this.state.bitrate
+			"frameRate" : this.state.streamSettings.fps,
+			"streamWidth": this.state.streamSettings.resolution.split(':')[0],
+			"streamHeight": this.state.streamSettings.resolution.split(':')[1],
+			"remote_audio_enabled": this.state.streamSettings.remote_audio_enabled? 1 : 0,
+			"bitrate": this.state.streamSettings.bitrate
 		}
 		this.props.startGameRequest(this.state.currentUser, this.state.selectedHost, e.target.id, option).then(
 			()=>{
@@ -198,7 +199,7 @@ class Moonlight extends React.Component {
   			</div>	
 		)
 
-		const appListView = (
+		let appListView = (
 			this.state.appList.map((apps, i)=>{
 				return <div key={i}>
 					<li>
@@ -237,7 +238,7 @@ class Moonlight extends React.Component {
 						}
 
 					</div>
-					: {appListView}
+						: appListView
 				}
 			</div>
 		)

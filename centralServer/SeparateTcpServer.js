@@ -87,6 +87,7 @@ app.post('/getapps', function(req, res){
 });
 
 app.post('/addhost', function(req, res){
+	console.log("request from " + req.body.userId + ": getting hosts");
 	var userId = req.body.userId;
 	if(clients[userId]){
 		var client  = clients[userId];
@@ -102,7 +103,7 @@ app.post('/startgame', function(req, res){
 	var userId = req.body.userId;
 	if(clients[userId]){
 		var client = clients[userId];
-		sendMsgToMoonlight(client, {command: "startGame", appId: req.body.appId, hostId: req.body.hostId, option: req.body.option});
+		sendMsgToMoonlight(client, {command: "startGame", appId: req.body.appId, hostId: req.body.hostId, option: req.body.option}, res);
 	}
 	else{
 		console.log("err on starting game: moonlight of " + req.body.userId + " not online");

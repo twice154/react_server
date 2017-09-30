@@ -1,4 +1,4 @@
-import {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             import {
 	MOONLIGHT_GET_HOSTS,
 	MOONLIGHT_GET_HOSTS_SUCCESS,
 	MOONLIGHT_GET_HOSTS_FAILURE,
@@ -21,7 +21,7 @@ export function getHostsRequest(userId){
 		return axios.post('/api/moonlight/gethosts', {userId})
 		.then((response)=>{
 			console.log(response);
-			dispatch(getHostsSuccess(response.data));
+			dispatch(getHostsSuccess(JSON.parse(response.data)));
 		}).catch((err)=>{
 			console.log(err);
 			dispatch(getHostsFailure());	
@@ -55,7 +55,7 @@ export function getAppsRequest(userId, hostId){
 
 		return axios.post('/api/moonlight/getapps', {userId: userId, hostId: hostId})
 		.then((response)=>{
-			dispatch(getAppsSuccess(response.data));
+			dispatch(getAppsSuccess(JSON.parse(response.data)));
 		}).catch((err)=>{
 			dispatch(getAppsFailure());
 		})
@@ -89,7 +89,7 @@ export function addHostRequest(userId, hostIp, pairingNum){
 		.then((response)=>{
 			console.log("Success!");
 			console.log(response.data);
-			dispatch(addHostSuccess(response.data));
+			dispatch(addHostSuccess(JSON.parse(response.data)));
 		}).catch((error)=>{
 			dispatch(addHostFailure());
 		})

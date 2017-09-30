@@ -35,6 +35,8 @@ export default function moonlight(state, action){
 			})
 
 		case types.MOONLIGHT_GET_HOSTS_SUCCESS:
+			console.log(action.data);
+		
 			return update(state, {
 				hostList: {
 					status: {$set: 'GET_SUCCESS'},
