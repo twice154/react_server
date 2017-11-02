@@ -3,17 +3,26 @@ var path = require('path');
 
 module.exports = {
 
-    entry: [
-        'babel-polyfill',
-        './src/index.js',
-        'webpack-dev-server/client?http://0.0.0.0:4000',
-        'webpack/hot/only-dev-server',
-        './src/style.css'
-    ],
+    entry: {
+        bundle:[
+            'babel-polyfill',
+            './src/index.js',
+            'webpack-dev-server/client?http://0.0.0.0:4000',
+            'webpack/hot/only-dev-server',
+            './src/style.css'
+        ],
+        test: [
+            'babel-polyfill',
+            './src/index.js',
+            'webpack-dev-server/client?http://0.0.0.0:4000',
+            'webpack/hot/only-dev-server',
+            './src/style.css'
+        ]
+    },
 
     output: {
         path: '/',
-        filename: 'bundle.js'
+        filename: '[name].js'
     },
 
     devServer: {

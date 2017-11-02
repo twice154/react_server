@@ -1,5 +1,4 @@
 import express from 'express';
-import net from 'net';
 import request from 'request';
 
 const router = express.Router();

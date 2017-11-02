@@ -2,6 +2,7 @@ import express from 'express';
 import account from './account';
 import stream from './stream';
 import moonlight from './moonlight';
+import speedtest from './speedtest';
 
 const router = express.Router();
 
@@ -11,10 +12,10 @@ router.use('/*', (req, res, next) => {
     next();
 });
 
-
 router.use('/account', account);
 router.use('/stream', stream);
 router.use('/moonlight', moonlight);
+router.use('/speedtest', speedtest);
 
 export default router;
 
