@@ -8,8 +8,9 @@ import axios from 'axios';
 export function getSpeedRequest(){
 	return (dispatch)=>{
 		dispatch(getSpeed());
-		return axios.get('/api/speedtest')
+		return axios.post('/api/speedtest')
 		.then((res)=>{
+			console.log(res.data.data);
 			dispatch(getSpeedSuccess(res.data.data));
 		}).catch((err)=>{
 			dispatch(getSpeedFailure());

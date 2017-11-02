@@ -1,32 +1,46 @@
 import express from 'express';
-import request from 'request';
+import net from 'net';
+import axios from 'axios';
 
 const router = express.Router();
 var clients = {}; //Storing sockets of moolight-chrome in form of (socket.remotePort: socket)
 				  //later: maybe in form of (userInformation(id, password): socket)
+var portForCentralServer = 4002;
+var socketForCentralServer = net.connect(portForCentralServer, "localhost", function(){
+	console.log("Connection to Central Server Success!!");
+	
+	socketForCentralServer.on('close', function(){
+		console.log('Connection to Central Server closed');
+	});
+	socketForCentralServer.on('error', function(err){
+		console.log('err occured while connecting');
+	})
+
+	socketForCentralServer.on('data', commandHandler);
+});
 
 //get moonlight host list
 router.post('/gethosts', (req, res)=>{
-	requestToCentralServer('gethosts', {userId: req.body.userId}, res);
+	sendMsgToCentralServer({command: 'gethosts_TO_ML', userId: req.body.userId});
 });
 
 //get game list of the selected host
 router.post('/getapps', (req, res)=>{
-	requestToCentralServer('getapps', {userId: req.body.userId, hostId: req.body.hostId}, res);
+	sendMsgToCentralServer({command: 'getapps_TO_ML', userId: req.body.userId, hostId: req.body.hostId});
 })
 
 //add new moonlight host
 router.post('/addhost', (req, res)=>{
-	requestToCentralServer('addhost', {userId: req.body.userId, hostIpaddress: req.body.hostIpaddress, pairingNum: req.body.pairingNum}, res);
+	sendMsgToCentralServer({command: 'addhost_TO_ML', userId: req.body.userId, hostIpaddress: req.body.hostIpaddress, pairingNum: req.body.pairingNum});
 });
 
 //start the game of selected host
 router.post('/startgame', (req, res)=>{
-	requestToCentralServer('startgame', {userId: req.body.userId, appId: req.body.appId, hostId: req.body.hostId, option: req.body.option}, res);
+	sendMsgToCentralServer({command: "startgame_TO_ML",userId: req.body.userId, appId: req.body.appId, hostId: req.body.hostId, option: req.body.option});
 });
 
-function requestToCentralServer(uri, form, res){
-	request.post({uri: 'http://localhost:4002/' + uri,form: form}, function(err, httpres, body){
+function sendMsgToCentralServer(command){
+	/*request.post({uri: 'http://localhost:4002/' + uri,form: form}, function(err, httpres, body){
 		if(err){
 			return res.status(401).json({"error": err});
 		}
@@ -34,9 +48,21 @@ function requestToCentralServer(uri, form, res){
 			console.log(body);
 			return res.json(body);
 		}
-	})
+	})*/
+	socketForCentralServer.write(JSON.stringify(command));
 }
 
+function commandHandler(data){ //handler for data from central server
+	data = JSON.parser(data);
+	switch(data.command){
+		case "networkTest":
+			axios.post('/api/speedtest').then((res)=>{
+				socketForCentralServer.write(JSON.stringify({command: "networkTest_TO_ML", data: res.data.data}));
+			});
+		default:
+			console.err("Unvalid Command: " + data.command);
+	}
+}
 ////// tcp Server for communicating with moonlight-chrome
 ///TODO: Separate this tcp Server
 

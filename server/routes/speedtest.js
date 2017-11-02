@@ -4,8 +4,8 @@ import speedTest from 'speedtest-net';
 
 const router = express.Router();
 
-router.get('*', (req, res)=>{
-	const test = speedTest({maxTime: 5000});
+router.post('*', (req, res)=>{
+	const test = speedTest({maxTime: 2000, maxServers: 1});
 	test.once('data', (data) =>{
 		console.log(data);
 		res.json({data: data});
