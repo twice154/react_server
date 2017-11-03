@@ -11,13 +11,7 @@ class HostList extends React.Component{
 		this.props.onClick(e.target.id);
 	}
 
-	componentDidMount(){
-		console.log("host list has been updated");
-		console.log(this.props.hostList);
-	}
-
 	render(){
-			console.log(this.props.hostList);
 			let hostempty = (this.props.hostList === null);
 		return(
 

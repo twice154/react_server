@@ -2,7 +2,6 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router'; 
 import {getStreamsRequest} from 'actions/Stream';
-import {SpeedTest} from 'components';
 
 class NewStreamList extends React.Component {
 	
@@ -19,7 +18,6 @@ class NewStreamList extends React.Component {
 		return(
             <div>
                 <div>
-                    <SpeedTest/>
                     <h1>Streaming List</h1>
                     {this.props.status}
                     <form>

@@ -40,7 +40,7 @@ export default function moonlight(state, action){
 			return update(state, {
 				hostList: {
 					status: {$set: 'GET_SUCCESS'},
-					data: {$set: action.data}
+					data: {$set: action.list}
 				}
 			})
 
@@ -63,7 +63,7 @@ export default function moonlight(state, action){
 			return update(state, {
 				appList: {
 					status: {$set: 'SUCCESS'},
-					data: {$set: action.data}
+					data: {$set: action.appList}
 				}
 			})
 
@@ -85,13 +85,14 @@ export default function moonlight(state, action){
 			})
 
 		case types.MOONLIGHT_ADD_HOST_SUCCESS:
+			delete action[command];
 			return update(state, {
 				hostList: {
 					status: {$set: 'ADD_SUCCESS'},
-					data: {$push: [action.data]}
+					data: {$push: [action]}
 				},
 				newHost: {
-					data: {$set: action.data}
+					data: {$set: action}
 				}
 			})
 

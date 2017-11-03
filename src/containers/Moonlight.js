@@ -5,6 +5,7 @@ import {getHostsRequest, getAddRequest, getAppsRequest, startGameRequest, addHos
 import {getStatusRequest} from 'actions/authentication';
 import update from 'react-addons-update';
 
+
 class Moonlight extends React.Component {
 	constructor(props){
 		super(props);
@@ -40,6 +41,7 @@ class Moonlight extends React.Component {
 		this.props.getStatusRequest().then(
 			()=>{
 				if(this.props.status.valid){
+					console.log("Status is valid");
 					this.setState(update(this.state, {
 						currentUser: {$set: this.props.status.currentUser}
 					}));
@@ -47,7 +49,7 @@ class Moonlight extends React.Component {
 						()=>{
 							if(this.props.hostList.status == "GET_SUCCESS"){
 								this.setState(update(this.state, {
-										hostList: {$set: this.props.hostList.data.list},
+										hostList: {$set: this.props.hostList.data},
 										isMoonlightOnline: {$set: true}
 									})
 								);

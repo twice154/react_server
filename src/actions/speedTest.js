@@ -10,7 +10,6 @@ export function getSpeedRequest(){
 		dispatch(getSpeed());
 		return axios.post('/api/speedtest')
 		.then((res)=>{
-			console.log(res.data.data);
 			dispatch(getSpeedSuccess(res.data.data));
 		}).catch((err)=>{
 			dispatch(getSpeedFailure());

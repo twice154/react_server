@@ -19,6 +19,7 @@ const db = server.use('usersinfo');
 
 
 var clients = {}; //TODO: Change this part to using db later
+
 				  
 var serverForMoonlight = net.createServer();  //For Many Moonlight 
 var serverForWebServer = net.createServer();  //For only one Web server
@@ -29,42 +30,59 @@ serverForMoonlight.on('connection', function(socket){
 	socket.on('close', function(){
 		console.log('Moonlight client connection is closed: ' + socket.remotePort);
 	});
-	socket.once('data', handler = function(data){
+	socket.on('data', function(data){
 		data = JSON.parse(data);
-		if(data.command === "isAccount"){
-			db.query("SELECT * FROM User WHERE id='" + data.userID + "'").then((exist)=>{
-				if(!exist[0]){
-					socket.write(JSON.stringify({command: "loginApproval", isApproved: false}), function(err){
-						console.log("Login failed: no such a id");	
-						socket.once('data', handler);
-					});
-				}
+		if(data.command.slice(-7,-1) === "WEB"){
+			if(isValidUser(data.userID)){
+				switch(data.command){
+					//If there's any difference between them, then add!
+					case "getHostsResult_TO_WEB": 
+					
+					case "addHostResult_TO_WEB":
+					
+					case "getAppsResult_TO_WEB":
 
-				else if(exist[0].password!=data.userPW){
-					socket.write(JSON.stringify({command: "loginApproval", isApproved: false}), function(err){
-						console.log("Login failed: wrong password");
-						socket.once('data', handler);
-					})
+					case "startGameResult_TO_WEB": 				
 				}
-
-				else{
-					socket.write(JSON.stringify({command: "loginApproval", isApproved: true, userID: data.userID}), function(err){
-						console.log("Login Success!!: " + data.userID);
-						clients[data.userID] = socket;
-						socket.once('data', handler);
-						socket.on('close', function(){
-							console.log("Connection closed: " + data.userID);
-							delete clients[data.userID];
-						})						
-					});
-				}
-			});		
+				sendMsg(clients[userID], data);
+			}
 		}
-		else if(data.command === "networkTest"){
-			//TODO: get the network info from the web server and transmit it to the moonlight-client
-			socketForWebServer.write(JSON.stringify({command: "networkTest_TO_WEB", userID: data.userID}, function(){
-				
-			}));
+		else{
+			if(data.command === "isAccount"){
+				db.query("SELECT * FROM User WHERE id='" + data.userID + "'").then((exist)=>{
+					if(!exist[0]){
+						socket.write(JSON.stringify({command: "loginApproval", isApproved: false}), function(err){
+							console.log("Login failed: no such a id");	
+						});
+					}
+
+					else if(exist[0].password!=data.userPW){
+						socket.write(JSON.stringify({command: "loginApproval", isApproved: false}), function(err){
+							console.log("Login failed: wrong password");
+						})
+					}
+
+					else{
+						socket.write(JSON.stringify({command: "loginApproval", isApproved: true, userID: data.userID}), function(err){
+							console.log("Login Success!!: " + data.userID);
+							clients[data.userID] = socket;
+							socket.on('close', function(){
+								console.log("Connection closed: " + data.userID);
+								delete clients[data.userID];
+							})						
+						});
+					}
+				});		
+			}
+			else if(data.command === "networkTest"){
+				//TODO: get the network info from the web server and transmit it to the moonlight-client
+				socketForWebServer.write(JSON.stringify({command: "networkTest_TO_WEB", userID: data.userID}, function(){
+					
+				}));
+			}
+			else{
+				console.log("Invalid command!");
+			}
 		}
 	})
 });
@@ -75,49 +93,6 @@ serverForMoonlight.on('error', function(err){
 
 serverForMoonlight.listen(portForMoonlight, 'localhost');
 
-/*app.post('/gethosts', function(req, res){
-	console.log("request from " + req.body.userId + ": getting hosts");
-	var userId = req.body.userId;
-	if(clients[userId]){
-		var client = clients[userId];
-		sendMsgToMoonlightAndRegisterHandler(client, {command:"getHosts", userID: req.body.userId}, res);
-	}
-	else{
-		console.log("err on getting hosts: moonlight of "+req.body.userId+" not online");
-	}	
-});
-app.post('/getapps', function(req, res){
-	var userId = req.body.userId;
-	if(clients[userId]){
-		var client = clients[userId];
-		sendMsgToMoonlightAndRegisterHandler(client, res, {command: "getAppList",userID: req.body.userId, hostId: req.body.hostId});
-	}
-	else{
-		console.log("err on getting apps: moonlight of "+req.body.userId+" not online");
-	}
-});
-app.post('/addhost', function(req, res){
-	console.log("request from " + req.body.userId + ": getting hosts");
-	var userId = req.body.userId;
-	if(clients[userId]){
-		var client  = clients[userId];
-		var randomNumber = req.body.pairingNum;
-		sendMsgToMoonlightAndRegisterHandler(client, res, {command: "addHost", userID: req.body.userId, hostIp: req.body.hostIpaddress, randomNumber: req.body.pairingNum});	
-	}
-	else{
-		console.log("err on adding host: moonlight of "+req.body.userId+" not online");
-	}
-});
-app.post('/startgame', function(req, res){
-	var userId = req.body.userId;
-	if(clients[userId]){
-		var client = clients[userId];
-		sendMsgToMoonlightAndRegisterHandler(client, res, {command: "startGame", appId: req.body.appId, hostId: req.body.hostId, option: req.body.option});
-	}
-	else{
-		console.log("err on starting game: moonlight of " + req.body.userId + " not online");
-	}
-})*/
 serverForWebServer.on('connection', function(socket){
 	console.log("Server has a Webserver connection: " + socket.remotePort);
 	socketForWebServer = socket;
@@ -128,89 +103,104 @@ serverForWebServer.on('connection', function(socket){
 	socket.on('data', function(data){
 		data = JSON.parse(data);
 		var userId = data.userId;
-		switch(data.command){
-			
-			case "gethosts_TO_ML":
-				console.log('request from ' + userId + ": getting hosts");
-				if(clients[userId]){
-					var SocketforML = client[userId];
-					sendMsgToMoonlightAndRegisterHandler(socketForML, socketForWebServer,{command: "getHosts", userID: userId});
-				}
-				else{
-					console.log("err on getting hosts: moolight of " + userId +  " not online");
-				}
+		var socketforML;
+		if(clients[userId]){
+			socketForML = clients[userId];
+		}
+		console.log(data.command);
+		if(data.command.slice(-6, -1) === "TO_ML"){
+			if(data.res){
+				
+			}
+			switch(data.command){
+				
+				case "getHosts_TO_ML":
+					console.log('request from ' + userId + ": getting hosts");
+					if(clients[userId]){
+						//var socketforML = clients[userId];
+						sendMsg(socketforML, {command: "getHosts", userID: userId});
+					}
+					else{
+						console.log("err on getting hosts: moolight of " + userId +  " not online");
+					}
+					break;
 
-			case "getapps_TO_ML":
-				console.log('request from ' + userId  + ": getting apps");
-				if(clients[userId]){
-					var SocketforML = client[userId];
-					sendMsgToMoonlightAndRegisterHandler(socketForML, socketForWebServer, {command: "getAppList",userID: req.body.userId, hostId: req.body.hostId});
-				}
-				else{
-					console.log("err on getting apps: moonlight of " + req.body.userId +"not online");
-				}
+				case "getApps_TO_ML":
+					console.log('request from ' + userId  + ": getting apps");
+					if(clients[userId]){
+						//var socketforML = clients[userId];
+						sendMsg(socketForML, {command: "getApps",userID: userId, hostId: data.hostId});
+					}
+					else{
+						console.log("err on getting apps: moonlight of " + userId +"not online");
+					}
+					break;
 
-			case "addhost_TO_ML":
-				console.log('request from ' + userId + ": adding host");
-				if(clients[userId]){
-					var SocketforML = client[userId];
-					var randomNumber = req.body.pairingNum;
-					sendMsgToMoonlightAndRegisterHandler(socketForML, socketForWebServer, {command: "addHost", userID: userId, hostIp: req.body.hostIpaddress, randomNumber});
-				}
-				else{
-					console.log("err on adding host: moolight of " + req.body.userId + "not online");
-				}
+				
+					console.log('request from ' + userId + ": adding host");
+					if(clients[userId]){
+						//var socketforML = clients[userId];
+						var randomNumber = data.pairingNum;
+						sendMsg(socketForML, {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber});
+					}
+					else{
+						console.log("err on adding host: moolight of " + userId + "not online");
+					}
+					break;
 
-			case "startgame_TO_ML":
-				console.log('request from ' + userId + ": start game");
-				if(clients[userId]){
-					var socketForML = clients[userId];
-					sendMsgToMoonlightAndRegisterHandler(socketForML, socketForWebServer, {command: "startGame", appId: req.body.appId, hostId: req.body.hostId, option: req.body.option});
-				}
-				else{
-					console.log("err on starting game: moolight of " + req.body.userId + " not online");
-				}
+				case "startGame_TO_ML":
+					console.log('request from ' + userId + ": starting game");
+					if(clients[userId]){
+						//var socketForML = clients[userId];
+						sendMsg(socketForML, {command: "startGame", userID: userId, appId: data.appId, hostId: data.hostId, option: data.option});
+					}
+					else{
+						console.log("err on starting game: moolight of " + userId + " not online");
+					}
+					break;
 
-			case "networkTest_TO_ML":
-				console.log("request from " + userId + ": networkTest");
-				data = data.data;
-				if(clients[userId]){
-					var socketForML = clients[userId];
-					socketForML.write({command: "networkTest", userID: userId, ip:data.client.ip, latency: data.server.ping, download: data.speeds.download});
-				}
+				case "networkTest_TO_ML":
+					console.log("request from " + userId + ": networkTest");
+					data = data.data;
+					if(clients[userId]){
+						//var socketForML = clients[userId];
+						sendMsg(socketforML, {command: "networkTest", userID: userId, ip:data.client.ip, latency: data.server.ping, download: data.speeds.download});
+					}
+					break;
 
-			default:
-				console.err("Invalid command from WebServer");
-
-
+				default:
+					console.log("Invalid command from WebServer");
+					break;
+			}
 		}
 	})
 })
 
 
 
-function sendMsgToMoonlightAndRegisterHandler(socketForML, socketForWeb, msg){
-	socketForML.write(JSON.stringify(msg), function(err){
+function sendMsg(socket, msg){
+	socket.write(JSON.stringify(msg), function(err){
 		if(err){
-			console.log("err on getting hosts: " + err);
-			res.status(404).json({error: err});
+			console.log("err on sending msg: " + err);
 		}
 		else{
-			registerResponseHandler(socketForML, socketForWeb);
+			console.log("Successfully sent msg: " + msg.command);
 		}
 	});
 }
 
-function registerResponseHandler(socketForML, socketForWeb){
-	socketForML.once('data', function(data){
-		data = JSON.parse(data);
-		if(data.error){
-			res.status(404).json({error: 'host is not online'});
-			return;
+function isValidUser(userID){
+	if(userID){
+		if(clients[userID]){
+			return true;
 		}
-		console.log(data);
-		socketForWeb.write(data);
-	});	
+		else{
+			console.log("Not a logined user!");
+		}
+	}else{
+		console.log("There's no userID!");
+	}
+	return false;
 }
 
 serverForWebServer.on('error', function(err){

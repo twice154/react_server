@@ -3,8 +3,8 @@ import net from 'net';
 import axios from 'axios';
 
 const router = express.Router();
-var clients = {}; //Storing sockets of moolight-chrome in form of (socket.remotePort: socket)
-				  //later: maybe in form of (userInformation(id, password): socket)
+var httpResponses = {getHosts: [], getApps: [], addHost: [], startGame:[]};
+
 var portForCentralServer = 4002;
 var socketForCentralServer = net.connect(portForCentralServer, "localhost", function(){
 	console.log("Connection to Central Server Success!!");
@@ -12,78 +12,87 @@ var socketForCentralServer = net.connect(portForCentralServer, "localhost", func
 	socketForCentralServer.on('close', function(){
 		console.log('Connection to Central Server closed');
 	});
-	socketForCentralServer.on('error', function(err){
-		console.log('err occured while connecting');
-	})
-
 	socketForCentralServer.on('data', commandHandler);
 });
+socketForCentralServer.on('error', function(err){
+	console.log('err occured while connecting');
+});
+
+
+//TODO: Find better way for getting http request and send msg to central server 
+//      and send http response when getting msg from central server without 
+//		storing or sending http respnse data to censtral server.
+
+//##    Found seemingly better way: store http responses according to their purpose
+//		And when got one central server response, then handle all the http response 
+//		of same purpose. It doesn't seems like the best, but better.
 
 //get moonlight host list
 router.post('/gethosts', (req, res)=>{
-	sendMsgToCentralServer({command: 'gethosts_TO_ML', userId: req.body.userId});
+	sendMsgToCentralServerAndRegisterResHandler(res, {command: 'getHosts_TO_ML', userId: req.body.userId});
+	httpResponses.getHosts.push(res);
 });
 
 //get game list of the selected host
 router.post('/getapps', (req, res)=>{
-	sendMsgToCentralServer({command: 'getapps_TO_ML', userId: req.body.userId, hostId: req.body.hostId});
+	sendMsgToCentralServerAndRegisterResHandler(res, {command: 'getApps_TO_ML', userId: req.body.userId, hostId: req.body.hostId});
+	httpResponses.getApps.push(res);
 })
 
 //add new moonlight host
 router.post('/addhost', (req, res)=>{
-	sendMsgToCentralServer({command: 'addhost_TO_ML', userId: req.body.userId, hostIpaddress: req.body.hostIpaddress, pairingNum: req.body.pairingNum});
+	sendMsgToCentralServerAndRegisterResHandler(res, {command: 'addHost_TO_ML', userId: req.body.userId, hostIpaddress: req.body.hostIpaddress, pairingNum: req.body.pairingNum});
+	httpResponses.addHost.push(res);
 });
 
 //start the game of selected host
 router.post('/startgame', (req, res)=>{
-	sendMsgToCentralServer({command: "startgame_TO_ML",userId: req.body.userId, appId: req.body.appId, hostId: req.body.hostId, option: req.body.option});
+	sendMsgToCentralServerAndRegisterResHandler(res, {command: "startGame_TO_ML",userId: req.body.userId, appId: req.body.appId, hostId: req.body.hostId, option: req.body.option});
+	httpResponses.startGame.push(res);
 });
 
-function sendMsgToCentralServer(command){
-	/*request.post({uri: 'http://localhost:4002/' + uri,form: form}, function(err, httpres, body){
-		if(err){
-			return res.status(401).json({"error": err});
-		}
-		else{
-			console.log(body);
-			return res.json(body);
-		}
-	})*/
-	socketForCentralServer.write(JSON.stringify(command));
+function sendMsgToCentralServerAndRegisterResHandler(res, msg){
+
+	socketForCentralServer.write(JSON.stringify(msg), function(){
+		
+	});
 }
 
 function commandHandler(data){ //handler for data from central server
-	data = JSON.parser(data);
+	data = JSON.parse(data);
+	if(data.command.slice(-6,) === "TO_WEB"){
+		data.command = data.command.splice(0, -7);
+	}
 	switch(data.command){
+
+		case "getHostsResult":
+			iterativelySendResponse(httpResponses.getHosts, data);
+			break;
+		case "addHostResult":
+			iterativelySendResponse(httpResponses.addHost, data);
+			break;
+		case "getAppsResult":
+			iterativelySendResponse(httpResponses.getApps, data);
+			break;
+		case "startGameResult":
+			iterativelySendResponse(httpResponses.startGame, data);
+			break;
 		case "networkTest":
 			axios.post('/api/speedtest').then((res)=>{
 				socketForCentralServer.write(JSON.stringify({command: "networkTest_TO_ML", data: res.data.data}));
 			});
+			break;
+
 		default:
-			console.err("Unvalid Command: " + data.command);
+			console.log("Unvalid Command: " + data.command);
 	}
 }
-////// tcp Server for communicating with moonlight-chrome
-///TODO: Separate this tcp Server
 
-/*var tcpPort=4001;
-
-var server = net.createServer();
-
-server.on('connection', function(socket){
-	clients[socket.remotePort] = socket;
-	console.log('Server has a new connection: ' + socket.remotePort);
-	socket.on('close',function(){
-		console.log('Connection is closed: ' + socket.remotePort);
-		clients[socket.remotePort] = null;
+function iterativelySendResponse(responseArray, data){
+	var length =  responseArray.length;
+	responseArray.forEach(function(element, index, array){
+		element.json(data);
 	});
-})
-
-server.on('error',function(err){
-	    console.log('Error occured'+ err);
-});
-server.listen(tcpPort, function(){
-	console.log("tcp server is listening on " + tcpPort);
-});*/
-/////////////////////////////////////////////
+	reponseArray.splice(0, length);	
+}
 export default router;
