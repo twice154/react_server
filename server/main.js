@@ -59,8 +59,8 @@ if(process.env.NODE_ENV == 'development') {
 
 ///////////////////////////////
 ///socket.io 설정 부분/////////
-var usersinfo = {}; 
-var rooms = {};
+var usersinfo = {};     //TODO: Store these two varibles into db
+var rooms = {};         // 
 io.sockets.on('connection', (socket) =>{
     console.log("socket is connected");
     var currentUser = "";
