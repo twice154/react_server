@@ -12,12 +12,12 @@ class HostList extends React.Component{
 	}
 
 	render(){
-			let hostempty = (this.props.hostList === null);
 		return(
 
 			<div>
 			{	
-				(!hostempty)?
+				(this.props.hostList)?
+
 				this.props.hostList.map((host, i)=>{
 					return <div key={i}>
 						<ul>

@@ -32,19 +32,20 @@ serverForMoonlight.on('connection', function(socket){
 	});
 	socket.on('data', function(data){
 		data = JSON.parse(data);
-		if(data.command.slice(-7,-1) === "WEB"){
+		console.log(data);
+		if(data.command.slice(-6, ) === "TO_WEB"){
 			if(isValidUser(data.userID)){
 				switch(data.command){
 					//If there's any difference between them, then add!
 					case "getHostsResult_TO_WEB": 
-					
+
 					case "addHostResult_TO_WEB":
 					
 					case "getAppsResult_TO_WEB":
 
 					case "startGameResult_TO_WEB": 				
 				}
-				sendMsg(clients[userID], data);
+				sendMsg(socketForWebServer, data);
 			}
 		}
 		else{
@@ -108,22 +109,24 @@ serverForWebServer.on('connection', function(socket){
 			socketForML = clients[userId];
 		}
 		console.log(data.command);
-		if(data.command.slice(-6, -1) === "TO_ML"){
-			if(data.res){
-				
-			}
+		if(data.command.slice(-5, ) === "TO_ML"){
 			switch(data.command){
 				
 				case "getHosts_TO_ML":
 					console.log('request from ' + userId + ": getting hosts");
 					if(clients[userId]){
-						//var socketforML = clients[userId];
-						sendMsg(socketforML, {command: "getHosts", userID: userId});
+						sendMsg(clients[userId], {command: "getHosts", userID: userId});
 					}
 					else{
 						console.log("err on getting hosts: moolight of " + userId +  " not online");
 					}
 					break;
+
+				case "addHost_TO_ML":
+					console.log('request form ' + userId + ": getting hosts");
+					if(clients[userId]){
+						sendMsg(clients[userId], {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum});
+					}	
 
 				case "getApps_TO_ML":
 					console.log('request from ' + userId  + ": getting apps");

@@ -53,8 +53,7 @@ class Moonlight extends React.Component {
 										isMoonlightOnline: {$set: true}
 									})
 								);
-
-								console.log(this.state.hostList);
+								console.log("Successfullly got hosts");								
 							}
 							else{
 								console.log("Fail to get hosts");

@@ -60,24 +60,22 @@ function sendMsgToCentralServerAndRegisterResHandler(res, msg){
 
 function commandHandler(data){ //handler for data from central server
 	data = JSON.parse(data);
-	if(data.command.slice(-6,) === "TO_WEB"){
-		data.command = data.command.splice(0, -7);
-	}
+	console.log("Receiver msg: " + data.command);
 	switch(data.command){
 
-		case "getHostsResult":
+		case "getHostsResult_TO_WEB":
 			iterativelySendResponse(httpResponses.getHosts, data);
 			break;
-		case "addHostResult":
+		case "addHostResult_TO_WEB":
 			iterativelySendResponse(httpResponses.addHost, data);
 			break;
-		case "getAppsResult":
+		case "getAppsResult_TO_WEB":
 			iterativelySendResponse(httpResponses.getApps, data);
 			break;
-		case "startGameResult":
+		case "startGameResult_TO_WEB":
 			iterativelySendResponse(httpResponses.startGame, data);
 			break;
-		case "networkTest":
+		case "networkTest_TO_WEB":
 			axios.post('/api/speedtest').then((res)=>{
 				socketForCentralServer.write(JSON.stringify({command: "networkTest_TO_ML", data: res.data.data}));
 			});
@@ -93,6 +91,6 @@ function iterativelySendResponse(responseArray, data){
 	responseArray.forEach(function(element, index, array){
 		element.json(data);
 	});
-	reponseArray.splice(0, length);	
+	responseArray.splice(0, length);	
 }
 export default router;

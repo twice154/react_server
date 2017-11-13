@@ -21,7 +21,12 @@ export function getHostsRequest(userId){
 		return axios.post('/api/moonlight/gethosts', {userId})
 		.then((response)=>{
 			console.log(response);
-			dispatch(getHostsSuccess(JSON.parse(response.data)));
+			if(response.data.error){
+				dispatch(getHostsFailure());
+			}
+			else{
+				dispatch(getHostsSuccess(response.data));
+			}
 		}).catch((err)=>{
 			console.log(err);
 			dispatch(getHostsFailure());	
