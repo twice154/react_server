@@ -16,7 +16,6 @@ const server =  orientDB({
 	password: 'ssh2159'
 });
 const db = server.use('usersinfo');
-const jc = require('json-cycle');
 
 
 
@@ -32,51 +31,61 @@ serverForMoonlight.on('connection', function(socket){
 	socket.on('close', function(){
 		console.log('Moonlight client connection is closed: ' + socket.remotePort);
 	});
-	socket.on('data', function(data){
+	socket.on('data', async function(data){
 		data = JSON.parse(data);
 		console.log(data);
 		if(data.command.slice(-6, ) === "TO_WEB"){
-			if(getMLSocket(data.userID)){
-				switch(data.command){
-					//If there's any difference between them, then add!
-					case "getHostsResult_TO_WEB": 
+			//getMLSocket(data.userID).then((socketforML)=>{
+				//if(socketforML){
+					switch(data.command){
+						//If there's any difference between them, then add!
+						case "getHostsResult_TO_WEB": 
 
-					case "addHostResult_TO_WEB":
-					
-					case "getAppsResult_TO_WEB":
+						case "addHostResult_TO_WEB":
+						
+						case "getAppsResult_TO_WEB":
 
-					case "startGameResult_TO_WEB": 				
-				}
-				sendMsg(socketForWebServer, data);
-			}
+						case "startGameResult_TO_WEB": 				
+					}
+					sendMsg(socketForWebServer, data);	
+				//}			
+			/*}).catch((err)=>{
+				console.log("Something broken while getting ML socket data from db: " + err);
+			})*/
 		}
 		else{
 			if(data.command === "isAccount"){
-				
-				if(isValidUser(data.userID, data.userPW)){
-					socket.write(JSON.stringify({command: "loginApproval", isApproved: true, userID: data.userID}), function(err){
-						if(err){
-							console.log("There's error while sending loginApproval to ML");
-						}
-						else{
-							//clients[data.userID] = socket;
-							saveMLSocket(data.userID, socket);
-							socket.on('close', function(){
-								console.log("Connection closed: " + data.userID);
-								//delete clients[data.userID];
-								deleteMLSocket(data.userID, socket);
+				isValidUser(data.userID, data.userPW)
+					.then((isValid)=>{
+						console.log(isValid);
+						if(isValid){
+							socket.write(JSON.stringify({command: "loginApproval", isApproved: true, userID: data.userID}), function(err){
+								if(err){
+									console.log("There's error while sending loginApproval to ML");
+								}
+								else{
+									//clients[data.userID] = socket;
+									saveMLSocket(data.userID, socket);
+									socket.on('close', function(){
+										console.log("Connection closed: " + data.userID);
+										//delete clients[data.userID];
+										deleteMLSocket(data.userID, socket);
+									});
+								}						
 							});
-						}						
-					});
-				}
-
-				else{
-					socket.write(JSON.stringify({command: "loginApproval", isApproved: false}), function(err){
-						if(err){
-							console.log("There's error while sending loginApproval to ML");
 						}
+
+						else{
+							socket.write(JSON.stringify({command: "loginApproval", isApproved: false}), function(err){
+								if(err){
+									console.log("There's error while sending loginApproval to ML");
+								}
+							});
+						}
+						
+					}).catch((err)=>{
+						console.log("SOmething broken while getting account info");
 					});
-				}
 			}
 			else if(data.command === "networkTest"){
 				//TODO: get the network info from the web server and transmit it to the moonlight-client
@@ -107,79 +116,85 @@ serverForWebServer.on('connection', function(socket){
 	socket.on('data', function(data){
 		data = JSON.parse(data);
 		var userId = data.userId;
-		var socketForML = getMLSocket(data.userId);
-		if(!socketForML){
-			console.log("ML of " + userId + " is offline");
-			return;
-		}
-		console.log(data.command);
-		if(data.command.slice(-5, ) === "TO_ML"){
-			switch(data.command){
-				
-				case "getHosts_TO_ML":
-					console.log('request from ' + userId + ": getting hosts");
-					//if(clients[userId]){
-						sendMsg(socketForML, {command: "getHosts", userID: userId});
-					//}
-					/*else{
-						console.log("err on getting hosts: moolight of " + userId +  " not online");
-					}*/
-					break;
-
-				case "addHost_TO_ML":
-					console.log('request form ' + userId + ": getting hosts");
-					//if(clients[userId]){
-						sendMsg(socketForML, {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum});
-					//}	
-
-				case "getApps_TO_ML":
-					console.log('request from ' + userId  + ": getting apps");
-					//if(clients[userId]){
-						//var socketforML = clients[userId];
-						sendMsg(socketForML, {command: "getApps",userID: userId, hostId: data.hostId});
-					//}
-					/*else{
-						console.log("err on getting apps: moonlight of " + userId +"not online");
-					}*/
-					break;
-
-				
-					console.log('request from ' + userId + ": adding host");
-					//if(clients[userId]){
-						//var socketforML = clients[userId];
-						var randomNumber = data.pairingNum;
-						sendMsg(socketForML, {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber});
-					//}
-					/*else{
-						console.log("err on adding host: moolight of " + userId + "not online");
-					}*/
-					break;
-
-				case "startGame_TO_ML":
-					console.log('request from ' + userId + ": starting game");
-					//if(clients[userId]){
-						//var socketForML = clients[userId];
-						sendMsg(socketForML, {command: "startGame", userID: userId, appId: data.appId, hostId: data.hostId, option: data.option});
-					//}
-					/*else{
-						console.log("err on starting game: moolight of " + userId + " not online");
-					}*/
-					break;
-
-				case "networkTest_TO_ML":
-					console.log("request from " + userId + ": networkTest");
-					data = data.data;
-					//if(clients[userId]){
-						//var socketForML = clients[userId];
-						sendMsg(socketforML, {command: "networkTest", userID: userId, ip:data.client.ip, latency: data.server.ping, download: data.speeds.download});
-					//}
-					break;
-
-				default:
-					console.log("Invalid command from WebServer");
-					break;
+		getMLSocket(data.userId).then((socketForML)=>{
+			console.log(socketForML);
+			if(!socketForML){
+				console.log("ML of " + userId + " is offline");
+				return;
 			}
-		}
+			console.log(data.command);
+			if(data.command.slice(-5, ) === "TO_ML"){
+				switch(data.command){
+					
+					case "getHosts_TO_ML":
+						console.log('request from ' + userId + ": getting hosts");
+						//if(clients[userId]){
+							sendMsg(socketForML, {command: "getHosts", userID: userId});
+						//}
+						/*else{
+							console.log("err on getting hosts: moolight of " + userId +  " not online");
+						}*/
+						break;
+
+					case "addHost_TO_ML":
+						console.log('request form ' + userId + ": getting hosts");
+						//if(clients[userId]){
+							sendMsg(socketForML, {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum});
+						//}	
+						break;
+
+					case "getApps_TO_ML":
+						console.log('request from ' + userId  + ": getting apps");
+						//if(clients[userId]){
+							//var socketforML = clients[userId];
+							sendMsg(socketForML, {command: "getApps",userID: userId, hostId: data.hostId});
+						//}
+						/*else{
+							console.log("err on getting apps: moonlight of " + userId +"not online");
+						}*/
+						break;
+
+					
+						console.log('request from ' + userId + ": adding host");
+						//if(clients[userId]){
+							//var socketforML = clients[userId];
+							var randomNumber = data.pairingNum;
+							sendMsg(socketForML, {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber});
+						//}
+						/*else{
+							console.log("err on adding host: moolight of " + userId + "not online");
+						}*/
+						break;
+
+					case "startGame_TO_ML":
+						console.log('request from ' + userId + ": starting game");
+						//if(clients[userId]){
+							//var socketForML = clients[userId];
+							sendMsg(socketForML, {command: "startGame", userID: userId, appId: data.appId, hostId: data.hostId, option: data.option});
+						//}
+						/*else{
+							console.log("err on starting game: moolight of " + userId + " not online");
+						}*/
+						break;
+
+					case "networkTest_TO_ML":
+						console.log("request from " + userId + ": networkTest");
+						data = data.data;
+						//if(clients[userId]){
+							//var socketForML = clients[userId];
+							sendMsg(socketforML, {command: "networkTest", userID: userId, ip:data.client.ip, latency: data.server.ping, download: data.speeds.download});
+						//}
+						break;
+
+					default:
+						console.log("Invalid command from WebServer");
+						break;
+				}
+			}			
+		}).catch((err)=>{
+			console.log("Something broken while getting ML Socket from db: " + err);
+		})
+		
 		/*else if(data.command.slice(0, 4) === "AUTH"){
 			switch(data.command){
 				case "AUTH_signIn":
@@ -226,8 +241,8 @@ function sendMsg(socket, msg){
 	return false;
 }*/ //deprecated
 
-function isValidUser(userID, userPW){
-	db.query("SELECT * FROM User WHERE id='" + userId + "'").then((exist)=>{
+/*function isValidUser(userID, userPW){
+	db.query("SELECT * FROM USER WHERE id='" + userID + "'").then((exist)=>{
 		if(!exist[0]){
 			console.log("Login failed: no such a id");	
 			return false; 
@@ -243,39 +258,84 @@ function isValidUser(userID, userPW){
 			return true;
 		}
 	});		
-} 
+}*/ 
+
+isValidUser =(userID, userPW) => new Promise((resolve)=>{
+	db.query("SELECT * FROM USER WHERE id='" + userID + "'").then((exist)=>{
+		if(!exist[0]){
+			console.log("Login failed: no such a id");	
+			resolve(false); 
+		}
+
+		else if(exist[0].password!=userPW){
+			console.log("Login failed: wrong password");
+			resolve(false);
+		}
+
+		else{
+			console.log("Login Success!!: " + userID);					
+			resolve(true);
+		}
+	})
+	.catch((err)=>{
+		console.log("Something broken whiile checking validity of user");
+	});		
+})
 
 function saveMLSocket(userID, socket){
-	db.query("UPDATE USER SET ML_socket='" + JSON.stringify(jc.decycle(socket)) + "', ML_login_status='true'" + " WHERE id='" + userID + "'")
+	//console.log("BEFORE: " + socket.write);
+	//console.log("AFTER: " + jc.retrocycle(JSON.parse(JSON.stringify(jc.decycle(socket)))).write);
+
+	/*db.query("UPDATE USER SET ML_socket='" + JSON.stringify(socket) + "', ML_login_status='true'" + " WHERE id='" + userID + "'")
 		.then(function(update){
 			console.log('MLSocket info updated');
 		}).catch(function(err){
 			console.log('err occured while MLSocket info updated');
-		})	
+		})*/
+	clients[userID] = socket;
+
 }
 
 function deleteMLSocket(userID){
-	db.query("UPDATE USER SET ML_login_status='false'" + " WHERE id='" + userID + "'")
+	/*db.query("UPDATE USER SET ML_login_status='false', ML_socket=''" + " WHERE id='" + userID + "'")
 		.then(function(update){
 			console.log('MLSocket info updated');
 		}).catch(function(err){
 			console.log('err occured while MLSocket info updated');
-		})		
-}
+		})*/		
 
-function getMLSocket(userID){
-	db.query("SELECT * FROM WHERE id='" + userID + "'").then(function(exist){
-		if(exist[0].ML_login_status){
-			return jc.retrocycle(JSON.parse(exist[0].ML_socket));
+		if(clients[userID]){
+			delete clients[userID];
 		}
 		else{
-			return false;
+			console.log("Invalid user: failing to delete ML socket");
 		}
-	}).catch(function(err){
-		console.log("error occured: " + err);
-		return false;
-	}) 
 }
+
+getMLSocket = (userID)=> new Promise((resolve)=>{
+		//THIS IS THE VERSION USING DB, BUT I COULDN'T FOUND THE WAY OF STORING SOCKET OBJECT INTO THE FORM DB CAN ACCEPT
+		//BECAUSE SOCKET OBJECT IS CIRCULAR, AND HAVE METHOD. SO IT MAKES REALLY HARD TO CONVERT IT INTO STRING..
+		/*db.query("SELECT * FROM USER WHERE id='" + userID + "'").then(function(exist){
+			if(exist[0].ML_login_status){
+				resolve(circularJSON.parse(exist[0].ML_socket));
+			}
+			else{
+				resolve(false);
+			}
+		}).catch(function(err){
+			console.log("error occured while getting ML socket from db: " + err);
+			resolve(false);
+		})*/
+
+
+		if(clients[userID]){
+			resolve(clients[userID]);	
+		}
+		else{
+			console.log("INvalid user: failing to get ML socket");
+			resolve(false);
+		}
+})
 
 serverForWebServer.on('error', function(err){
 	console.log('error on portForWebServer: ' + err);

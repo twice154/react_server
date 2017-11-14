@@ -6,18 +6,28 @@ const router = express.Router();
 var httpResponses = {getHosts: [], getApps: [], addHost: [], startGame:[]};
 
 var portForCentralServer = 4002;
-var socketForCentralServer = net.connect(portForCentralServer, "localhost", function(){
-	console.log("Connection to Central Server Success!!");
-	
-	socketForCentralServer.on('close', function(){
-		console.log('Connection to Central Server closed');
-	});
-	socketForCentralServer.on('data', commandHandler);
-});
-socketForCentralServer.on('error', function(err){
-	console.log('err occured while connecting');
-});
+var socketForCentralServer;
+var interval;
 
+function connectToCentralServer(){
+	socketForCentralServer = net.connect(portForCentralServer, "localhost", function(){
+		console.log("Connection to Central Server Success!!");
+		if(interval){
+			clearInterval(interval);
+		}
+		
+		socketForCentralServer.on('close', function(){
+			console.log('Connection to Central Server closed');
+			interval = setInterval(connectToCentralServer, 3000);
+		});
+		socketForCentralServer.on('data', commandHandler);
+	});
+	socketForCentralServer.on('error', function(err){
+		console.log('err occured while connecting');
+	});
+}
+
+connectToCentralServer();
 
 //TODO: Find better way for getting http request and send msg to central server 
 //      and send http response when getting msg from central server without 
