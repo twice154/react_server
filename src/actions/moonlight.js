@@ -20,6 +20,7 @@ export function getHostsRequest(userId){
 
 		return axios.post('/api/moonlight/gethosts', {userId})
 		.then((response)=>{
+			console.log("it is in actions");
 			console.log(response);
 			if(response.data.error){
 				dispatch(getHostsFailure());
@@ -60,7 +61,9 @@ export function getAppsRequest(userId, hostId){
 
 		return axios.post('/api/moonlight/getapps', {userId: userId, hostId: hostId})
 		.then((response)=>{
-			dispatch(getAppsSuccess(JSON.parse(response.data)));
+			console.log("it's in actions");
+			console.log(response);
+			dispatch(getAppsSuccess(response.data));
 		}).catch((err)=>{
 			dispatch(getAppsFailure());
 		})

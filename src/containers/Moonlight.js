@@ -53,7 +53,7 @@ class Moonlight extends React.Component {
 										isMoonlightOnline: {$set: true}
 									})
 								);
-								console.log("Successfullly got hosts");								
+								console.log("Successfullly got hosts: " + this.props.hostList.data);								
 							}
 							else{
 								console.log("Fail to get hosts");
@@ -81,7 +81,7 @@ class Moonlight extends React.Component {
 					);
 				}
 				else{
-					Materialize.toast('Failed to get the host', 2000);
+					Materialize.toast('Failed to get apps', 2000);
 				}
 			}
 		)

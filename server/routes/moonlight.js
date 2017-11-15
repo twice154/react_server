@@ -14,17 +14,23 @@ function connectToCentralServer(){
 		console.log("Connection to Central Server Success!!");
 		if(interval){
 			clearInterval(interval);
+			interval = null;
 		}
 		
 		socketForCentralServer.on('close', function(){
 			console.log('Connection to Central Server closed');
-			interval = setInterval(connectToCentralServer, 3000);
+			if(!interval){
+				interval = setInterval(connectToCentralServer, 3000);
+			}
 		});
 		socketForCentralServer.on('data', commandHandler);
 	});
 	socketForCentralServer.on('error', function(err){
 		console.log('err occured while connecting');
-	});
+		if(!interval) {
+			interval = setInterval(connectToCentralServer, 3000);
+		}
+	});		
 }
 
 connectToCentralServer();
@@ -69,7 +75,9 @@ function sendMsgToCentralServerAndRegisterResHandler(res, msg){
 }
 
 function commandHandler(data){ //handler for data from central server
+	console.log(typeof(data));
 	data = JSON.parse(data);
+	console.log("IN CommandHandler: " + JSON.stringify(data));
 	console.log("Receiver msg: " + data.command);
 	switch(data.command){
 
@@ -97,10 +105,29 @@ function commandHandler(data){ //handler for data from central server
 }
 
 function iterativelySendResponse(responseArray, data){
-	var length =  responseArray.length;
-	responseArray.forEach(function(element, index, array){
-		element.json(data);
-	});
-	responseArray.splice(0, length);	
+	//var length =  responseArray.length;
+	function aa(){
+		return new Promise(function(resolve, reject){
+			responseArray.forEach(function(element, index, array){
+				console.log("iteratively: " + JSON.stringify(data));
+				element.json(data);
+			});			
+			resolve(responseArray.length);
+		})
+	}
+
+	aa().then(function(length){
+		responseArray = responseArray.splice(0, length);	
+	})
 }
+
+function arrayBufferToString(buffer){
+    var arr = new Uint8Array(buffer);
+    var str = String.fromCharCode.apply(String, arr);
+    if(/[\u0080-\uffff]/.test(str)){
+        throw new Error("this string seems to contain (still encoded) multibytes");
+    }
+    return str;
+}
+
 export default router;

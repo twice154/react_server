@@ -35,12 +35,13 @@ export default function moonlight(state, action){
 			})
 
 		case types.MOONLIGHT_GET_HOSTS_SUCCESS:
+			console.log("it is in reducer: ");
 			console.log(action.data);
 		
 			return update(state, {
 				hostList: {
 					status: {$set: 'GET_SUCCESS'},
-					data: {$set: action.list}
+					data: {$set: action.data.list}
 				}
 			})
 
@@ -60,10 +61,11 @@ export default function moonlight(state, action){
 			})
 				
 		case types.MOONLIGHT_GET_APPS_SUCCESS:
+
 			return update(state, {
 				appList: {
 					status: {$set: 'SUCCESS'},
-					data: {$set: action.appList}
+					data: {$set: action.data.appList}
 				}
 			})
 

@@ -31,13 +31,16 @@ serverForMoonlight.on('connection', function(socket){
 	socket.on('close', function(){
 		console.log('Moonlight client connection is closed: ' + socket.remotePort);
 	});
-	socket.on('data', async function(data){
+	socket.on('error', function(err){
+		console.log("err occured in connection with Moonlight client: " + socket.remotePort + err);
+	})
+	socket.on('data', function(data){
 		data = JSON.parse(data);
-		console.log(data);
+		console.log("new msg received: " + JSON.stringify(data));
 		if(data.command.slice(-6, ) === "TO_WEB"){
 			//getMLSocket(data.userID).then((socketforML)=>{
 				//if(socketforML){
-					switch(data.command){
+					/*switch(data.command){
 						//If there's any difference between them, then add!
 						case "getHostsResult_TO_WEB": 
 
@@ -46,7 +49,7 @@ serverForMoonlight.on('connection', function(socket){
 						case "getAppsResult_TO_WEB":
 
 						case "startGameResult_TO_WEB": 				
-					}
+					}*/
 					sendMsg(socketForWebServer, data);	
 				//}			
 			/*}).catch((err)=>{
@@ -57,7 +60,6 @@ serverForMoonlight.on('connection', function(socket){
 			if(data.command === "isAccount"){
 				isValidUser(data.userID, data.userPW)
 					.then((isValid)=>{
-						console.log(isValid);
 						if(isValid){
 							socket.write(JSON.stringify({command: "loginApproval", isApproved: true, userID: data.userID}), function(err){
 								if(err){
@@ -112,12 +114,14 @@ serverForWebServer.on('connection', function(socket){
 	socket.on('close', function(){
 		console.log("Webserver connection has disconnected");
 	});
+	socket.on('error', function(err){
+		console.log("error occured in Webserver socket connection");
+	})
 	
 	socket.on('data', function(data){
 		data = JSON.parse(data);
 		var userId = data.userId;
 		getMLSocket(data.userId).then((socketForML)=>{
-			console.log(socketForML);
 			if(!socketForML){
 				console.log("ML of " + userId + " is offline");
 				return;
@@ -128,69 +132,35 @@ serverForWebServer.on('connection', function(socket){
 					
 					case "getHosts_TO_ML":
 						console.log('request from ' + userId + ": getting hosts");
-						//if(clients[userId]){
-							sendMsg(socketForML, {command: "getHosts", userID: userId});
-						//}
-						/*else{
-							console.log("err on getting hosts: moolight of " + userId +  " not online");
-						}*/
+						sendMsg(socketForML, {command: "getHosts", userID: userId});
 						break;
 
 					case "addHost_TO_ML":
-						console.log('request form ' + userId + ": getting hosts");
-						//if(clients[userId]){
-							sendMsg(socketForML, {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum});
-						//}	
+						console.log('request form ' + userId + ": adding hosts");
+						sendMsg(socketForML, {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum});
 						break;
 
 					case "getApps_TO_ML":
 						console.log('request from ' + userId  + ": getting apps");
-						//if(clients[userId]){
-							//var socketforML = clients[userId];
-							sendMsg(socketForML, {command: "getApps",userID: userId, hostId: data.hostId});
-						//}
-						/*else{
-							console.log("err on getting apps: moonlight of " + userId +"not online");
-						}*/
-						break;
-
-					
-						console.log('request from ' + userId + ": adding host");
-						//if(clients[userId]){
-							//var socketforML = clients[userId];
-							var randomNumber = data.pairingNum;
-							sendMsg(socketForML, {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber});
-						//}
-						/*else{
-							console.log("err on adding host: moolight of " + userId + "not online");
-						}*/
+						sendMsg(socketForML, {command: "getApps",userID: userId, hostId: data.hostId});
 						break;
 
 					case "startGame_TO_ML":
 						console.log('request from ' + userId + ": starting game");
-						//if(clients[userId]){
-							//var socketForML = clients[userId];
-							sendMsg(socketForML, {command: "startGame", userID: userId, appId: data.appId, hostId: data.hostId, option: data.option});
-						//}
-						/*else{
-							console.log("err on starting game: moolight of " + userId + " not online");
-						}*/
+						sendMsg(socketForML, {command: "startGame", userID: userId, appId: data.appId, hostId: data.hostId, option: data.option});
 						break;
 
 					case "networkTest_TO_ML":
 						console.log("request from " + userId + ": networkTest");
 						data = data.data;
-						//if(clients[userId]){
-							//var socketForML = clients[userId];
-							sendMsg(socketforML, {command: "networkTest", userID: userId, ip:data.client.ip, latency: data.server.ping, download: data.speeds.download});
-						//}
+						sendMsg(socketforML, {command: "networkTest", userID: userId, ip:data.client.ip, latency: data.server.ping, download: data.speeds.download});
 						break;
 
 					default:
 						console.log("Invalid command from WebServer");
 						break;
 				}
-			}			
+			}		
 		}).catch((err)=>{
 			console.log("Something broken while getting ML Socket from db: " + err);
 		})
@@ -199,13 +169,11 @@ serverForWebServer.on('connection', function(socket){
 			switch(data.command){
 				case "AUTH_signIn":
 					if(isValidUser(data.userID, data.userPW)){
-						socketForWebServer.sendMsg()
+
 					}
 					else{
 
 					}
-				case "AUTH_signup":
-					if()
 			}
 		}*/ //TODO: move the db operation stuff to central server
 	})
