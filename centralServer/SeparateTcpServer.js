@@ -187,7 +187,7 @@ function sendMsg(socket, msg){
 			console.log("err on sending msg: " + err);
 		}
 		else{
-			console.log("Successfully sent msg: " + msg.command);
+			console.log("Successfully sent msg: " + JSON.stringify(msg));
 		}
 	});
 }

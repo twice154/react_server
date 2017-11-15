@@ -93,7 +93,7 @@ class Moonlight extends React.Component {
 			"streamWidth": this.state.streamSettings.resolution.split(':')[0],
 			"streamHeight": this.state.streamSettings.resolution.split(':')[1],
 			"remote_audio_enabled": this.state.streamSettings.remote_audio_enabled? 1 : 0,
-			"bitrate": this.state.streamSettings.bitrate
+			"bitrate": this.state.streamSettings.bitrate 
 		}
 		this.props.startGameRequest(this.state.currentUser, this.state.selectedHost, e.target.id, option).then(
 			()=>{

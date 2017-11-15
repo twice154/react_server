@@ -75,8 +75,7 @@ function sendMsgToCentralServerAndRegisterResHandler(res, msg){
 }
 
 function commandHandler(data){ //handler for data from central server
-	console.log(typeof(data));
-	data = JSON.parse(data);
+	data = JSON.parse(arrayBufferToString(data));
 	console.log("IN CommandHandler: " + JSON.stringify(data));
 	console.log("Receiver msg: " + data.command);
 	switch(data.command){
