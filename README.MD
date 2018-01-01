@@ -1,22 +1,24 @@
-# React-Codelab-Project
+# React-Web-Server & Central-Server (dev)
 
 ## About
 
-React-Codelab-Project is a Single-page infinite-scrolling public memo app implemented using React.js, Redux, Express.js and MongoDB.
+Dev branch contains unstable build including several experimental implementation, So download master branch for testing!
+React-Web-Server is a live streaming app implemented using React.js, Redux, Express.js
+Central-Server is a tcp Server controlling communication between React-Web-Server & CONNETO
 
 ## Features
+React-Web-Server
 - Authentication (Sign Up / Sign In)
-- Memo Creation / Manipulation (edit, delete, star)
-- User Search
-
-Preview: https://memo.vlpt.us/
+- View Streaming & Chatting
+- CONNETO Control Interface
 
 ## Following technologies are used
 - axios
 - babel
 - express
 - bcryptjs
-- mongoose
+- orientjs
+- socket.io
 - react
 - react-router
 - react-addons-css-transition-group
@@ -32,7 +34,7 @@ Preview: https://memo.vlpt.us/
 
 
 ## Prerequisites
-MongoDB and NodeJS should be installed
+OrientDB and NodeJS should be installed
 
 ```
 npm install -g webpack babel nodemon cross-env
@@ -41,11 +43,11 @@ npm install
 
 ## Scripts
 
-- `npm run clean` Deletes Build files of Server and Client
-- `npm run build` Builds Server and Client
-- `npm run start` Start server in production environment
-- `npm run development` Start server in development environment
+- `node dbInit.js` Initializes Database Settings (orientDB is needed)
+- `node centralServer` Start Central Control Server
+- `npm run clean` Deletes Build files of Web Server
+- `npm run build` Builds Web Server
+- `npm run start` Start Web Server in production environment
+- `npm run development` Start Web server in development environment
 
 Express server runs on port 3000, and development server runs on port 4000.
-
-Tutorial on this project (in Korean): https://velopert.com/tag/reactcodelab
