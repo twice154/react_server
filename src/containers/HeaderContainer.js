@@ -1,10 +1,10 @@
 import React from 'react';
 import {Header} from 'components';
 import {connect} from 'react-redux';
-import {logoutRequest, getStatusRequest} from 'actions/authentication';
+import {logoutRequest, getStatusRequest} from 'modules/authentication';
 
 
-class App extends React.Component{
+class HeaderContainer extends React.Component{
 
 	constructor(props){
 		super(props);
@@ -45,9 +45,8 @@ class App extends React.Component{
 
 		this.props.getStatusRequest().then(
 			()=> {
-				console.log("FSDFS");
-				console.log(this.props.status);
-				if(!this.props.status.valid){
+				console.log(this.props.get('status'));
+				if(!this.props.status.get('valid')){
 						loginData = {
 							isLoggedIn: false,
 							username:''
@@ -60,18 +59,22 @@ class App extends React.Component{
 				}
 			}
 		)
+		.catch((err)=>{
+			console.log('not logined');
+		})
 	}
 
 	render(){
 
 		let re = /(login|register)/;
-		let isAuth = re.test(this.props.location.pathname);
+		let isAuth = re.test(this.props.match.path);
+		//let isAuth=false;
 
 		return(
 			<div>
-				{isAuth ? undefined: <Header isLoggedIn={this.props.status.isLoggedIn}
+				{isAuth ? undefined: <Header isLoggedIn={this.props.status.get('isLoggedIn')}
 												onLogout={this.handleLogout}/>}
-				{this.props.status.currentUser}
+				{this.props.status.get('currentUser')}
 				{this.props.children}
 			</div>
 		);
@@ -80,7 +83,7 @@ class App extends React.Component{
 
 const mapStateToProps = (state) =>{
 	return{
-		status: state.authentication.status
+		status: state.authentication.get('status')
 	};
 };
 
@@ -95,4 +98,4 @@ const mapDispatchtoProps = (dispatch) => {
 	};
 }
 
-export default connect(mapStateToProps, mapDispatchtoProps)(App);
+export default connect(mapStateToProps, mapDispatchtoProps)(HeaderContainer);

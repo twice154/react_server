@@ -32,7 +32,6 @@ export function getHostsRequest(userId){
 			console.log(err);
 			dispatch(getHostsFailure());	
 		})
-
 	}
 }
 

@@ -6,8 +6,8 @@ const router = express.Router();
 let options = {
 	uri: 'http://localhost:8086/connectioncounts',
 	auth:{
-		user: 'tla4256',
-		pass: 'ssh2159', 
+		user: 'your_id',
+		pass: 'your_password', 
 		sendImmediately: false
 	}
 };

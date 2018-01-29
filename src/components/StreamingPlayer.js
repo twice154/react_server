@@ -2,32 +2,37 @@ import React from 'react';
 
 class StreamingPlayer extends React.Component{
 
-	componentDidMount(){
-		WowzaPlayer.create('playerElement',
-			    {
-			    	"license":"PLAY1-kyQRC-jd67Z-Ww4bP-bHbdt-C3pF6",
-				    "title":"",
-				    "description":"",
-				    "sourceURL":"http%3A%2F%2F172.30.1.32%3A1935%2Flive%2F" + this.props.streamname + "%2Fplaylist.m3u8",
-				    "autoPlay":false,
-				    "volume":"75",
-				    "mute":false,
-				    "loop":false,
-				    "audioOnly":false,
-				    "uiShowQuickRewind":true,
-				    "uiQuickRewindSeconds":"30"
-			    }
-			)
+	constructor(props){
+		super(props);
+		this.create = this.create.bind(this);
+		this.destroy = this.destroy.bind(this);
+		this.state = {status: "remove player", onClickMethod: this.destroy}
 	}
 
-	componentWillUnmount(){
-		document.getElementById('playerElement').innerHTML = "";
+	componentDidMount(){
+		this.props.createPlayer();
+	}
+
+	create(){
+		this.props.createPlayer();
+		this.setState({status: 'remove player',
+					   onClickMethod: this.destroy			
+						})
+	}
+
+	destroy(){
+		this.props.removePlayer();
+		this.setState({ status: 'view player', 
+						onClickMethod: this.create})
+		
 	}
 
 	render(){
 		return(
 			<div>
-			<h1>{this.props.streamname}</h1>
+				<h1>{this.props.streamName}</h1>
+				<input type='BUTTON' id='butt' value={this.state.status} 
+					onClick={this.state.onClickMethod}/>
 			</div>
 		);
 	}

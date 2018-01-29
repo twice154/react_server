@@ -7,122 +7,49 @@ import {getStatusRequest} from 'actions/authentication';
 var socket=null;
 
 class Chatting extends React.Component{
-
-	constructor(props){
-		super(props);
-		this.state = {users: [], messages:[], text: '', room: ""};
-		this.init = this.init.bind(this);
-		this.onUserJoin = this.onUserJoin.bind(this);
-		this.onUserLeft = this.onUserLeft.bind(this);
-		//this.onUserChangedName = this.onUserChangedName.bind(this);
-		this.onReceiveMsg = this.onReceiveMsg.bind(this);
-		this.handleMessageSubmit = this.handleMessageSubmit.bind(this);
-	}
-
 	componentWillMount(){
-		console.log("Compoenent did mount!");
-		this.props.getStatusRequest().then(
-			()=>{
-				if(this.props.status.valid){
-					socket = io.connect('http://localhost:4000', {'forceNew' : true});
-					socket.on('init', this.init);
-					socket.on('send:message', this.onReceiveMsg);
-					socket.on('user:join', this.onUserJoin);
-					socket.on('user:left', this.onUserLeft);
-					console.log("status is valid: " + this.props.status.currentUser);
-					socket.emit('user:join',{username: this.props.status.currentUser, room: this.props.room});
-				}
+		this.props.connect().then(this.props.getStatus)
+		.then((userId)=>{
+			if(userId){
+				joinRoom(this.props.room, userId)
 			}
-		)
+		})
+		.catch(errHandler)
 	}
 
 	componentWillUnmount(){
-		console.log("Component will unmount");
-		this.props.getStatusRequest().then(
-			()=>{
-				if(this.props.status.valid){
-					//this.onUserLeft({name:this.props.status.currentUser});
-					socket.emit("user:left", {username: this.props.status.currentUser});
-					socket.disconnect();
-				}
-			}
-		)
-	}
-
-
-	componentWillReceiveProps(nextProps){
-		console.log("Component will receive props " + this.state.room + this.props.status.currentUser);
-		if(socket&&this.props.status.currentUser){
-			console.log("left signal emitted " +this.props.status);
-			socket.emit("user:left", {username:this.props.status.currentUser});
-			this.props.getStatusRequest();
-		}
-	}
-
-	init(data){
-		data.push(this.props.status.currentUser);
-		this.setState({
-			users: data,
-			messages: [],
-			text: [],
-			room: this.props.room
-		});
-		//console.log("INIT: " + this.state.users);
-	}
-
-	onReceiveMsg(msg){
-		let {messages} = this.state;
-		messages.push(msg);
-		this.setState({messages});
-	}
-
-	onUserJoin(data){
-		console.log('new user has joined');
-		this.setState(update(this.state,{
-			users :{
-				$push: [data.username]
-			},
-			messages: {
-				$push: [{user:"APPLICATION BOT", text: data.username + " Joined"}]
-			}
-		}));
-	}
-
-	onUserLeft(data){
-		let index = this.state.users.indexOf(data.username);
-		this.setState(
-			update(this.state, {
-				users: {
-					$splice: [[index, 1]]
-				},
-				messages: {
-					$push: [{user: 'APPLICATION BOT', text: data.username + ' Left'}]
+		this.props.getStatus()
+			.then((result)=>{
+				if(result){
+					return leaveRoom(result)
 				}
 			})
-		);
+			.then(this.props.disconnect)
+			.catch(errHandler)
 	}
 
-	handleMessageSubmit(msg){
-		let {messages} = this.state;
-		messages.push(msg);
-		this.setState({messages});
-		socket.emit('send:message', {msg:msg, room:this.props.room});
+	componentWillReceiveProps(nextProps){
+		if(this.props.currentUser && nextProps.currentUser!=this.props.currentUser){
+			this.props.leaveRoom(this.props.currentUser);
+		}
 	}
 
 	render(){
 		return(
 			<div>
-				<UserList users={this.state.users}/>
+				<UserList users={this.props.users}/>
 				<MessageList messages={this.state.messages}/>
-				{this.props.status.valid?
-				<MessageForm onMessageSubmit = {this.handleMessageSubmit}
-								user={this.props.status.currentUser}/>
-				: undefined
+				{this.props.currentUser?
+				<MessageForm onMessageSubmit={this.props.onMessageSubmit}
+							 user={this.props.currentUser}/>
+				:undefined
 				}
 			</div>
-		);
+		)
 	}
 }
+
+	
 
 class UserList extends React.Component{
 

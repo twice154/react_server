@@ -1,8 +1,8 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {HostList} from 'components';
-import {getHostsRequest, getAddRequest, getAppsRequest, startGameRequest, addHostRequest} from 'actions/moonlight';
-import {getStatusRequest} from 'actions/authentication';
+import {getHostsRequest, getAddRequest, getAppsRequest, startGameRequest, addHostRequest} from 'modules/moonlight';
+import {getStatusRequest} from 'modules/authentication';
 import update from 'react-addons-update';
 
 
@@ -40,20 +40,20 @@ class Moonlight extends React.Component {
 		$("#fps").on('change', this.handleChange);
 		this.props.getStatusRequest().then(
 			()=>{
-				if(this.props.status.valid){
+				if(this.props.status.get('valid')){
 					console.log("Status is valid");
 					this.setState(update(this.state, {
-						currentUser: {$set: this.props.status.currentUser}
+						currentUser: {$set: this.props.status.get('currentUser')}
 					}));
-					this.props.getHostsRequest(this.props.status.currentUser).then(
+					this.props.getHostsRequest(this.props.status.get('currentUser')).then(
 						()=>{
-							if(this.props.hostList.status == "GET_SUCCESS"){
+							if(this.props.hostList.get('status') == "GET_SUCCESS"){
 								this.setState(update(this.state, {
 										hostList: {$set: this.props.hostList.data},
 										isMoonlightOnline: {$set: true}
 									})
 								);
-								console.log("Successfullly got hosts: " + this.props.hostList.data);								
+								console.log("Successfullly got hosts: " + this.props.hostList.get('data'));								
 							}
 							else{
 								console.log("Fail to get hosts");
@@ -72,11 +72,11 @@ class Moonlight extends React.Component {
 	showApps(hostId){
 		this.props.getAppsRequest(this.state.currentUser, hostId).then(
 			()=>{
-				if(this.props.appList.status == "SUCCESS"){
+				if(this.props.getIn(['appList','status']) == "SUCCESS"){
 					this.setState(update(this.state, {
 						mode: {$set: false},
 						selectedHost: {$set: hostId},
-						appList: {$set: this.props.appList.data}
+						appList: {$set: this.props.getIn(['appList','data'])}
 						})
 					);
 				}
@@ -97,7 +97,7 @@ class Moonlight extends React.Component {
 		}
 		this.props.startGameRequest(this.state.currentUser, this.state.selectedHost, e.target.id, option).then(
 			()=>{
-				if(this.props.startGame.status == "SUCCESS"){
+				if(this.props.getIn(['startGame','status']) == "SUCCESS"){
 					let $toastContent = $('<span style="color: $FFB4BA">Game will be started soon</span>');
 					Materialize.toast($toastContent, 2000);
 				}
@@ -119,11 +119,11 @@ class Moonlight extends React.Component {
 			let randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
 			this.props.addHostRequest(this.state.currentUser, e.target.value, randomNumber).then(
 				()=>{
-					if(this.props.hostList.status === "ADD_SUCCESS"){
+					if(this.props.getIn(['hostList','status']) === "ADD_SUCCESS"){
 						console.log("ADDED SUCCESSFULLY!");
 						Materialize.toast("Added Successfullly", 2000);
 						this.setState(update(this.state, {
-							hostList: {$set: this.props.hostList.data}}));
+							hostList: {$set: this.props.getIn(['hostList','data'])}}));
 					}
 					else{
 						console.log('Failed to add new host');
@@ -234,7 +234,7 @@ class Moonlight extends React.Component {
 							: undefined
 		               	}
 		               	{this.state.newHost.inProgress?
-		               		<span>{"Please enter the number " + this.props.newHost.pairingNum + " on the GFE dialog on the computer."}</span>
+		               		<span>{"Please enter the number " + this.props.getIn(['newHost','pairingNum']) + " on the GFE dialog on the computer."}</span>
 							: undefined
 						}
 
@@ -248,11 +248,11 @@ class Moonlight extends React.Component {
 
 const mapStateToProps = (state) => {
 	return {
-		hostList: state.moonlight.hostList,
-		appList: state.moonlight.appList,
-		startGame: state.moonlight.startGame,
-		newHost: state.moonlight.newHost,
-		status: state.authentication.status
+		hostList: state.moonlight.get('hostList'),
+		appList: state.moonlight.get('appList'),
+		newHost: state.moonlight.get('newHost'),
+		startGame: state.moonlight.get('startGame'),
+		status: state.authentication.get('status')
 	};
 };
 

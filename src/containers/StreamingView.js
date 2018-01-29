@@ -1,16 +1,13 @@
 import React from 'react';
-import {StreamingPlayer, Chatting} from 'components';
+import {Chatting} from 'components';
+import {StreamingPlayerContainer} from 'containers';
 
-class StreamingView extends React.Component{
-
-	render(){
-		return(
-			<div>
-			<StreamingPlayer streamname={this.props.params.streamname}/>
-			<Chatting room={this.props.params.streamname}/>
-			</div>
-		);
-	}
-}
+const StreamingView = ({match})=>{ 
+	return (
+	<div>
+		<StreamingPlayerContainer streamName={match.params.streamname}/>
+		<Chatting room={match.params.streamname}/>
+	</div>
+)}
 
 export default StreamingView;
