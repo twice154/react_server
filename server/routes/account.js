@@ -21,7 +21,7 @@ function connectToDB(){
 		console.log("Successfullly connected to db server");
 	}).catch((err)=>{
 		console.log("err connecting to orientdb server: "  + err);
-		setTimeOut(connectToDB, 5000);
+		setTimeout(connectToDB, 5000);
 	})	
 }
 connectToDB();
