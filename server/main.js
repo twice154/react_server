@@ -1,8 +1,8 @@
 import express from 'express';
 import path from 'path';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser'
 import morgan from 'morgan';
-import session from 'express-session';
 import orientDB from 'orientjs';
 
 import webpack from 'webpack';
@@ -16,20 +16,19 @@ const app = express();
 const port = 3000;
 const devPort = 4000;
 
-const dbServer = orientDB({
-    host: 'localhost',
-    port: 2424,
-    username: 'root',
-    password: 'ssh2159'
-});
+const config = require('./config')
+const dbServer = orientDB(config.dbServerConfig);
 
-const db = dbServer.use('usersinfo');
+const db = dbServer.use(config.UserDBConfig);
 const server = http.Server(app);
 const io = socket_io(server);
 
 app.use(morgan('dev'));
+app.use(cookieParser());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}))
 app.use('/api', api);
+
 
 var resourceDirectory = "";
 if(process.env.NODE_ENV === 'development'){
@@ -53,17 +52,6 @@ app.use(function (err, req, res, next) {
 server.listen(port, () => {
     console.log('Express is listening on port', port);
 });
-/*if (process.env.NODE_ENV == 'development') {
-    console.log('Server is running on development mode');
-    const config = require('../webpack.dev.config');
-    const compiler = webpack(config);
-    const devServer = new WebpackDevServer(compiler, config.devServer);
-    devServer.listen(
-        devPort, () => {
-            console.log('webpack-dev-server is listening on port', devPort);
-        }
-    );
-}*/
 
 ///////////////////////////////
 ///socket.io 설정 부분/////////

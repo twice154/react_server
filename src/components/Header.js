@@ -16,6 +16,11 @@ class Header extends React.Component {
 				<a onClick={this.props.onLogout}><i className="material-icons">lock_open</i></a>
 			</li>
 		);
+		const editPersonalInfo = (
+			<li>
+				<Link to='/settings'>내 정보 </Link>
+			</li>
+		)
 
 		return (
 			<div>
@@ -29,6 +34,7 @@ class Header extends React.Component {
 
 						<div className="right">
 							<ul>
+								{this.props.currentUser? editPersonalInfo:undefined}
 								{this.props.isLoggedIn? logoutButton : loginButton}
 							</ul>
 						</div>

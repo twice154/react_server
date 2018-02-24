@@ -45,18 +45,7 @@ class HeaderContainer extends React.Component{
 
 		this.props.getStatusRequest().then(
 			()=> {
-				console.log(this.props.get('status'));
-				if(!this.props.status.get('valid')){
-						let loginData = {
-							isLoggedIn: false,
-							username:''
-						};
-
-						document.cookie='key=' + btoa(JSON.stringify(loginData));
-
-						let $toastContent = window.$('<span style="color: #FFB4BA">Your session is expired, please login again</span>');
-						window.Materialize.toast($toastContent, 4000);
-				}
+				
 			}
 		)
 		.catch((err)=>{
@@ -67,14 +56,17 @@ class HeaderContainer extends React.Component{
 	render(){
 
 		let re = /(login|register)/;
-		let isAuth = re.test(this.props.match.path);
+		let isAuth = re.test(this.props.history.location.pathname);
 		//let isAuth=false;
+		console.log(this.props.history.location.pathname)
+		let currentUser=this.props.status.get('currentUser')
 
 		return(
 			<div>
 				{isAuth ? undefined: <Header isLoggedIn={this.props.status.get('isLoggedIn')}
-												onLogout={this.handleLogout}/>}
-				{this.props.status.get('currentUser')}
+												onLogout={this.handleLogout}
+												currentUser={currentUser}/>}
+				{currentUser}
 			</div>
 		);
 	}

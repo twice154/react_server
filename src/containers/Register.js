@@ -1,42 +1,86 @@
 import React from 'react';
-import {Authentication} from 'components';
 import {connect} from 'react-redux';
-import {registerRequest} from 'modules/authentication';
+import {RegisterComponent} from '../components/auth'
+import {idRequest,emailRequest,registerRequest} from 'modules/register';//todo
 
 class Register extends React.Component {
 
 	constructor(props){
 		super(props);
+		this.state={
+			idState:'',
+			emailState:'',
+			idCheck:false,
+			emailCheck:false
+		}
 		this.handleRegister = this.handleRegister.bind(this);
+		this.checkId=this.checkId.bind(this)
+		this.checkEmail=this.checkEmail.bind(this)
 	}
-
-	handleRegister(id, pw){
-		return this.props.registerRequest(id, pw).then(
+	componentDidMount(){
+		console.log(this.props.status);
+		console.log(this.props.errorCode)
+	}
+	handleRegister(msg){
+		console.log(msg+'hi')
+		return this.props.registerRequest(msg).then(
+			
 			() => {
+				console.log(this.props.status)
 				if(this.props.status === "SUCCESS"){
 					window.Materialize.toast("SUCCESS! Please log in", 2000);
 					this.props.history.push('/login');
 					return true;
-				} else{
-					let errorMessage = [
-						"Invalid Username",
-						"Password is too short",
-						"Username already exists"
-					];
-
-					let $toastContent = window.$('<span style="color: #FFB4BA">' + errorMessage[this.props.errorCode-1] + '</span>');
-					window.Materialize.toast($toastContent, 2000);
-					return false;
 				}
 			}
+		).catch(()=>{
+			alert('something worng')
+
+			return 0
+		
+		}
 		);
 	}
+	/**id가 사용 가능한지알아본다
+	 * @param {string} id - 아이디.
+	 */
+	checkId(id){
+		console.log(id)
+		if(id===''){
+			this.setState({idState:'아이디를입력해주세요', idCheck:this.props.idCheck})
+			return 0;
+		}
+		this.props.idRequest(id).then(()=>{
+			this.setState({idState:this.props.idState, idCheck:this.props.idCheck})
+		}).catch(()=>{
+			this.setState({idState:this.props.idState, idCheck:this.props.idCheck})
+		})
+			
+		
+		}
+	checkEmail(email){
+		console.log(email)
+		if(email===''){
+			this.setState({emailState:'이메일을입력해주세요', emailCheck:this.props.emailCheck})
+			return 0;
+		}
+		this.props.emailRequest(email).then(()=>{
+			console.log('Elkdnfk')
+			this.setState({emailState:this.props.emailState, emailCheck:this.props.emailCheck})
+		}).catch(()=>{
+			this.setState({emailState:this.props.emailState, emailCheck:this.props.emailCheck})
+		})
+	
+		// this.props.emailRequest(email).then(
 
+		// )
+	}
 	render(){
 		return (
 			<div>
-				<Authentication mode={"Register"}
-					onRegister={this.handleRegister}/>
+				< RegisterComponent onRegister={this.handleRegister} checkId={this.checkId} checkEmail={this.checkEmail}
+									emailStatus={this.state.emailState} idStatus={this.state.idState} idCheck={this.state.idCheck}
+									emailCheck={this.state.emailCheck}/>
 			</div>
 		);
 	}
@@ -44,15 +88,23 @@ class Register extends React.Component {
 
 const mapStateToProps = (state) => {
 	return {
-		status: state.authentication.getIn(['register','status']),
-		errorCode: state.authentication.getIn(['register','error'])
+		status: state.register.regist.status,
+		errorCode: state.register.regist.error,
+		idState: state.register.id.status,
+		emailState: state.register.email.status,
+		idCheck:state.register.id.check,
+		emailCheck:state.register.email.check
 	};
 };
 
 const mapDispatchtoProps = (dispatch) => {
 	return {
-		registerRequest: (id, pw) => {
-			return dispatch(registerRequest(id, pw));
+		registerRequest: (id, pw) => dispatch(registerRequest(id, pw)),
+		idRequest: (id)=>{
+			return dispatch(idRequest(id))
+		},
+		emailRequest: (email)=>{
+			return dispatch(emailRequest(email))
 		}
 	};
 };

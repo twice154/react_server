@@ -1,0 +1,121 @@
+var User = {};
+var Orientdb = require('orientjs');
+var server = Orientdb({
+	host:	'localhost',
+	port:	2424,
+	username:	'root',
+	password:	'1138877',
+	useToken:	true
+});
+var db = server.use({
+    name:	'CreateTest014',
+    username:	'root',
+    password:	'1138877'
+});
+User.database = db;
+
+//Creat User using query
+User.create = function(userinfo){
+	User.database.open().then(function() {
+
+		//if password isn't ...
+		if(!userinfo.password){}
+			//throw new Error('Password was incorrect')
+
+		//Insert user information to 'User' class
+		else
+			User.database.query('CREATE VERTEX User SET id=\''
+				+ userinfo.id + '\', pwd=\''
+				+ userinfo.pwd + '\'');//pwd should be fixed to password
+	}).then(function(res){
+		db.close().then(function(){
+			console.log('Create User');
+		});
+	});
+}
+//User.findOneByUsername
+User._findOneByUsername= function(userinfo){
+	var TempDat = {};
+	User.database.open()
+	.then(function(){
+		User.database.query('SELECT * FROM USER WHERE id = \''
+			+userinfo.id+'\'')
+		.then(function(results){
+			if( results.length === 0 ){
+				console.log(results.length)
+			}
+			else{
+				TempDat = Object.assign({},results[0])
+				console.log('found user: '+ TempDat.id);
+			}
+		})
+	})
+	return TempDat;
+}
+User.findOneByUsername = (userinfo) => new Promise(res =>( 
+    setTimeout(() => {
+	var data = {};
+	User.database.open()
+	.then(function(){
+	    User.database.query('SELECT * FROM USER WHERE id = \''
+	    +userinfo.id+'\'')
+	    .then(function(results){
+		if( results.length === 0 ){
+		    console.log(results.length)
+		}
+		else{
+		    data = Object.assign({},results[0]);
+		    console.log('found user: '+ data.id);
+		}}
+	    )
+        }).then(
+	     res(userinfo, data)
+	)
+    }, 10000))
+);
+var verify = (userinfo, data) => Promise(res => (
+    window.setTimeout(() => {
+	console.log("verify: " + data.pwd + 'and' + userinfo.pwd );
+    }, 1000)
+));
+
+User.verify = verify;
+
+
+module.exports = User
+/*
+class dat {
+    constructor(){
+	console.log("Hello");
+    }
+
+    CreateUser(user){
+	this.OrientDB.class.get('User').then(function(User){
+	    User.create({
+		id:		user.id,
+		password:	user.password,
+		admin:	false
+	    }).then(function(user){
+		console.log('Created user: '+user.id);
+	    })
+	})
+    }
+
+    findOneByUserID(user){
+		//var indexName = this.index.get('User.id');
+		//var cobb = indexName.get(user.id);
+    }
+
+    verify(){
+	    ////////////////////
+	console.log("testing");
+    }
+
+    assignAdmin(user){
+	console.log("testing");
+    }
+}
+var database = new dat();
+module.export =database;
+
+*/

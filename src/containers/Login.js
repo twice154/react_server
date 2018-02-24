@@ -1,7 +1,7 @@
 import React from 'react';
-import {Authentication} from 'components';
+import {LoginComponent} from '../components/auth';
 import {connect } from 'react-redux';
-import {loginRequest} from 'modules/authentication';
+import {loginRequest,cleanCurrentUser} from 'modules/authentication';
 //import {browserHistory} from 'react-router';
 
 class Login extends React.Component{
@@ -13,13 +13,16 @@ class Login extends React.Component{
 	handleLogin(id, pw){
 		return this.props.loginRequest(id, pw).then(
 			()=>{
-				if(this.props.status === "SUCCESS"){
-					let loginData = {
-						isLoggedIn: true,
-						id
-					};
+				if(!this.props.verified){
+					console.log(1)
+						console.log(2)
+						this.props.history.push('/verify')
 
-					document.cookie = 'keys=' + btoa(JSON.stringify(loginData));
+					return true;
+				}
+
+				if(this.props.status === "SUCCESS"){
+					
 
 					window.Materialize.toast('Welcome, ' + id + '!', 2000);
 					this.props.history.push('/');
@@ -36,8 +39,7 @@ class Login extends React.Component{
 	render(){
 		return (
 			<div>
-				<Authentication mode={"Login"}
-					onLogin={this.handleLogin}/>
+				<LoginComponent	onLogin={this.handleLogin}/>
 			</div>
 		);
     }	
@@ -45,7 +47,8 @@ class Login extends React.Component{
 
 const mapStateToProps = (state) => {
 	return {
-		status: state.authentication.getIn(['login','status'])
+		status: state.authentication.getIn(['login','status']),
+		verified: state.authentication.getIn(['status','verified'])
 	};
 };
 
@@ -53,6 +56,9 @@ const mapDispatchToProps = (dispatch) => {
 	return {
 		loginRequest: (id, pw)=>{
 			return dispatch(loginRequest(id,pw));
+		},
+		cleanCurrentUser:()=>{
+			return dispatch(cleanCurrentUser());
 		}
 	};
 };

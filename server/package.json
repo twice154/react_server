@@ -11,9 +11,11 @@
   "dependencies": {
     "axios": "^0.17.1",
     "body-parser": "^1.18.2",
+    "cookie-parser": "^1.4.3",
     "express": "^4.16.2",
-    "express-session": "^1.15.6",
+    "jsonwebtoken": "^8.1.1",
     "morgan": "^1.9.0",
+    "nodemailer": "^4.6.0",
     "orientjs": "^2.2.7",
     "request": "^2.83.0",
     "socket.io": "^2.0.4",

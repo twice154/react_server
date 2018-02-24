@@ -1,0 +1,47 @@
+var OrientDB = require('orientjs');
+var server = OrientDB({
+	host:	'localhost',
+	port:	2424,
+	username:	'root',
+	password:	'1138877',
+	useToken:	true
+});
+module.exports = server.use({
+	name:	'CreateTest014',
+	username:	'root',
+	password:	'1138877'}, function(){
+
+	console.log("Function Define");
+
+	this.createFn("CreateUser",
+	    function(user){
+		this.class.get('User').then(function(User){
+		    User.create({
+			id:		user.id,
+			password:	user.password,
+			admin:	false
+		    }).then(function(user){
+			console.log('Created user: '+user.id);
+		    })
+		})
+	    });
+
+	this.createFn("findOneByUserID",
+	    function(user){
+		//var indexName = this.index.get('User.id');
+		//var cobb = indexName.get(user.id);
+	});
+
+	this.createFn("verify",
+	    function(user){
+	    ////////////////////
+		console.log("testing");
+		return true;
+	});
+
+	this.createFn("assignAdmin",
+	    function(user){
+		console.log("testing");
+	});
+    }
+);

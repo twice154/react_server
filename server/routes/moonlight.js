@@ -1,9 +1,14 @@
+//질문 2
+
 import express from 'express';
 import net from 'net';
+////?이게 뭐지
+//중앙서버랑 연결할 수 있게 통로를 만들어줌.
 import axios from 'axios';
 
 const router = express.Router();
 var httpResponses = {status:{}, getHosts: {}, getApps: {}, addHost: {}, startGame:{}};
+//http반응들을 모아둔거.
 
 var portForCentralServer = 4002;
 var socketForCentralServer;
@@ -11,6 +16,7 @@ var interval;
 
 function connectToCentralServer(){
 	socketForCentralServer = net.connect(portForCentralServer, "localhost", function(){
+		//net.connect==net.createconnect() 연결
 		console.log("Connection to Central Server Success!!");
 		if(interval){
 			clearInterval(interval);
@@ -24,6 +30,7 @@ function connectToCentralServer(){
 			}
 		});
 		socketForCentralServer.on('data', commandHandler);
+		//4002포트로 들어오는 것들은 다 commandHandler를 실행시켜 준다.
 	});
 	socketForCentralServer.on('error', function(err){
 		//console.log('err occured while connecting');
@@ -41,19 +48,29 @@ connectToCentralServer();
 
 //##    Found seemingly better way: store http responses according to their purpose
 //		And when got one central server response, then handle all the http response 
-//		of same purpose. It doesn't seems like the best, but better.
+//		of same purpose. It doesn't seems like the best, but better.st 
 
 router.post('/getStatus', (req, res)=>{
+	//중앙서버에 userId가 연결되어 있는지 확인
 	sendMsgToCentralServerAndRegisterResHandler(res, { command: 'checkStatus', userId: req.body.userId });
 	if(!httpResponses.status[req.body.userId]){
 		httpResponses.status[req.body.userId] = [];
 	}
 	httpResponses.status[req.body.userId].push(res);
+	//command, status, userId를 httpResponses.status.userId객체 배열에 집어넣는다.
+	//상태를 지속적으로 기록하는 함수.
+	//이때 userId는 로그인되어 있는 id다.
+	////////? 왜 상태를 지속적으로 기록하는지 몰겟...
+	
 })
 
 //get moonlight host list
 router.post('/gethosts', (req, res)=>{
+	//받아온 호스트 목록에 뭘집어넣는거지???????? gethost인데 왜 userId를 집어 넣는거지
+	////? res가의미하는 것은?
+	//res로 axios한테 넘겨줘야 하는데 그게 없음.
 	sendMsgToCentralServerAndRegisterResHandler(res, {command: 'getHosts_TO_ML', userId: req.body.userId});
+	//센트럴 서버에 커멘드랑 유저아이디를 집어넣음.
 	if (!httpResponses.getHosts[req.body.userId]) {
 		httpResponses.getHosts[req.body.userId] = [];
 	}	
@@ -88,7 +105,7 @@ router.post('/startgame', (req, res)=>{
 });
 
 function sendMsgToCentralServerAndRegisterResHandler(res, msg){
-
+////? 이게 무슨함수지이이이 res는 뭥미
 	socketForCentralServer.write(JSON.stringify(msg), function(){
 		
 	});
@@ -103,6 +120,7 @@ function commandHandler(data){ //handler for data from central server
 
 		case "checkStatus":
 			iterativelySendResponse(httpResponses.status[data.userID], data);
+			//status
 			break;
 		case "getHostsResult_TO_WEB":
 			iterativelySendResponse(httpResponses.getHosts[data.userID], data);
