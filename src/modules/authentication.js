@@ -80,13 +80,10 @@ function getAllInfoRequest(){//TODO
 }
 
 function findIdRequest(name,email){//todo: dispatch를 안했는데도 실행이 됨.... 2.24
-   return new Promise((resolve,reject)=>{
-    if(name=='g1'&&email=='g1'){
-        console.log(name,email)
-        resolve('g1')
-        }else {reject()}
-   })
-     
+   return axios.post('/api/account/findId', {name, email})
+	.then((res)=>{
+	    return Promise.resolve(res.data.userId)})
+	.catch(err=>(Promise.reject(err)))
 }
 
 

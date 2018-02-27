@@ -1,8 +1,8 @@
 var smtpTransporter = {
 	service: "Gmail",
 	auth: {
-		user: "jwc2094@gmail.com",
-		pass: "tjrdid^@^1"	}
+		user: "rltjqdl1138@gmail.com",
+		pass: "kks14159265358979Az!"	}
 }
 var mailConfig = {
 		from: '"DotOut"<rltjqdl1138@gmail.com>',

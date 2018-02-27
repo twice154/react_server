@@ -111,6 +111,7 @@ exports.tokenize = (user, secret) => {
  */
 exports.modify = ( user, info ) => {
     return new Promise((res, reject) => {
+	console.log('modifying')
 	    User.update(user, info)
 	    .then((user)=>{res(user)})
     })
@@ -178,7 +179,7 @@ exports.create = function (user,info){
  */
 exports.sendmail = (info) => {
     return new Promise((res, reject) => {
-	var host = '125.133.241.232:8004'
+	var host = '125.133.241.232:8005'
 	var link = "http://" + host + "/api/account/verify?token="+info.token;
 	mailConfig.html = "<a href="+link+">Click</a>"
 	mailConfig.to = info.email

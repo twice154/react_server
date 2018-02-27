@@ -65,8 +65,7 @@ exports.register = (req, res) => {
  *		{ userId } \n
  *  @return	No Return
  */
-exports.verify = (req, res) => {
-
+exports.veri = (req, res) => {
 	const onError = (error) => {
 		res.status(409).json({
 			message: error.message
@@ -86,7 +85,7 @@ exports.verify = (req, res) => {
 	User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
 	.then(user => _verify(user))	//전달받은 user의 정보를 이용하여 DB내용을 UPDATE시킴. 여기서는 Verified값만 True로 바꿀 예정
 	.then(user => modify(user,{verified: true}))
-	.then(user => toLogin(res))
+	.then(user => toLogin(res) )
 	.catch(onError)
     
 }
@@ -153,13 +152,34 @@ exports.login = (req, res) => {
 	.then( msg=> respond(res,msg) )
 	.catch(onError)
 }
-exports.resend = (req, res) => {
-	info = req.body
-	const _email = (user, info) =>{
-	    return new Promise((res)=>{
-		user.email = info.email
-		res(user)
+
+//name, email
+exports.findId = (req, res) => {
+    const info = req.body
+    const findid = (user) => {
+	console.log(user)
+	console.log(info)
+	if(!user || user.name != info.name)
+	    res.status(403).json({
+		message: "worng information!"
 	    })
+	else{
+	    console.log("ok")	
+	    res.json({userId: user.userId})
+	}
+    }
+	User.findOneByUseremail(info)
+	.then(user => findid(user))
+
+}
+
+exports.resend = (req, res) => {
+	const info = req.body
+	const onError = (error) => {
+		console.log('error발생')
+			res.status(403).json({
+			message: error.message
+		})
 	}
 	if(info.email===""){
 	    User.findOneByUserid(info)
@@ -172,8 +192,7 @@ exports.resend = (req, res) => {
 
 	else{
 	    User.findOneByUserid(info)
-	    .then(user => _email(user, info))
-	    .then(user => modify(user))
+	    .then(user => modify(user, { email: info.email }))
 	    .then(user => tokenize(user, secret))
 	    .then(user => sendmail(user))
 	    .then(msg => respond(res, msg))
@@ -184,6 +203,39 @@ exports.resend = (req, res) => {
 }
 
 
+/**
+ *  @brief  유저인증(email) \n
+ *  @param	req.body에 JSON 객체로 정보가 담겨있다. 아래는 해당 필드 \n
+ *		{ userId } \n
+ *  @return	No Return
+ */
+exports.putUserInfo = (req, res) => {
+	const onError = (error) => {
+		res.status(409).json({
+			message: error.message
+		})
+	}
+	const istrue = (user, info)=>{
+		return new Promise( (res,reject) => {
+			if(!info || info.password)
+				throw new Error("worng access")
+			else
+				res(user)
+		})
+	}
+	//
+	//  Promise Chain
+	//
+	var info = req.body	
+	info.userId = req.decoded.userId
+	
+	User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
+	.then( user => isPassword(user,info))
+	.then( user => modify(user, info))
+	.then( ()=>respond(res,"success") )
+	.catch(onError)
+    
+}
 
 
 exports.getinfo = (req, res) => {
@@ -198,7 +250,6 @@ exports.getinfo = (req, res) => {
 }
 
 exports.emailcheck = (req, res) => {
-    console.log('st')
     const info = req.body;
     const isEmpty = ( user ) =>{
 	if(!user || !user.email)
@@ -215,8 +266,9 @@ exports.emailcheck = (req, res) => {
     .then(user => isEmpty(user))
     .catch(onError)
 }
+
 exports.userIdcheck = (req, res) => {
-    const info =req.body;
+    const info = req.body;
     const isEmpty = ( user ) =>{
 	if(!user || !user.userId)
 	    respond(res, {})
@@ -234,3 +286,29 @@ exports.userIdcheck = (req, res) => {
 }
   
 
+exports.verified = (req, res) => {
+    const info = req.body
+    //const secret = req.app.get('jwt-secret')
+    const onError = (error) => {
+		console.log('error발생')
+	res.status(403).json({
+	    message: error.message
+	})
+    }
+	//
+	// Promise Chains
+	//
+	User.findOneByUserid(info)	
+	.then(user => check(user, info))
+	.then(user => respond(res, "success") )
+	.catch(onError)
+}
+
+
+exports.putPassword = (req, res) =>{
+
+
+
+
+
+}

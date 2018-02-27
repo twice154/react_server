@@ -1,3 +1,13 @@
+/**
+ *  @file	user.js
+ *  @brief	User DB에 대한 코드
+ *  @author	DotOut Inc, KKS
+ *  @todo	추후 User DB손보기
+ */
+
+
+
+
 var Promise = require('promise')
 var User = {};
 var Orientdb = require('orientjs');
@@ -53,9 +63,6 @@ User.create = (info) =>{
 }
 
 User.update = (user, info) =>{
-	console.log('update')
-	console.log(user)
-	console.log(info)
     if(info.password){
 	info.password = crypto.createHmac('sha1',config.secret)
 		.update(info.password)
@@ -73,7 +80,6 @@ User.update = (user, info) =>{
 		//"', gender='" + info.gender +
 		"'")
 	.catch((err)=>reject(err))
-	console.log(newDat)
 	res(newDat)
     })
 }
@@ -88,12 +94,10 @@ User.del = (info) => {
 }
 
 User.findOneByUserid = (info) => {
-	console.log(info)
     var TempDat={}
     return new Promise( (res,reject)=>{
 	User.db.query("SELECT * FROM User WHERE userId='" + info.userId + "'")
 	.then( (results) =>{
-	    console.log(results)
 	    if( results.length === 0 ){
 		console.log('Not found!')
 		res(TempDat)
