@@ -35,6 +35,7 @@ const secret = require('../../config').secret
  *  @deprecated	onError - 에러핸들링 함수 따로 제작 \n
  */
 exports.register = (req, res) => {
+	console.log(1)
 	const info = req.body
 	//const info = { name, nickname, birth, gender, userId, password, email, phone } = req.body
 	info.Verify = false
@@ -129,6 +130,7 @@ exports.del = (req, res) => {
  *		    다른 함수로 뺄 수 있으면 빼고 아니라면 이대로 진행
  */
 exports.login = (req, res) => {
+	console.log(1)
     const info = req.body
     //const secret = req.app.get('jwt-secret')
     const onError = (error) => {

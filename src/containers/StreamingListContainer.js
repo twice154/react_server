@@ -1,3 +1,9 @@
+/**
+ * redPro5로 업데이트 예정.
+ * @author G1
+ * @logs // 18.2.25
+ */
+
 import React, { Component } from 'react';
 import StreamingList from 'components/StreamingList';
 import { connect } from 'react-redux';

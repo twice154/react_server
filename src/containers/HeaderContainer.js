@@ -1,3 +1,10 @@
+/**
+ * redux와 연결하는 컨테이너
+ * @author G1
+ * logs // 18.2.25
+ */
+
+
 import React from 'react';
 import {Header} from 'components';
 import {connect} from 'react-redux';
@@ -10,18 +17,14 @@ class HeaderContainer extends React.Component{
 		super(props);
 		this.handleLogout = this.handleLogout.bind(this);
 	}
-
+	/**
+	 * 리덕스로 로그아웃 해달라고 요청을 보내는 함수
+	 */
 	handleLogout(){
 		this.props.logoutRequest().then(
 			()=> {
 				window.Materialize.toast('Good Bye!', 2000);
 
-				/*let loginData = {
-					isLoggedIn: false,
-					username: ''
-				};
-
-				document.cookie = 'key=' + btoa(JSON.stringify(loginData));*/
 			}
 		)
 	}
@@ -29,20 +32,7 @@ class HeaderContainer extends React.Component{
 
 
 	componentDidMount(){
-		/*function getCookie(name){
-			var value = ";" + document.cookie;
-			var parts = value.split("; " + name + "=");
-			if(parts.length == 2) return parts.pop().split(";").shift();
-		}
-
-		let loginData = getCookie('key');
-
-		if(typeof loginData === "undefined") return;
-
-		loginData = JSON.parse(atob(loginData));
-
-		if(!loginData.isLoggedIn) return;*/
-
+		
 		this.props.getStatusRequest().then(
 			()=> {
 				
@@ -52,7 +42,9 @@ class HeaderContainer extends React.Component{
 			console.log('not logined');
 		})
 	}
-
+	/**
+	 * 로그인, 회원가입의 경우 헤드 컴포넌트가 보이지 않는다 --> TODO: pwd도 적용을 해주던지, 이미지 작업해야됨
+	 */
 	render(){
 
 		let re = /(login|register)/;

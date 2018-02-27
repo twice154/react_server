@@ -1,3 +1,9 @@
+/**
+ * 플레이어 컴포넌트. red5pro로 업뎃
+ * @author G1
+ * @logs // 18.2.26
+ */
+
 import React from 'react';
 
 class StreamingPlayer extends React.Component{

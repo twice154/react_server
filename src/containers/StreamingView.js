@@ -1,3 +1,9 @@
+/**
+ * 플레이어 별 스트리밍 페이지. 채팅과 플레이어가 존재.
+ * @author G1
+ * @logs // 18.2.26
+ */
+
 import React from 'react';
 import {StreamingPlayerContainer, ChattingContainer} from 'containers';
 

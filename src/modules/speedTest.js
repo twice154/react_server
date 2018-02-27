@@ -1,3 +1,10 @@
+/**
+ * speedTest
+ * @author G1
+ * @logs // 18.2.27
+ */
+
+
 import { Map, fromJS } from 'immutable';
 import {handleActions } from 'redux-actions';
 import axios from 'axios';
@@ -11,7 +18,10 @@ const initialState = Map({
     status: 'INIT',
     data: Map({})
 });
-
+/**
+ * 서버에서 스피드를 테스트 하여 데이터를 얻어온다.
+ * 
+ */
 function getSpeedApiRequest(){
     return axios.post('/api/speedtest')
             .then(res=>{

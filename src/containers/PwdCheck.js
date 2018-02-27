@@ -1,3 +1,9 @@
+/**
+ * 개인정보 변경하기 전에 한번 더 비밀번호를 확인하는 페이지.
+ * @author G1
+ * @logs // 18.2.25
+ */
+
 import React, { Component } from 'react';
 import {connect} from 'react-redux'
 import {pwdVerify} from '../modules/authentication'
@@ -14,6 +20,7 @@ class PwdCheck extends Component {
 	handleChange(e){ 
 		this.setState({pwd: e.target.value});
     }
+    /**올바른 비밀번혼지 체크한다. */
     pwdVerifyRequest(pwd){
         this.props.pwdVerify(pwd).then(()=>{
             this.props.history.push('/settings/'+this.props.match.params.typename)

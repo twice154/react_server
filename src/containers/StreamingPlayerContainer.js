@@ -1,3 +1,9 @@
+/**
+ * 플레이어 컨테이너. red5pro로 업데이트 예정.
+ * @author G1
+ * @logs // 18.2.26
+ */
+
 import React from 'react';
 import StreamingPlayer from 'components/StreamingPlayer';
 

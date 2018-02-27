@@ -1,3 +1,9 @@
+/**
+ * 증명 페이지. 기존 이메일에 보내는 버튼과 새로 만든 이메일에 보내는 버튼이 존재.
+ * @author G1
+ * @logs // 18.2.25
+ */
+
 import React, { Component } from 'react';
 import {VerifyComponent} from '../components/auth'
 import {connect} from 'react-redux'
@@ -17,8 +23,14 @@ class Verify extends Component {
             console.log(this.props.user)
 					this.props.cleanCurrentUser()
     }
+    /**
+     * 이메일로 증명 링크를 보낸다.
+     * @param {string} email 
+     * @description
+     * 링크를 보낸 후 로그인 페이지로 리다이렉트 시킨다.
+     */
     handleReSend(email){
-        console.log('hi'+email+ this.state.user)
+        
         this.props.reSendEmail(email,this.state.user).then(()=>{
             alert('메시지를 보냈습니다!')
             this.props.history.push('/login')
@@ -26,6 +38,10 @@ class Verify extends Component {
            
         
     }
+    /**
+     * 새로운 이메일이 중복되는지 확인한다.
+     * @param {string} email - 이메일
+     */
     checkEmail(email){
 		console.log(email)
 		this.props.emailRequest(email).then(()=>{

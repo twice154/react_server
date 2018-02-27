@@ -178,7 +178,7 @@ exports.create = function (user,info){
  */
 exports.sendmail = (info) => {
     return new Promise((res, reject) => {
-	var host = '125.133.241.232:8004'
+	var host = 'localhost:3000'
 	var link = "http://" + host + "/api/account/verify?token="+info.token;
 	mailConfig.html = "<a href="+link+">Click</a>"
 	mailConfig.to = info.email

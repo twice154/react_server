@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SettingsComponent = ({info,push}) => {
+const SettingsComponent = ({info,push,quit}) => {
     
     
 
@@ -53,13 +53,12 @@ const SettingsComponent = ({info,push}) => {
                     </div>
                 </div>
                 
-                
+                         </div>
+        
+                    </div>
 
-                
-            </div>
-	
-				</div>
-			</div>
+                    <button onClick={quit}>탈퇴하기</button>
+                </div>
             </div>
     </div>)
 }

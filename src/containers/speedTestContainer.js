@@ -1,3 +1,10 @@
+/**
+ * 사용자의 스피드를 측정한다.
+ * @author G1
+ * @logs // 18.2.25
+ */
+
+
 import React, { Component } from 'react';
 import {connect} from 'react-redux';
 import {SpeedTest} from  'components';
@@ -10,7 +17,9 @@ class speedTestContainer extends Component {
         this.state={data:{}};
         this.getSpeed = this.getSpeed.bind(this);
     }
-
+/**   
+ * 사용자의 아이피, 업속도 다운로드 속도를 받아온다.
+ */
     getSpeed(){
         return this.props.getSpeedRequest()
             .then(()=>{
