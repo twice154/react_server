@@ -3,11 +3,11 @@
  *  @brief 	Router for authentication \n
  *  @author 	DotOut Inc, KKS
  *  
- *  @todo 	아이디찾기 (  ) \n
+ *  @todo 	아이디찾기 ( v ) \n
  *		비번찾기   (  ) \n
- *		정보 수정  (  ) \n
- * 		중복체크   (  ) \n
- *		메일 재전송(  ) \n
+ *		정보 수정  ( v ) \n
+ * 		중복체크   ( v ) \n
+ *		메일 재전송( v ) \n
  *		함수 정리  (  ) \n	
  */
 

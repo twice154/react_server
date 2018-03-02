@@ -7,16 +7,16 @@ var dbServer = orientDB({  //connecting to orientdb
     host: 'localhost',
     port: 2424,
     username: 'root',
-    password: 'ssh2159'
+    password: '1138877'
 });
 
-dbServer.drop('usersinfo');
+//dbServer.drop('usersinfo');
 var db = dbServer.create({  //userinfo라는 이름의 database를 만든다
-    name: "usersinfo",
+    name: "UserInformation",
     type: "graph",
     storage: "plocal"
 }).then(function (db) {
-    db.class.create('User').then(function(user){ //사용자 정보 저장을 위한 User 클래스를 정의
+    db.class.create('User','V').then(function(user){ //사용자 정보 저장을 위한 User 클래스를 정의
         user.property.create({
                 name: 'id',
                 type: 'String'
@@ -24,13 +24,28 @@ var db = dbServer.create({  //userinfo라는 이름의 database를 만든다
                 name: 'password',
                 type: 'String'
             },{
-                name: 'room',
+                name: 'name',
                 type: 'String'
             },{
-                name: 'ML_socket',
+                name: 'nickname',
                 type: 'String'
             },{
-                name: 'ML_login_status',
+                name: 'birth',
+                type: 'Date'
+            },{
+                name: 'email',
+                type: 'String'
+            },{
+                name: 'phone',
+                type: 'String'
+            },{
+                name: 'gender',
+                type: 'Char'
+            },{
+                name: 'verified',
+                type: 'Boolean'
+            },{
+                name: 'admin',
                 type: 'Boolean'
             }).then(function (properties) {
                 console.log("Properties created");

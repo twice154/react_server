@@ -10,10 +10,13 @@ const {secret} = require('../config')
 const authMiddleware = (req, res, next) => {
     //Change header to cookie
     //
-    const token = req.headers['x-access-token']||req.query.token
-    		  ||req.cookies.token
+    const tempToken = req.headers['x-access-token']||req.query.token
+    const token = req.cookies.token
 
-    if(!token){
+	console.log(tempToken)
+	console.log(token)
+
+    if(!token && !tempToken){
 	return res.status(403).json({
 	    success: false,
 	    message: 'not logged in'
@@ -22,11 +25,20 @@ const authMiddleware = (req, res, next) => {
 
     const p = new Promise(
 	(resolve, reject) => {
-	    jwt.verify(token, secret, (err, decoded) => {
-		if(err) reject(err)
-		console.log('correct token')
-		resolve(decoded)
-	    })
+	    if(tempToken){
+		jwt.verify(tempToken, "ChocoPi", (err, decoded) => {
+		    if(err) reject(err)
+		    console.log('correct token')
+		    resolve(decoded)
+		})
+	    }
+	    else if(token){
+		jwt.verify(token, secret, (err, decoded) => {
+		    if(err) reject(err)
+		    console.log('correct token')
+		    resolve(decoded)
+		})
+	    }
 	}
     ) 
     const onError = (error) => {
