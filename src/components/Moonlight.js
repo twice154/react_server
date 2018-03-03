@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import {HostList} from 'components';
+import HostList from './HostList';
 import update from 'immutability-helper';
 
 class Moonlight extends React.Component {

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import StreamingPlayer from 'components/StreamingPlayer';
+import StreamingPlayer from '../components/StreamingPlayer';
 
 class StreamingPlayerContainer extends React.Component{
     constructor(props){

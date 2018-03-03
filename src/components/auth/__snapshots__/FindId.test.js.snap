@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`findId test renders without crashing 1`] = `
+<div>
+  <div
+    className="card-content"
+  >
+    <div
+      className="row"
+    >
+      <div
+        className="input-field col s12 username"
+      >
+        <label>
+          NAME
+        </label>
+        <input
+          className="validate"
+          name="name"
+          onChange={[Function]}
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        className="input-field col s12"
+      >
+        <label>
+          email
+        </label>
+        <input
+          className="validate"
+          name="email"
+          onChange={[Function]}
+          onKeyPress={[Function]}
+          type="text"
+          value=""
+        />
+      </div>
+      <a
+        className="waves-effect waves-light btn"
+        onClick={[Function]}
+      >
+        SUBMIT
+      </a>
+    </div>
+  </div>
+</div>
+`;

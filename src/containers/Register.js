@@ -6,7 +6,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {RegisterComponent} from '../components/auth'
-import {idRequest,emailRequest,registerRequest} from 'modules/register';//todo
+import {idRequest,emailRequest,registerRequest} from '../modules/register';//todo
 
 class Register extends React.Component {
 

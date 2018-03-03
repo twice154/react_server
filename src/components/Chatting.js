@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { getStatusRequest } from 'modules/authentication';
+import {getStatusRequest} from '../modules/authentication'
 import { connect } from 'react-redux';
 
 

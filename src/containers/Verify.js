@@ -9,7 +9,8 @@ import {VerifyComponent} from '../components/auth'
 import {connect} from 'react-redux'
 import {reSendEmail,cleanCurrentUser} from '../modules/authentication'
 import {emailRequest} from '../modules/register'
-class Verify extends Component {
+//test를 위한 export선언.
+export class Verify extends Component {
     constructor(props) {
         super(props);
         this.state = { user:'' }
@@ -77,5 +78,6 @@ const mapDispatchToProps = (dispatch) => {
         }
 	};
 };
+
 
 export default connect(mapStateToProps, mapDispatchToProps)(Verify);

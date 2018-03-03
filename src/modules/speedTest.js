@@ -10,7 +10,7 @@ import {handleActions } from 'redux-actions';
 import axios from 'axios';
 
 const GET_SPEED = 'NETWORK/GET_SPEED';
-const GET_SPEED_LOADING = 'NETWORK/GET_SPEED_WAITING';
+const GET_SPEED_LOADING = 'NETWORK/GET_SPEED_LOADING';
 const GET_SPEED_SUCCESS = 'NETWORK/GET_SPEED_SUCCESS';
 const GET_SPEED_FAILURE = 'NETWORK/GET_SPEED_FAILURE';
 
@@ -28,7 +28,7 @@ function getSpeedApiRequest(){
                 return Promise.resolve(res.data.data);
             })
             .catch(err=>{
-                return Promise.reject(err);
+                return Promise.reject();
             })
 }
 
@@ -38,14 +38,14 @@ export const getSpeedRequest = ()=>({
 });
 
 export default handleActions({
-    [GET_SPEED_LOADING]: (state, action)=>{
+    GET_SPEED_LOADING: (state, action)=>{
         return state.set('status', 'WAITING');
     },
-    [GET_SPEED_SUCCESS]: (state, action)=>{
+    GET_SPEED_SUCCESS: (state, action)=>{
         return state.set('status', 'SUCCESS')
                     .set('data', fromJS(action.payload))
     },
-    [GET_SPEED_FAILURE]: (state, action)=>{
+    GET_SPEED_FAILURE: (state, action)=>{
         return state.set('status', 'FAILURE');
     }
 }, initialState);

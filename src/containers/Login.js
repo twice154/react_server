@@ -7,7 +7,7 @@
 import React from 'react';
 import {LoginComponent} from '../components/auth';
 import {connect } from 'react-redux';
-import {loginRequest,cleanCurrentUser} from 'modules/authentication';
+import {loginRequest,cleanCurrentUser} from '../modules/authentication';
 //import {browserHistory} from 'react-router';
 
 class Login extends React.Component{

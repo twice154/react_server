@@ -6,9 +6,9 @@
 
 
 import React from 'react';
-import {Header} from 'components';
+import {Header} from '../components';
 import {connect} from 'react-redux';
-import {logoutRequest, getStatusRequest} from 'modules/authentication';
+import {logoutRequest, getStatusRequest} from '../modules/authentication';
 
 
 class HeaderContainer extends React.Component{

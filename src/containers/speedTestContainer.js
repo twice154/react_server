@@ -7,7 +7,7 @@
 
 import React, { Component } from 'react';
 import {connect} from 'react-redux';
-import {SpeedTest} from  'components';
+import {SpeedTest} from  '../components';
 import { getSpeedRequest } from '../modules/speedTest';
 
 

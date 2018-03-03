@@ -7,7 +7,7 @@
 import React from 'react';
 import {BrowserRouter, Route, Switch} from 'react-router-dom';
 import {HeaderContainer, Login,Find, Verify, Verified, Register, StreamingListContainer,
-        StreamingView,SpeedTestContainer, MoonlightContainer,Settings, ChangeInfo, PwdCheck} from 'containers';
+        StreamingView,SpeedTestContainer, MoonlightContainer,Settings, ChangeInfo, PwdCheck} from './containers';
 import {Payment} from './components';
 import {Provider} from 'react-redux';
 import store from './store';

@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import {StreamingPlayerContainer, ChattingContainer} from 'containers';
+import StreamingPlayerContainer from './StreamingPlayerContainer'
+import ChattingContainer from './ChattingContainer';
 
 const StreamingView = ({match})=>{ 
 	return (

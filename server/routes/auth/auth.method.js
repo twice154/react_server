@@ -5,15 +5,16 @@
  *
  *  @see	return new Promise - 아래 함수들은 모두 Promise 객체를 리턴한다. \n
  *			따라서 어떤 함수로든 Promise Chain을 시작할 수 있다. \n
- *		아래 문서에서 유저정보를 저장하는 이름 user와 info는 아래 기준으로 구분한다. \n
- *		user - 위 문서에서 user는 DB에서 가져온 데이터 원본 혹은 수정본을 의미한다. \n
- *		info - 위 문서에서 info는 사용자가 작성하여 POST로 보낸 정보들의 묶음을 의미한다. \n
- *		User객체 - 쿼리를 이용하여  유저 DB에 직접 접근하도록 만들어진 모델이다. \n
+ *
+ *			아래 문서에서 유저정보를 저장하는 이름 user와 info는 아래 기준으로 구분한다. \n
+ *			* user - 위 문서에서 user는 DB에서 가져온 데이터 원본 혹은 수정본을 의미한다. \n
+ *					DB에 있는 모든 property가 인자로 딸려오지만, 해당 문서에서는 꼭 필요한 property 설명만 기재\n
+ *			* info - 위 문서에서 info는 사용자가 작성하여 POST로 보낸 정보들의 묶음을 의미한다. \n
+ *			User객체 - 쿼리를 이용하여  유저 DB에 직접 접근하도록 만들어진 모델이다. \n
  *			위 문서에서 정의된 함수들은 User객체의 함수를 불러 간접적으로 DB에 접근한다.
  *
  *  @todo	작업하는 중 필요한 라우터가 생기면 거기에 맞춰 새 함수 생성
  */
-
 
 const User = require('../../models/user')
 const express = require('express')
@@ -27,53 +28,69 @@ const smtpTransport = nodemailer.createTransport(Conf.smtpConfig)
 
 /**
  *  @brief  암호가 일치하는지 확인하는 함수
- *  @param	JSON user - DB에서 찾은 정보
- *  @param	JSON info - 유저가 입력한 정보. info.password만 의미를 가짐
- *  @return	Promise - 암호가 맞을 경우 다음 Promise에 user 전달
- *			- 암호가 틀릴 경우 error throw
+ * 
+ *  @param	JSON user - DB에서 찾은 정보,
+ *    @property	String password: DB에서 검색해온 암호의 SHA256 해쉬 값, 비밀번호 대조를 위해 사용 
+ *  @param	JSON info - 유저가 입력한 정보.
+ *    @property	String password: 사용자가 암호 확인을 위해 보낸 String 형태의 암호의 raw값
+ * 
+ *  @return	Promise
+ *    @resolve	JSON - 두 암호가 같을 경우 실행, 다음 Promise에 user 객체 전달
+ *    @reject	String - 두 암호가 다를 경우 실행, error throw
+ * 
  *  @todo	에러핸들러가 완성되면 맞춰서 throw 내용 변경
+ * 			보안을 위해 추후 String이 아니라 또 다른 암호화 과정으로 패스워드를 전달받도록 보완
  */
 exports.check = (user, info) => {
     return new Promise((res, reject) => {
 	if(!user){
 	    throw new Error('login failed')
 	}else{
-		//when password was corrected
-		//if error did not exist, respond token to next promise function
 		if(User.verify(user, info)){
-			console.log('then..')
 			res(user)
 		} else{
-		    //password incorrection
 		    throw new Error('login failed')
 		}
 	}
     })
 }
 
+
 /**
  *  @brief  유저 정보를 DB에서 삭제하는 함수
- *  @param	JSON user - DB에서 찾은 정보. user.userId만 의미를 가짐
- *  @return	Promise
- *  @todo	에러핸들러가 완성되면 에러처리 코드 삽입
- *		예외처리구문 삽입
+ *  @param	JSON user - DB에서 찾은 정보.
+ *    @property	String userId: 삭제할 정보 검색을 위한 유저의 id
+ *  
+ * @return	Promise
+ *   @resolve	String - 유저를 삭제하고 success 메세지를 다음 Promise로 전달	
+ *   @reject	X		
+ *  
+ * @todo	에러핸들러가 완성되면 에러처리 코드 삽입
+ *			예외처리구문 삽입
  */
 exports.del = (user) => {
     return new Promise( (res,reject) => {
-	return User.del(user)
+	User.del(user)
+	res("success")
     })
 }
 
 
 /**
- *  @brief  유저의 id와 닉네임 정보를 토대로 토큰을 발행하는 함수
- *  @param	JSON user - DB에서 찾은 정보. user.userId와 user.nickname만 의미를 가짐
+ *  @brief  로그인 정보를 담을 토큰을 발행한다.
+ * 
+ *  @param	JSON user - DB에서 찾은 정보.
+ *    @property	String userId: 토큰을 통해 유저를 식별하기 위한 id 정보
+ *    @property Boolean verified: 유저가 verified 되어있는지 확인하기 위해 추가
  *  @param	string secret - config에 저장되어있는 토큰의 해싱키
- *  @return	Promise - 토큰이 정상적으로 발행되었을 경우 다음 Promise에 user를 넘겨줌
- *			이 때, user.token에 발급받은 token정보를 추가하여 넘겨준다.
- *			- 토큰 발생과정에서 오류가 생기면 error throw
- *  @todo	payload부분 나중에 수정하기
- *		에러핸들러 작성 후 에러 처리부분 다시 짜기
+ * 
+ *  @return	Promise
+ *    @resolve	JSON - 토큰이 정상적으로 발행되었을 경우 실행한다. user.token에 토큰 정보를 저장하고 다음 Promise에 user를 넘겨줌
+ *	  @reject	String - 토큰 발생과정에서 오류가 생기면 error throw
+
+ *  @todo	payload부분 나중에 수정하기, admin 권한이 필요할 때 추가하기
+ *			에러핸들러 작성 후 에러 처리부분 다시 짜기
+ *
  *  @deprecate	nickname이 필요없다고 생각되면 지우기
  */
 exports.tokenize = (user, secret) => {
@@ -97,20 +114,74 @@ exports.tokenize = (user, secret) => {
     })
 }
 
+/**
+ *  @brief  비밀번호 찾기, 이메일 인증 등 임시로 사용할 토큰을 발행하는 함수
+ * 
+ *  @param	JSON user - DB에서 찾은 정보.
+ *    @property	String userId: 토큰을 통해 유저를 식별하기 위한 id 정보
+ *    @property int dat: 토큰을 발행한 시점의 시간, 토큰의 만료를 처리하기 위함
+ *  @param	string secret - config에 저장되어있는 토큰의 해싱키
+ * 
+ *  @return	Promise
+ *    @resolve	JSON - 토큰이 정상적으로 발행되었을 경우 실행한다. user.token에 토큰 정보를 저장하고 다음 Promise에 user를 넘겨줌
+ *	  @reject	String - 토큰 발생과정에서 오류가 생기면 error throw
+
+ *  @todo	param의 secret tokenize와 다르게 바꾸기
+ *			임시 인증에 사용할 추가 정보 있나 보기
+ *
+ *  @deprecate	"ChocoPi"는 임시로 지정한 비밀 key, Config파일로 빼야함
+ * 				토큰에 기본적으로 발행시간이 들어가는 것 같음. 이를 확인해보고 dat이 필요없으면 삭제
+ */
+exports.tempTokenize = (user, secret) => {
+    return new Promise((res, reject) => {
+	var dat = Date.now()
+	console.log('start temp tokenize at '+dat)
+	jwt.sign(
+	    {
+		userId: user.userId,
+		date:	dat
+	    },
+	    "ChocoPi",
+	    {
+		issuer:	'sprout.io' ,//TODO: what is our domain?!
+		subject: 'UserAuth'
+	    }, (err, token) => {
+		if(err) console.log(err)
+		else{
+		user.token = token
+		res(user)}
+	    })
+    })
+}
+
 
 
 /**
- *  @brief  유저 정보를 수정할 때 쓰는 함수
- *  @param	JSON user - user객체에 저장된 정보대로 DB내용이 갱신됨. 아래 필드중 하나라도 없으면 실행되지 않음
- *			{ userId, nickname, birth, gender password, email, phone }
- *  @return	Promise - 제대로 실행되면 다음 프로미스로 메세지 전달
- *			- 필드 내용이 존재하지 않는경우 수정하지 않고 다음 프로미스 진행
+ *  @brief  유저 정보를 수정할 때 쓰는 함수, info의 필드에 있는 데이터가 user 객체의 필드에 그대로 갱신됨
+ * 			예를들어 user = { key1: 1, key2: 2 }  info = { key2: 4 } 이면 user = { key1: 1, key2: 4 }로 갱신됨
+ *  @param	JSON user - DB에서 가져온 기존 정보.
+ * 	  @property	String userId: DB에서 데이터 검색을 위한 유저의 ID
+ *  @param	JSON info - 유저가 변경하려는 정보 객체. 아래 명시되지 않은 property가 있을 경우 오류가 발생할 가능성이 있음
+ *    @property String nickname: 유저의 닉네임
+ *    @property	Date birth: 유저의 생년월일
+ *    @property	Char gender: 유저의 성별
+ *    @property	String password: 유저의 password에 해당하는 raw 패스워드
+ *    @property	String email: 유저의 이메일, 수정 전 이메일 중복 확인 및 이메일 인증 필요
+ *    @property	String phone: 유저의 핸드폰 번호
+ *    @property	Boolean verified: 유저가 이메일 인증을 했는지 여부
+ * 
+ *  @return	Promise
+ * 	  @resolve	String - 유저 업데이트가 제대로 실행되면 다음 프로미스로 메세지 전달
+ *	  @reject	X
+
  *  @todo	예외처리 다듬기, 에러핸들러 적용
- *		필드 내용이 존재하지 않을 경우 DB내용을 갱신하지 않는 것으로 처리하기
- *		함수가 제대로 실행되었을 때 String 메세지가 아닌 respond에서 처리가능한 인자로 넘기기
+ * 			인가되지 않은 property가 info의 property로 들어왔을 때의 경우 생각하기
+ * 			이메일 변경을 까다롭게 할 필요성 있음
+ *			함수가 제대로 실행되었을 때 String 메세지가 아닌 respond에서 처리가능한 인자로 넘기기
  */
 exports.modify = ( user, info ) => {
     return new Promise((res, reject) => {
+	console.log('modifying')
 	    User.update(user, info)
 	    .then((user)=>{res(user)})
     })
@@ -119,62 +190,65 @@ exports.modify = ( user, info ) => {
 
 
 /**
- *  @brief  계정 활성화를 위한 함수
- *  @param	JSON user - Verified 필드를 보고 
- *  @returna	Promise - 이미 Verified 되있는 계정이면 다음 Promise로 이미 승인된 유저라고 메세지를 보낸다.
- *			- user의 Verified가 false이면 true로 바꾼 뒤 다음 Promise로 user 객체를 넘겨준다.
- *  @todo	이미 Verified된 경우 메세지를 다음 Promise로 보내는 것이 아니라 error throw 하도록 바꿔야한다.
+ *  @brief  계정 활성화 여부를 판단하기 위한 함수
+ * 
+ *  @param	JSON user
+ *    @property	Boolean verified: 유저 계정의 활성화 여부
+ *
+ *  @return	Promise
+ *	  @resolve	user.verified가 false이면 true로 바꾼 뒤 다음 Promise로 user 객체를 넘겨준다.
+ *    @reject	이미 verified가 true인 계정이면 error thorow로 이미 승인된 유저라고 메세지를 보낸다.
  */
 exports.verify = ( user ) => {
     return new Promise((res, reject) => {
-	if(user.verified === true)
-	    res()
-	else{
-	    user.verified = true
-	    res(user)
-	}
+		if(user.verified === true)
+	    	throw new Error("Already verified")
+		else{
+	    	user.verified = true
+	    	res(user)
+		}
     })
 }
 
 /**
  *  @brief  유저를 생성하는 함수이다.
- *  @param	JSON user - DB에서 SELECT해온 유저의 정보이다. 만약 SELECT결과 유저가 없다면 모든 필드값은 undefined가 될 것이다.
- *  @param	JSON info - 사용자가 입력한 DB 내용이다.
- *  @return	Promise - 사용자가 입력한 정보인 info를 다음 Promise로 보낸다.
- *			이미 있는 계정이면 throw error 시킨다.
+ * 
+ *  @param	JSON user - id를 key로 DB에서 검색해온 유저의 정보이다. 만약 SELECT 실행 결과 유저가 없다면 모든 필드값은 undefined가 된다.
+ *  @param	JSON info - 사용자가 입력한 유저 정보
+ * 
+ *  @return	Promise
+ *    @resolve	JSON - DB에 유저 생성이 완료되면 사용자가 입력한 정보인 info를 다음 Promise로 보낸다.
+ *	  @reject	String - user가 undefined가 아니라면, 즉 이미 있는 계정이면 throw error 시킨다.
+ *
  *  @todo	에러 핸들러를 만들어 에러 처리 통합하기
- *		아이디가 중복되었을 때 외에 다른 예외 경우 추가하기
  */
 
 exports.create = function (user,info){
     return new Promise( function(res){
-	//TODO:if user's verification was not successed
 	if(user&&user.userId) {
 		console.log(user.userId + ' was already registered')
 		throw new Error('username exists')
 	}
-	/*
-	else if(){
-	
-	}
-	*/
-	else {
-		console.log('create in create.js')
-		User.create(info).then(()=>{res(info)})
-	}
+	else
+		User.create(info).then( ()=>{ res(info) } )
     })
 }
 
 /**
- *  @brief  유저에게 토큰을 링크에 포함하여 메일을 발송하는 함수
- *  	    현재 호스트는 125.133.241.232:8005로 되어있음.
- *  @param  	JSON info - 회원가입할 때 사용한 유저 정보를 그대로 받아온다.
-			앞에서 token화 과정을 거쳐 전달해줘야하기 때문에 DB의 내용에 token 필드도 추가되어야한다.
- *  			{ token, email, userId } 세 개의 필드는 필수적이다.
- *  @return	Promise - 다음 Promise로 보내는 정보는 String의 메세지
- *  @todo	- 유효번호로 메일 인증받는 시스템 생각해보기(할지 안할지 다시 얘기해보기)
- *		- respond 함수가 완성되면 다음 Promise로 보낼 내용 수정하기
- *		- 에러핸들러 완성하면 에러 처리
+ *  @brief  인증을 위한 토큰을 url 쿼리에 포함하여 메일로 발송하는 함수
+ * 
+ *  @param  JSON info - 회원가입할 때 사용한 유저 정보를 그대로 받아온다.
+ *    @property	String token: url쿼리에 들어갈 유저의 토큰 값
+ * 	  @property	String email: 메일을 전송 받을 유저의 이메일 정보
+ * 	  @property	String userId: 이 함수를 실행할 때 필요한 필드는 아니나 console에 기록하기 위해 넣음 
+ *	
+ *  @return	Promise
+ *    @resolve	String - 메일 발송이 성공적으로 이루어졌을 때 다음 Promise로 "Mail Sent!" 라는 메세지를 보냄
+ *    @reject:  String - 메일 발송이 실패했을 때 error 처리
+ * 
+ *  @todo	- 유효번호로 메일 인증받는 시스템 생각해보기 (할지 안할지 다시 얘기해보기)
+ *			- respond 함수가 완성되면 다음 Promise로 보낼 내용 수정하기
+ *			- 에러핸들러 완성하면 에러 처리
  */
 exports.sendmail = (info) => {
     return new Promise((res, reject) => {
@@ -189,7 +263,7 @@ exports.sendmail = (info) => {
 			reject("error");
 		}else{
 			console.log("Message sent: " + mailConfig.to);
-			res({msg:"Mail Sent!"+info.userId});
+			res("Mail Sent!"+info.userId);
 		}
 	});
     })
@@ -198,8 +272,12 @@ exports.sendmail = (info) => {
 
 /**
  *  @brief  React서버로 직접 성공 메세지를 전달하는 함수
+ * 
+ *  @param  JSON res - 라우터에서 받은 res 객체이다.
  *  @param	String msg - 현재는 String의 msg를 받는다. 받은 메세지를 그대로 전달해줌
+ * 
  *  @return	No returns
+ * 
  *  @todo	받은 메세지에 따라 다르게 작업할지 통일할지 정하기
  */
 //respond 함수는 작업이 성공했을 때 실행된다

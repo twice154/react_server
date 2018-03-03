@@ -6,9 +6,9 @@
 import React, { Component } from 'react';
 import io from 'socket.io-client';
 import { connect } from 'react-redux';
-import { getStatusRequest } from 'modules/authentication';
+import { getStatusRequest } from '../modules/authentication';
 import update from 'immutability-helper';
-import { Chatting } from 'components';
+import { Chatting } from '../components';
 
 var socket = {};
 

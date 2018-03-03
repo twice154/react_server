@@ -38,8 +38,7 @@ const ID_FAILURE='REGIST/ID_FAILURE'
  */
 const initialState ={
     regist:{
-        status: 'INIT',
-         error: -1
+        status: 'INIT'
     },
     id:{
         status:'init',
@@ -59,16 +58,16 @@ function registerApiRequest(msg){
     console.log(msg)
     return axios.post('./api/account/signup', msg)
             .then((res)=>Promise.resolve())
-            .catch(err=>Promise.reject(err.response.data.code))
+            .catch(err=>Promise.reject())
 }
 /**
  * 개인정보 수정에 사용. 새롭게 정보를 등록한다.
  * @param {*} msg 
  */
 function newRegisterApiRequest(msg){
-   return axios.put('api/account/userInfo',msg)
+   return axios.put('./api/account/userInfo',msg)
             .then(()=>Promise.resolve())
-            .catch(err=>Promise.reject(err))
+            .catch(err=>Promise.reject())
 }
 /**
  * 이메일이 사용 가능한지 여부를 확인한다.
@@ -115,15 +114,15 @@ export const emailRequest = (email)=>({
 
 export default handleActions({
 [REGISTER_LOADING]: (state, action)=>{
-    return {...state, regist:{...state.register, status:'LOADING'}};
+    return {...state, regist:{ status:'LOADING'}};
 },
 
 [REGISTER_SUCCESS]: (state, action)=>{
-    return {...state, regist:{...state.register, status:'SUCCESS'}};
+    return {...state, regist:{ status:'SUCCESS'}};
 },
 
 [REGISTER_FAILURE]: (state, action)=>{
-    return {...state, regist:{ error:action.payload,status:'fail'}};
+    return {...state, regist:{status:'FAILURE'}};
 },
 
 [NEWREGIST_LOADING]: (state, action)=>{

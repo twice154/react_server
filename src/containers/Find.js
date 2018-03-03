@@ -8,7 +8,7 @@ import React from 'react';
 import {FindId,FindPwd} from '../components/auth'
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom'
-import {loginRequest,findId,findPwd} from 'modules/authentication';
+import {loginRequest,findId,findPwd} from '../modules/authentication';
 
 class Find extends React.Component {
     constructor(props) {

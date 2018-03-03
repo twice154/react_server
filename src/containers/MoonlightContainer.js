@@ -6,9 +6,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { getStatusRequest as getMLStatusRequest, getHostsRequest, getAppsRequest, startGameRequest, addHostRequest } from 'modules/moonlight';
-import { getStatusRequest as getAuthStatusRequest } from 'modules/authentication';
-import {Moonlight} from 'components';
+import { getStatusRequest as getMLStatusRequest, getHostsRequest, getAppsRequest, startGameRequest, addHostRequest } from '../modules/moonlight';
+import { getStatusRequest as getAuthStatusRequest } from '../modules/authentication';
+import {Moonlight} from '../components';
 import update from 'immutability-helper';
 
 class MoonlightContainer extends Component {
