@@ -76,7 +76,7 @@ function loginApiRequest(userId, password){
             .then((res)=> {
                 return Promise.resolve(
                 {userId,verified:res.data.verified})})
-            .catch((err)=> Promise.reject(err))
+            .catch((err)=> Promise.reject())
 }
 
 /** 
@@ -105,7 +105,7 @@ function getAllInfoRequest(){
  * @param {*} email 
  */
 function findIdRequest(name,email){//todo: dispatch를 안했는데도 실행이 됨.... 2.24
-   return axios.post('/api/account/findId')
+   return axios.post('/api/account/findId',{name,email})
             .then((res)=>Promise.resolve(res.data.userId))
             .catch(()=>Promise.reject())
     
@@ -114,7 +114,7 @@ function findIdRequest(name,email){//todo: dispatch를 안했는데도 실행이
 
 /** 비밀번호 찾기. ->메일로 링크 쏴주기 ->비밀번호 바꾸는 창으로 감 */
 export function findPwd(id,email){
-    return axios.post('/api/account/findPwd')
+    return axios.post('/api/account/findPwd',{id,email})
             .then(()=>Promise.resolve())
             .catch(()=>Promise.reject())
 
@@ -141,9 +141,8 @@ function pwdVerifyRequest(pwd){
 export function reSendEmail(email,userId) {
     return (dispatch)=>{
         return axios.post('/api/account/resend',{email,userId})
-            .then((response) => {
-                dispatch({type: RESENDEMAIL});
-            });
+            .then(dispatch({type: RESENDEMAIL})
+            );
     };
 }
 /** 로그아웃*/

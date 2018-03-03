@@ -3,7 +3,7 @@ import promiseMiddleware from 'redux-promise-middleware';
 import thunk from 'redux-thunk'
 import MockAdapter from 'axios-mock-adapter'
 import axios from 'axios'
-import { registerRequest,newRegister,emailRequest,idRequest } from './register';
+import { registerRequest,newRegister,emailRequest,idRequest,phoneRequest } from './register';
 import reducers from './register'
 
 
@@ -24,7 +24,11 @@ describe('register test', () => {
     email:{
         status:'init',
         check:false
-    }
+    },
+    phone:{
+        status:'init',
+        check:false
+    },
 }
     describe('actioncreator test',()=>{
         var mock = new MockAdapter(axios);
@@ -91,7 +95,14 @@ describe('register test', () => {
         })
         })
         
-        it('emailRequest should check id from server', () => {
+        it('phoneRequest should check phone number from server', async() => {
+            mock.onPost('/api/account/phonecheck',{phone:'000'}).reply(200)
+            const expectedActions = [{"type": 'REGIST/PHONE_LOADING'}, {"type": "REGIST/PHONE_SUCCESS"},{"type": "REGIST/PHONE_LOADING"}, {"error": true, "type": "REGIST/PHONE_FAILURE"}]
+
+           await store.dispatch(phoneRequest('000'))
+           await store.dispatch(phoneRequest('')).catch(()=>{
+            expect(store.getActions()).toEqual(expectedActions)
+        })
         })
 
     })
@@ -121,6 +132,12 @@ describe('register test', () => {
             expect(reducers(undefined,{type:['REGIST/EMAIL_LOADING']})).toEqual({...initialState, email:{...initialState.email,status:'loading'}})
             expect(reducers(undefined,{type:['REGIST/EMAIL_SUCCESS']})).toEqual({...initialState,email:{check:true,status:'이메일을 사용할 수 있습니다.'}})
             expect(reducers(undefined,{type:['REGIST/EMAIL_FAILURE']})).toEqual({...initialState,email:{check:false,status:'이메일이 이미 사용중입니다.'}})
+      
+        })
+        it('should work at phone check',()=>{
+            expect(reducers(undefined,{type:['REGIST/PHONE_LOADING']})).toEqual({...initialState, phone:{...initialState.email,status:'loading'}})
+            expect(reducers(undefined,{type:['REGIST/PHONE_SUCCESS']})).toEqual({...initialState,phone:{check:true,status:'폰 번호를 사용할 수 있습니다.'}})
+            expect(reducers(undefined,{type:['REGIST/PHONE_FAILURE']})).toEqual({...initialState,phone:{check:false,status:'폰 번호를 이미 사용중입니다.'}})
       
         })
         

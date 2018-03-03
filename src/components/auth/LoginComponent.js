@@ -89,7 +89,9 @@ class LoginComponent extends React.Component {
 					<div className="footer">
 						<div className="card-content">
 							<div className="right">
-								<Link to="/register">Create an account</Link>
+								<a href="/register">Create an account</a>
+								{/* materializecss가 selecter를 사용하려면 script를 html에서 사용하는데 이걸 하기 위해서는
+								refresh시켜주어야만 함. */}
 								/	
 								<Link to='/find'>아이디 비밀번호찾기</Link>
 							</div>

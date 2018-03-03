@@ -65,7 +65,8 @@ User.create = (info) =>{
     info.password = crypto.createHmac('sha1',config.secret)
 			.update(info.password)
 			.digest('base64')
-    info.verified = false
+	info.verified = false
+	console.log(info.verified)
     info.admin = false
     
     return new Promise((res,reject)=>{

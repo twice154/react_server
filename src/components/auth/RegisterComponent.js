@@ -18,11 +18,16 @@ class RegisterComponent extends React.Component {
 			gender:'',
 			email:'',
 			phone:''
+			
 		};
 		this.handleChange = this.handleChange.bind(this);
 		this.handleRegister = this.handleRegister.bind(this);
         this.checkPwd=this.checkPwd.bind(this);
-        this.verify=this.verify.bind(this)
+		this.verify=this.verify.bind(this)
+		this.autoHypenPhone=this.autoHypenPhone.bind(this)
+	}
+	componentWillMount(){
+	
 	}
 
 	handleRegister(){
@@ -43,6 +48,8 @@ class RegisterComponent extends React.Component {
 			return alert('비밀번호를 확인하세요')
 		}else if(!this.props.emailCheck){
 			return alert('이메일을 확인하세요')
+		}else if(!this.props.phoneCheck){
+			return alert('폰 번호를 확인하세요')
 		}
 		for(var p in msg){ 
 			if(msg.p===''){
@@ -84,7 +91,41 @@ class RegisterComponent extends React.Component {
             this.setState({pwdVerifyPhrase:'안전한 비밀번호입니다.',pwdVerified:true})
         }  
        
-    }
+	}
+	/**
+	 * 핸드폰 형식에 맞추어 하이폰을 자동으로 넣어주는 함수.
+	 * 문자는 삭제한다.
+	 * @param {string} e 
+	 */
+	autoHypenPhone(e){
+		var str = e.target.value.replace(/[^0-9]/g, '')
+		
+		var tmp = '';
+		if( str.length < 4){
+		  return this.setState({phone:str});
+		}else if(str.length < 7){
+		  tmp += str.substr(0, 3);
+		  tmp += '-';
+		  tmp += str.substr(3);
+		  return this.setState({phone:tmp});
+		}else if(str.length < 11){
+		  tmp += str.substr(0, 3);
+		  tmp += '-';
+		  tmp += str.substr(3, 3);
+		  tmp += '-';
+		  tmp += str.substr(6);
+		  return this.setState({phone:tmp});
+		}else{        
+		  tmp += str.substr(0, 3);
+		  tmp += '-';
+		  tmp += str.substr(3, 4);
+		  tmp += '-';
+		  tmp += str.substr(7);
+		  return this.setState({phone:tmp});
+		}
+	  }
+	  /** 폰 중복을 확인하는 함수. */
+	
 	render(){
 		
             
@@ -161,14 +202,14 @@ class RegisterComponent extends React.Component {
 						value={this.state.birth}/>
                		</div>
 					<div className="input-field col s12 ">
-					<label>성별..</label>
+					{/* materialize가 안됨. */}
 						<select name='gender' value={this.state.gender} onChange={this.handleChange}>
 						<option value="" disabled>성별</option>
 						<option value="M">남자</option>
 						<option value="F">여자</option>
 						</select>
                		</div>
-					<div className="input-field col s6 ">
+					<div className="input-field col s12 ">
 						<label>이메일</label>
 						<i>{this.props.emailStatus}</i>
 						<input
@@ -179,23 +220,24 @@ class RegisterComponent extends React.Component {
 						value={this.state.email}
 						/>
                		</div>
-					<div className="input-field col s6 ">
+					<div className="input-field col s12 ">
 					<label></label>
 						<button onClick={()=>{this.props.checkEmail(this.state.email)}}>이메일체크</button>
 					
                		</div>
-					<div className="input-field col s6 ">
+					<div className="input-field col s12 ">
 						<label>휴대폰</label>
 						<input
 						name="phone"
 						type="text"
 						className="validate"
-						onChange={this.handleChange}
-						value={this.state.phone}/>
-               		</div>
-					   <div className="input-field col s6 ">
+						onChange={this.autoHypenPhone}
+						value={this.state.phone} maxLength='13'/>
+						</div>
+               		
+					   <div className="input-field col s12 ">
 					   <label></label>
-						<button onClick={(e)=>{this.props.checkEmail(e.target.value)}}>폰번호체크</button>
+						<button onClick={()=>{this.props.checkPhone(this.state.phone)}}>폰번호체크</button>
 					
                		</div>
                     <a className="waves-effect waves-light btn" onClick={this.handleRegister}>CREATE</a>
