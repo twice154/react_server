@@ -29,14 +29,14 @@ const smtpTransport = nodemailer.createTransport(Conf.smtpConfig)
 /**
  *  @brief  암호가 일치하는지 확인하는 함수
  * 
- *  @param	JSON user - DB에서 찾은 정보,
- *    @property	String password: DB에서 검색해온 암호의 SHA256 해쉬 값, 비밀번호 대조를 위해 사용 
- *  @param	JSON info - 유저가 입력한 정보.
- *    @property	String password: 사용자가 암호 확인을 위해 보낸 String 형태의 암호의 raw값
+ *  @param	{Object}	user 	- DB에서 찾은 정보,
+ *    @property	{String} 	password	- DB에서 검색해온 암호의 SHA256 해쉬 값, 비밀번호 대조를 위해 사용 
+ *  @param	{Object}	info	- 유저가 입력한 정보.
+ *    @property	{String}	password	- 사용자가 암호 확인을 위해 보낸 String 형태의 암호의 raw값
  * 
  *  @return	Promise
- *    @resolve	JSON - 두 암호가 같을 경우 실행, 다음 Promise에 user 객체 전달
- *    @reject	String - 두 암호가 다를 경우 실행, error throw
+ *    @resolve	{Object}	- 두 암호가 같을 경우 실행, 다음 Promise에 user 객체 전달
+ *    @reject	{String}	- 두 암호가 다를 경우 실행, error throw
  * 
  *  @todo	에러핸들러가 완성되면 맞춰서 throw 내용 변경
  * 			보안을 위해 추후 String이 아니라 또 다른 암호화 과정으로 패스워드를 전달받도록 보완
@@ -58,11 +58,11 @@ exports.check = (user, info) => {
 
 /**
  *  @brief  유저 정보를 DB에서 삭제하는 함수
- *  @param	JSON user - DB에서 찾은 정보.
- *    @property	String userId: 삭제할 정보 검색을 위한 유저의 id
+ *  @param	{Object}	user	- DB에서 찾은 정보.
+ *    @property	{String}	userId	- 삭제할 정보 검색을 위한 유저의 id
  *  
  * @return	Promise
- *   @resolve	String - 유저를 삭제하고 success 메세지를 다음 Promise로 전달	
+ *   @resolve	{String} 	- 유저를 삭제하고 success 메세지를 다음 Promise로 전달	
  *   @reject	X		
  *  
  * @todo	에러핸들러가 완성되면 에러처리 코드 삽입
@@ -79,14 +79,14 @@ exports.del = (user) => {
 /**
  *  @brief  로그인 정보를 담을 토큰을 발행한다.
  * 
- *  @param	JSON user - DB에서 찾은 정보.
- *    @property	String userId: 토큰을 통해 유저를 식별하기 위한 id 정보
- *    @property Boolean verified: 유저가 verified 되어있는지 확인하기 위해 추가
- *  @param	string secret - config에 저장되어있는 토큰의 해싱키
+ *  @param	{Object}	user	 - DB에서 찾은 정보.
+ *    @property	{String}	userId		- 토큰을 통해 유저를 식별하기 위한 id 정보
+ *    @property {Boolean}	verified	- 유저가 verified 되어있는지 확인하기 위해 추가
+ *  @param	{string}	secret 	- config에 저장되어있는 토큰의 해싱키
  * 
  *  @return	Promise
- *    @resolve	JSON - 토큰이 정상적으로 발행되었을 경우 실행한다. user.token에 토큰 정보를 저장하고 다음 Promise에 user를 넘겨줌
- *	  @reject	String - 토큰 발생과정에서 오류가 생기면 error throw
+ *    @resolve	{Object}	- 토큰이 정상적으로 발행되었을 경우 실행한다. user.token에 토큰 정보를 저장하고 다음 Promise에 user를 넘겨줌
+ *	  @reject	{String}	- 토큰 발생과정에서 오류가 생기면 error throw
 
  *  @todo	payload부분 나중에 수정하기, admin 권한이 필요할 때 추가하기
  *			에러핸들러 작성 후 에러 처리부분 다시 짜기
@@ -117,14 +117,14 @@ exports.tokenize = (user, secret) => {
 /**
  *  @brief  비밀번호 찾기, 이메일 인증 등 임시로 사용할 토큰을 발행하는 함수
  * 
- *  @param	JSON user - DB에서 찾은 정보.
- *    @property	String userId: 토큰을 통해 유저를 식별하기 위한 id 정보
- *    @property int dat: 토큰을 발행한 시점의 시간, 토큰의 만료를 처리하기 위함
- *  @param	string secret - config에 저장되어있는 토큰의 해싱키
+ *  @param	{Object}	user	- DB에서 찾은 정보.
+ *    @property	{String}	userId	- 토큰을 통해 유저를 식별하기 위한 id 정보
+ *    @property {Date}		dat		- 토큰을 발행한 시점의 시간, 토큰의 만료를 처리하기 위함
+ *  @param	{string} 	secret	- config에 저장되어있는 토큰의 해싱키
  * 
  *  @return	Promise
- *    @resolve	JSON - 토큰이 정상적으로 발행되었을 경우 실행한다. user.token에 토큰 정보를 저장하고 다음 Promise에 user를 넘겨줌
- *	  @reject	String - 토큰 발생과정에서 오류가 생기면 error throw
+ *    @resolve	{Object}	- 토큰이 정상적으로 발행되었을 경우 실행한다. user.token에 토큰 정보를 저장하고 다음 Promise에 user를 넘겨줌
+ *	  @reject	{String}	- 토큰 발생과정에서 오류가 생기면 error throw
 
  *  @todo	param의 secret tokenize와 다르게 바꾸기
  *			임시 인증에 사용할 추가 정보 있나 보기
@@ -159,19 +159,19 @@ exports.tempTokenize = (user, secret) => {
 /**
  *  @brief  유저 정보를 수정할 때 쓰는 함수, info의 필드에 있는 데이터가 user 객체의 필드에 그대로 갱신됨
  * 			예를들어 user = { key1: 1, key2: 2 }  info = { key2: 4 } 이면 user = { key1: 1, key2: 4 }로 갱신됨
- *  @param	JSON user - DB에서 가져온 기존 정보.
- * 	  @property	String userId: DB에서 데이터 검색을 위한 유저의 ID
- *  @param	JSON info - 유저가 변경하려는 정보 객체. 아래 명시되지 않은 property가 있을 경우 오류가 발생할 가능성이 있음
- *    @property String nickname: 유저의 닉네임
- *    @property	Date birth: 유저의 생년월일
- *    @property	Char gender: 유저의 성별
- *    @property	String password: 유저의 password에 해당하는 raw 패스워드
- *    @property	String email: 유저의 이메일, 수정 전 이메일 중복 확인 및 이메일 인증 필요
- *    @property	String phone: 유저의 핸드폰 번호
- *    @property	Boolean verified: 유저가 이메일 인증을 했는지 여부
+ *  @param	{Object}	user	- DB에서 가져온 기존 정보.
+ * 	  @property	{String}	userId		- DB에서 데이터 검색을 위한 유저의 ID
+ *  @param	{Object}	info	- 유저가 변경하려는 정보 객체. 아래 명시되지 않은 property가 있을 경우 오류가 발생할 가능성이 있음
+ *    @property {String}	nickname	- 유저의 닉네임
+ *    @property	{Date} 		birth		- 유저의 생년월일
+ *    @property	{Char} 		gender		- 유저의 성별
+ *    @property	{String} 	password	- 유저의 password에 해당하는 raw 패스워드
+ *    @property	{String} 	email		- 유저의 이메일, 수정 전 이메일 중복 확인 및 이메일 인증 필요
+ *    @property	{String} 	phone		- 유저의 핸드폰 번호
+ *    @property	{Boolean} 	verified	- 유저가 이메일 인증을 했는지 여부
  * 
  *  @return	Promise
- * 	  @resolve	String - 유저 업데이트가 제대로 실행되면 다음 프로미스로 메세지 전달
+ * 	  @resolve	{String} 	- 유저 업데이트가 제대로 실행되면 다음 프로미스로 메세지 전달
  *	  @reject	X
 
  *  @todo	예외처리 다듬기, 에러핸들러 적용
@@ -192,12 +192,12 @@ exports.modify = ( user, info ) => {
 /**
  *  @brief  계정 활성화 여부를 판단하기 위한 함수
  * 
- *  @param	JSON user
- *    @property	Boolean verified: 유저 계정의 활성화 여부
+ *  @param	{Object}	 user
+ *    @property	{Boolean}	verified	- 유저 계정의 활성화 여부
  *
  *  @return	Promise
- *	  @resolve	user.verified가 false이면 true로 바꾼 뒤 다음 Promise로 user 객체를 넘겨준다.
- *    @reject	이미 verified가 true인 계정이면 error thorow로 이미 승인된 유저라고 메세지를 보낸다.
+ *	  @resolve	{Object}	user.verified가 false이면 true로 바꾼 뒤 다음 Promise로 user 객체를 넘겨준다.
+ *    @reject	{String}	이미 verified가 true인 계정이면 error thorow로 이미 승인된 유저라고 메세지를 보낸다.
  */
 exports.verify = ( user ) => {
     return new Promise((res, reject) => {
@@ -213,12 +213,12 @@ exports.verify = ( user ) => {
 /**
  *  @brief  유저를 생성하는 함수이다.
  * 
- *  @param	JSON user - id를 key로 DB에서 검색해온 유저의 정보이다. 만약 SELECT 실행 결과 유저가 없다면 모든 필드값은 undefined가 된다.
- *  @param	JSON info - 사용자가 입력한 유저 정보
+ *  @param	{Object}	user	 - id를 key로 DB에서 검색해온 유저의 정보이다. 만약 SELECT 실행 결과 유저가 없다면 모든 필드값은 undefined가 된다.
+ *  @param	{Object} 	info	 - 사용자가 입력한 유저 정보
  * 
  *  @return	Promise
- *    @resolve	JSON - DB에 유저 생성이 완료되면 사용자가 입력한 정보인 info를 다음 Promise로 보낸다.
- *	  @reject	String - user가 undefined가 아니라면, 즉 이미 있는 계정이면 throw error 시킨다.
+ *    @resolve	{Object}	- DB에 유저 생성이 완료되면 사용자가 입력한 정보인 info를 다음 Promise로 보낸다.
+ *	  @reject	{String}	- user가 undefined가 아니라면, 즉 이미 있는 계정이면 throw error 시킨다.
  *
  *  @todo	에러 핸들러를 만들어 에러 처리 통합하기
  */
@@ -237,14 +237,14 @@ exports.create = function (user,info){
 /**
  *  @brief  인증을 위한 토큰을 url 쿼리에 포함하여 메일로 발송하는 함수
  * 
- *  @param  JSON info - 회원가입할 때 사용한 유저 정보를 그대로 받아온다.
- *    @property	String token: url쿼리에 들어갈 유저의 토큰 값
- * 	  @property	String email: 메일을 전송 받을 유저의 이메일 정보
- * 	  @property	String userId: 이 함수를 실행할 때 필요한 필드는 아니나 console에 기록하기 위해 넣음 
+ *  @param  {Object}	info		- 회원가입할 때 사용한 유저 정보를 그대로 받아온다.
+ *    @property	{String}	token		- url쿼리에 들어갈 유저의 토큰 값
+ * 	  @property	{String}	email		- 메일을 전송 받을 유저의 이메일 정보
+ * 	  @property	{String}	userId		- 이 함수를 실행할 때 필요한 필드는 아니나 console에 기록하기 위해 넣음 
  *	
  *  @return	Promise
- *    @resolve	String - 메일 발송이 성공적으로 이루어졌을 때 다음 Promise로 "Mail Sent!" 라는 메세지를 보냄
- *    @reject:  String - 메일 발송이 실패했을 때 error 처리
+ *    @resolve	{String}	- 메일 발송이 성공적으로 이루어졌을 때 다음 Promise로 "Mail Sent!" 라는 메세지를 보냄
+ *    @reject:  {String}	- 메일 발송이 실패했을 때 error 처리
  * 
  *  @todo	- 유효번호로 메일 인증받는 시스템 생각해보기 (할지 안할지 다시 얘기해보기)
  *			- respond 함수가 완성되면 다음 Promise로 보낼 내용 수정하기
@@ -273,15 +273,14 @@ exports.sendmail = (info) => {
 /**
  *  @brief  React서버로 직접 성공 메세지를 전달하는 함수
  * 
- *  @param  JSON res - 라우터에서 받은 res 객체이다.
- *  @param	String msg - 현재는 String의 msg를 받는다. 받은 메세지를 그대로 전달해줌
+ *  @param  {Object}	res		- 라우터에서 받은 res 객체이다.
+ *  @param	{String}	msg		- 현재는 String의 msg를 받는다. 받은 메세지를 그대로 전달해줌
  * 
  *  @return	No returns
  * 
  *  @todo	받은 메세지에 따라 다르게 작업할지 통일할지 정하기
  */
 //respond 함수는 작업이 성공했을 때 실행된다
-//따라서 Success: true와 함께 메시지를 보냄
 exports.respond = (res, msg) => {
 	return res.json(msg)
 	

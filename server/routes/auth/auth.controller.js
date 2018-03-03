@@ -33,15 +33,14 @@ const tempTokenize = require('./auth.method').tempTokenize
 
 /**
  *  @brief  회원가입(유저생성) \n
- * 
- *  @param	res.body
- *    @property	String userId
- *    @property String password
- *    @property String email
- *    @property String phone
- *    @property String name
- *    @property String nickname
- *    @property Date birth
+ *  @param	res.body	- 	property에 대한 설명은 생략
+ *    @property	{String}	userId
+ *    @property {String}	password
+ *    @property {String}	email
+ *    @property {String}	phone
+ *    @property {String}	name
+ *    @property {String}	nickname
+ *    @property {Date}		birth
  * 
  *  @return	No Return
  *  @deprecated	onError - 에러핸들링 함수 따로 제작 \n
@@ -71,9 +70,10 @@ exports.register = (req, res) => {
 /**
  *  @brief  유저인증(email)을 위한 라우터. 클라이언트에서 이 api에 직접 접속하고 인증에 성공하면 login페이지로 리다이렉트 된다.
  *  @param	req.decoded
- *    @property	String userId: 토큰에서 검출한 유저의 ID
+ *    @property	{String}	userId		- 토큰에서 검출한 유저의 ID
  *
  *  @return	No Return
+ * 
  *  @see	req: 해당 req는 auth 미들웨어에서 전달받은 결과. req.userId와 req.token에 값이 추가되어 전달된다.
  */
 exports.veri = (req, res) => {
@@ -105,8 +105,10 @@ exports.veri = (req, res) => {
 /**
  *  @brief  회원삭제 (유저 탈퇴) \n
  *  @param	req.decoded
- *	  @property String userId: 삭제할 유저의 ID
+ *	  @property	{String}	userId		- 삭제할 유저의 ID
+
  *  @return 	No Return \n
+ * 
  *  @todo	삭제 유예기간을 넣을 것인가 협의
  * 			삭제시에 더 필요한 정보가 있는지 판단해보기
  */
@@ -131,8 +133,8 @@ exports.del = (req, res) => {
 /**
  *  @brief  로그인 (토큰발행) \n
  *  @param	req.body
- *    @property	String userId: 로그인 할 유저의 ID
- *    @property String password: 유저의 패스워드
+ *    @property	{String}	userId		- 로그인 할 유저의 ID
+ *    @property {String}	password	- 유저의 패스워드
  *
  *  @return	No Return \n
  * 
@@ -152,19 +154,6 @@ exports.login = (req, res) => {
 	    	message: error.message
 		})
 	}
-	const ifVer = (user) => {
-		return new Promise((res, reject) =>{
-			if(user.verified == 'false'){
-				throw new Error("not verified")
-			}
-			else{
-
-				console.log(user.verified)
-				res(user)
-			}
-		})
-
-	}
     const temp = (user) => {
 		res.cookie('token', user.token)
 			var msg = {verified: user.verified, token: user.token}
@@ -175,7 +164,6 @@ exports.login = (req, res) => {
 	//
 	User.findOneByUserid(info)
 	.then( user => check(user, info))
-	.then( user => ifVer(user))
 	.then( user => tokenize(user,secret))
 	.then( user => temp(user))
 	.then( msg=> respond(res,msg) )
@@ -185,8 +173,8 @@ exports.login = (req, res) => {
 /**
  *  @brief  아이디 찾기에 사용할 라우터, email을 통해 userId를 알아낸다.
  *  @param	req.body
- *    @property	String name: 유저의 이름
- *    @property String email: 유저의 이메일
+ *    @property	{String}	name	- 유저의 이름
+ *    @property {String}	email	- 유저의 이메일
  *
  *  @return	No Return \n
  * 
@@ -216,8 +204,8 @@ exports.findId = (req, res) => {
 /**
  *  @brief  아직 이메일인증이 되지 않은 사용자가 메일을 재전송할 때 사용하게될 라우터
  *  @param	req.body
- *    @property	String userId: 유저의 아이디
- *    @property String email: 변경할 유저의 email, 해당 값이 ""이면 email을 변경하지 않는다.
+ *    @property	{String}	userId		- 유저의 아이디
+ *    @property {String}	email		- 변경할 유저의 email, 해당 값이 ""이면 email을 변경하지 않는다.
  * 
  *  @return	No Return
  *  @todo	secret2 값을 config으로 빼기
@@ -255,9 +243,9 @@ exports.resend = (req, res) => {
 /**
  *  @brief  유저 개인정보를 수정할 때 사용할 라우터 \n
  *  @param	req.body
- *	  @property String userId: 정보를 수정할 유저의 ID
- *    @property <field> : 수정할 정보. 두 개 이상의 필드를 넣을 수 없음
- * 						password, email, name, nickname, birth, phone
+ *	  @property {String}	userId		- 정보를 수정할 유저의 ID
+ *    @property {__Type}	<field> 	- 수정할 정보. 두 개 이상의 필드를 넣을 수 없음
+ * 									password, email, name, nickname, birth, phone
  *  @return	No Return
  * 
  *  @see	isTrue: 정상적으로 React Server에서 필드 값을 보내면 userId외에 2개 이상의 필드가 존재할 수 없다.
@@ -315,11 +303,11 @@ exports.putUserInfo = (req, res) => {
 /**
  *  @brief  유저 개인정보를 수정할 때 사용할 라우터 \n
  *  @param	req.decoded
- *	  @property String userId: 정보를 수정할 유저의 ID
+ *	  @property {String}	userId		- 정보를 수정할 유저의 ID
  *
  *  @return	No Return
  */
-exports.getUserInfo = (req, res) => {dd
+exports.getUserInfo = (req, res) => {
 	const onError = (error) => {
 		res.status(409).json({
 			message: error.message
@@ -344,7 +332,7 @@ exports.getUserInfo = (req, res) => {dd
 	console.log('change info')
 	
 	User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
-	.then( ()=>respond(res,"success") )
+	.then( ()=>onRespond(user) )
 	.catch(onError)
     
 }
@@ -371,7 +359,7 @@ exports.getinfo = (req, res) => {
 /**
  *  @brief  이메일 중복 체크에 사용할 라우터
  *  @param	req.body
- *    @property String email: 유저의 이메일
+ *    @property {String}	email		- 중복 체크할 유저의 이메일
  *
  *  @return	No Return \n
  */
@@ -397,7 +385,7 @@ exports.emailcheck = (req, res) => {
 /**
  *  @brief  이메일 중복 체크에 사용할 라우터
  *  @param	req.body
- *    @property String email: 유저의 이메일
+ *    @property {String}	email		- 유저의 이메일
  *
  *  @return	No Return \n
  */
@@ -423,8 +411,8 @@ exports.userIdcheck = (req, res) => {
 /**
  *  @brief  개인정보 수정 및 기타 패스워드 확인 작업을 위한 라우터
  *  @param	req.body
- *    @property	String userId: 유저의 아이디
- *    @property String password: 유저의 패스워드
+ *    @property	{String}	userId			- 유저의 아이디
+ *    @property {String}	password		- 유저의 패스워드
  *
  *  @return	No Return \n
  * 
@@ -455,8 +443,8 @@ exports.verified = (req, res) => {
 /**
  *  @brief  비밀번호 변경 링크를 보내준다
  *  @param	req.decoded
- *	  @property String userId: 유저의 ID
- *	  @property Int date: 토큰이 발행된 시간
+ *	  @property {String}	userId			- 유저의 ID
+ *	  @property {date}		date			- 토큰이 발행된 시간
  *  @return	No Return
  *  @todo	***** 비밀번호 변경 페이지 만들어지면 리다이렉트 url 연결 *****
  */

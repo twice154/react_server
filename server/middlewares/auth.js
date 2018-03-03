@@ -13,9 +13,6 @@ const authMiddleware = (req, res, next) => {
     const tempToken = req.headers['x-access-token']||req.query.token
     const token = req.cookies.token
 
-	console.log(req)
-	console.log('.......')
-
     if(!token && !tempToken){
 		return res.status(403).json({
 			success: false,
@@ -49,9 +46,8 @@ const authMiddleware = (req, res, next) => {
     }
 
     p.then((decoded)=>{
-		console.log('hey?')
 		req.decoded = decoded
-	next()
+		next()
     }).catch(onError)
 }
 

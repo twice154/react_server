@@ -45,6 +45,7 @@ router.post('/userIdcheck', controller.userIdcheck)
  * @brief - 
 **/
 router.use('/userInfo', authMiddleware)
+
 router.delete('/userInfo', controller.del)
 router.put('/userInfo', controller.putUserInfo)
 router.get('/userInfo', controller.getUserInfo)
