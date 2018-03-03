@@ -163,29 +163,11 @@ class RegisterComponent extends React.Component {
 					<div className="input-field col s12 ">
 					<label>성별..</label>
 						<select name='gender' value={this.state.gender} onChange={this.handleChange}>
-						<option value="" disabled selected>성별</option>
+						<option value="" disabled>성별</option>
 						<option value="M">남자</option>
 						<option value="F">여자</option>
 						</select>
                		</div>
-					   <div class="input-field col s12">
-    <select>
-      <option value="" disabled selected>Choose your option</option>
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-      <option value="3">Option 3</option>
-    </select>
-    <label>Materialize Select</label>
-  </div>
-  <div class="input-field col s12">
-    <select>
-      <option value="" disabled selected>Choose your option</option>
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-      <option value="3">Option 3</option>
-    </select>
-    <label>Materialize Select</label>
-  </div>
 					<div className="input-field col s6 ">
 						<label>이메일</label>
 						<i>{this.props.emailStatus}</i>

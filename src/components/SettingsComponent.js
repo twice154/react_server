@@ -3,7 +3,7 @@ import React from 'react';
 const SettingsComponent = ({info,push,quit}) => {
     
     
-
+    console.log(info)
     const userInfo = info.toJS()
     console.log(userInfo,'hi')
     return (<div>
