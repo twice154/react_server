@@ -92,8 +92,11 @@ function getStatusApiRequest(){
  * @param {res.data.info} {object}- 로그인 된 유저의 모든 db정보를 받아온다. pwd제외.
  */
 function getAllInfoRequest(){
-       return axios.get('/api/account/getinfo')
-            .then((res)=>(Promise.resolve(res.data.info)))
+    console.log('ㅇㅣㄹ')
+       return axios.get('/api/account/userInfo')
+            .then((res)=>{
+                console.log(res.data)
+                Promise.resolve(res.data)})
             .catch(err=>(Promise.reject()))
 }
 /**
@@ -218,7 +221,7 @@ export default handleActions({
     },
 
     [GET_ALLINFO_FAILURE]: (state, action)=>{
-        return state.set('allInfo', '');
+        return state
     },
 
     [LOGOUT]: (state, action)=>{

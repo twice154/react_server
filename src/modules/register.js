@@ -65,6 +65,7 @@ function registerApiRequest(msg){
  * @param {object} msg {property이름: string} ex)nickname,phone,password,email
  */
 function newRegisterApiRequest(msg){
+    console.log(msg)
    return axios.put('/api/account/userInfo',msg)
             .then(()=>Promise.resolve())
             .catch(err=>Promise.reject())

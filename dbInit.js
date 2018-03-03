@@ -17,37 +17,17 @@ var db = dbServer.create({  //userinfo라는 이름의 database를 만든다
     storage: "plocal"
 }).then(function (db) {
     db.class.create('User','V').then(function(user){ //사용자 정보 저장을 위한 User 클래스를 정의
-        user.property.create({
-                name: 'userId',
-                type: 'String'
-            },{
-                name: 'password',
-                type: 'String'
-            },{
-                name: 'name',
-                type: 'String'
-            },{
-                name: 'nickname',
-                type: 'String'
-            },{
-                name: 'birth',
-                type: 'Date'
-            },{
-                name: 'email',
-                type: 'String'
-            },{
-                name: 'phone',
-                type: 'String'
-            },{
-                name: 'gender',
-                type: 'Char'
-            },{
-                name: 'verified',
-                type: 'Boolean'
-            },{
-                name: 'admin',
-                type: 'Boolean'
-            }).then(function (properties) {
+        user.property.create({ name: 'userId',type: 'String'})
+        .then(user.property.create({ name: 'password', type: 'String'}))
+        .then(user.property.create({ name: 'name',type: 'String'}))
+        .then(user.property.create({ name: 'nickname',type: 'String'}))
+        .then(user.property.create({ name: 'birth', type: 'String'}))
+        .then(user.property.create({ name: 'email', type: 'String'}))
+        .then(user.property.create({ name: 'phone', type: 'String'}))
+        .then(user.property.create({ name: 'gender', type: 'String'}))
+        .then(user.property.create({ name: 'verified', type: 'Boolean'}))
+        .then(user.property.create({ name: 'admin', type: 'Boolean'}))
+        .then(function (properties) {
                 console.log("Properties created");
                 db.close();
                 dbServer.close();

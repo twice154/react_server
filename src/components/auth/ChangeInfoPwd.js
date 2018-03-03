@@ -3,6 +3,8 @@ class ChangeInfoPwd extends Component {
     constructor(props) {
         super(props);
         this.state = { password:'',passwordCheck:'', pwdVerifyPhrase:'',pwdCheckPhrase:'' }
+        this.handleSend=this.handleSend.bind(this)
+        this.handleChange=this.handleChange.bind(this)
     }
     checkPwd(){
 		if(this.state.password !==this.state.passwordCheck || !this.state.password || !this.state.passwordCheck)
@@ -20,8 +22,15 @@ class ChangeInfoPwd extends Component {
                 return this.setState({pwdVerifyPhrase:'비밀번호가 너무 짧습니다.'})
             }
             this.setState({pwdVerifyPhrase:'안전한 비밀번호입니다.',pwdVerified:true})
-        }  
-       
+        } 
+    }
+    handleChange(e){
+        this.setState({password:e.target.value})
+    }
+    handleSend(){
+        var msg ={}
+        msg.password=this.state.password
+        this.props.submit(msg)
     }
     render() { 
         return (  <div className='card container'>
@@ -48,6 +57,7 @@ class ChangeInfoPwd extends Component {
             value={this.state.passwordCheck}
             onKeyUp={this.checkPwd}/>
            </div>
+           <button onClick={this.handleSend}>완료</button>
         </div>  )
     }
 }
