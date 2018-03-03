@@ -6,6 +6,5 @@ import Payment from './Payment';
 import SpeedTest from './SpeedTest';
 import Moonlight from './Moonlight';
 import SettingsComponent from './SettingsComponent'
-import ChangeInfoPwd from './ChangeInfoPwd'
  
-export { Header, StreamingPlayer, Chatting, HostList, Payment, SpeedTest, Moonlight, SettingsComponent, ChangeInfoPwd};
+export { Header, StreamingPlayer, Chatting, HostList, Payment, SpeedTest, Moonlight, SettingsComponent};

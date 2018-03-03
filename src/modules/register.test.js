@@ -35,7 +35,7 @@ describe('register test', () => {
             store.clearActions()
         });
           it('registerRequest should regist data at server', () => {
-              mock.onPost('./api/account/signup').reply(200)
+              mock.onPost('/api/account/signup').reply(200)
               const expectedActions = [{"type": 'REGIST/REGISTER_LOADING'}, {"type": "REGIST/REGISTER_SUCCESS"}]
 
             return store.dispatch(registerRequest()).then(()=>{
@@ -44,7 +44,7 @@ describe('register test', () => {
             
         })
         it('registerRequest should not regist data at server', () => {
-            mock.onPost('./api/account/signup').networkError()
+            mock.onPost('/api/account/signup').networkError()
             const expectedActions = [{"type": 'REGIST/REGISTER_LOADING'}, {"error": true, "type": "REGIST/REGISTER_FAILURE"}]
 
           return store.dispatch(registerRequest()).catch(()=>{
@@ -53,7 +53,7 @@ describe('register test', () => {
           
       })
         it('newRegister should put data to server', () => {
-            mock.onPut('./api/account/userInfo',{id:''}).reply(200)
+            mock.onPut('/api/account/userInfo',{id:''}).reply(200)
             const expectedActions = [{"type": 'REGIST/NEWREGIST_LOADING'}, {"type": "REGIST/NEWREGIST_SUCCESS"}]
 
           return store.dispatch(newRegister({id:''})).then(()=>{
@@ -63,7 +63,7 @@ describe('register test', () => {
 
         })
         it('newRegister should not put data to server', () => {
-            mock.onPut('./api/account/userInfo',{id:''}).networkError()
+            mock.onPut('/api/account/userInfo',{id:''}).networkError()
             const expectedActions = [{"type": 'REGIST/NEWREGIST_LOADING'}, { "error": true,"type": "REGIST/NEWREGIST_FAILURE"}]
 
           return store.dispatch(newRegister({id:''})).catch(()=>{
@@ -73,7 +73,7 @@ describe('register test', () => {
 
         })
         it('idRequest check id from server', async () => {
-            mock.onPost('./api/account/userIdcheck',{userId:'g1'}).reply(200)
+            mock.onPost('/api/account/userIdcheck',{userId:'g1'}).reply(200)
             const expectedActions = [{"type": 'REGIST/ID_LOADING'}, {"type": "REGIST/ID_SUCCESS"},{"type": "REGIST/ID_LOADING"}, {"error": true, "type": "REGIST/ID_FAILURE"}]
 
           await store.dispatch(idRequest('g1'))
@@ -82,7 +82,7 @@ describe('register test', () => {
         })
         })
         it('emailRequest check email from server', async() => {
-            mock.onPost('./api/account/emailcheck',{email:'gq'}).reply(200)
+            mock.onPost('/api/account/emailcheck',{email:'gq'}).reply(200)
             const expectedActions = [{"type": 'REGIST/EMAIL_LOADING'}, {"type": "REGIST/EMAIL_SUCCESS"},{"type": "REGIST/EMAIL_LOADING"}, {"error": true, "type": "REGIST/EMAIL_FAILURE"}]
 
            await store.dispatch(emailRequest('gq'))

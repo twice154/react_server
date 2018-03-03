@@ -52,39 +52,39 @@ const initialState ={
 
 /**
  * db에 등록한다.
- * @param {*} msg 
+ * @param {object} msg {userId, password, name, nickname, birth, gender, email, phone,}
  */
 function registerApiRequest(msg){
     console.log(msg)
-    return axios.post('./api/account/signup', msg)
+    return axios.post('/api/account/signup', msg)
             .then((res)=>Promise.resolve())
             .catch(err=>Promise.reject())
 }
 /**
  * 개인정보 수정에 사용. 새롭게 정보를 등록한다.
- * @param {*} msg 
+ * @param {object} msg {property이름: string} ex)nickname,phone,password,email
  */
 function newRegisterApiRequest(msg){
-   return axios.put('./api/account/userInfo',msg)
+   return axios.put('/api/account/userInfo',msg)
             .then(()=>Promise.resolve())
             .catch(err=>Promise.reject())
 }
 /**
  * 이메일이 사용 가능한지 여부를 확인한다.
- * @param {*} email 
+ * @param {string} email 
  */
 function emailApiRequest(email){
-        return axios.post('./api/account/emailcheck',{email})
+        return axios.post('/api/account/emailcheck',{email})
         .then((res)=>Promise.resolve())
         .catch(err=>Promise.reject())
       
     }
 /**
  * 아이디 사용 가능 여부를 확인한다.
- * @param {*} userId 
+ * @param {string} userId 
  */
 function idApiRequest(userId){
-    return axios.post('./api/account/userIdcheck',{userId})
+    return axios.post('/api/account/userIdcheck',{userId})
     .then((res)=>Promise.resolve())
     .catch(err=>Promise.reject())
        

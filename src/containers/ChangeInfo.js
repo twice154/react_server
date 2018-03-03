@@ -8,7 +8,7 @@ import React, { Component } from 'react';
 import {connect} from 'react-redux'
 import {getAllInfo} from '../modules/authentication'
 import {newRegister} from'../modules/register'
-import {ChangeInfoPwd} from '../components'
+import {ChangeInfoPwd} from '../components/auth'
 class ChangeInfo extends Component {
     constructor(props) {
         super(props);
@@ -46,7 +46,7 @@ class ChangeInfo extends Component {
      */
     submit(){
         let msg ={}
-        msg[this.state.type]=this.state.value
+        msg[this.state.typename]=this.state.value
        this.props.newRegister(msg).then(()=>{
         alert('변경되었습니다.')
         this.props.history.push('/settings')

@@ -76,7 +76,7 @@ function loginApiRequest(userId, password){
             .then((res)=> {
                 return Promise.resolve(
                 {userId,verified:res.data.verified})})
-            .catch((err)=> Promise.reject())
+            .catch((err)=> Promise.reject(err))
 }
 
 /** 
@@ -84,7 +84,6 @@ function loginApiRequest(userId, password){
  * @return {object} res.data.info :{userId : string} - 로그인 되어있으면 userId를 받아온다.
  */
 function getStatusApiRequest(){
-    console.log(1)
     return axios.get('/api/account/getinfo')
             .then((res)=>(Promise.resolve(res.data.info.userId)))
             .catch(err=>(Promise.reject()))
@@ -92,10 +91,10 @@ function getStatusApiRequest(){
 /**db에 담긴 모든 데이터를 받아온다
  * @param {res.data.info} {object}- 로그인 된 유저의 모든 db정보를 받아온다. pwd제외.
  */
-function getAllInfoRequest(){//TODO
-    return axios.get('/api/account/getinfo')
-    .then((res)=>(Promise.resolve(res.data.info)))
-    .catch(err=>(Promise.reject()))
+function getAllInfoRequest(){
+       return axios.get('/api/account/getinfo')
+            .then((res)=>(Promise.resolve(res.data.info)))
+            .catch(err=>(Promise.reject()))
 }
 /**
  * 아이디 찾기.
@@ -103,19 +102,20 @@ function getAllInfoRequest(){//TODO
  * @param {*} email 
  */
 function findIdRequest(name,email){//todo: dispatch를 안했는데도 실행이 됨.... 2.24
-   return axios.post('/api/account/findId',{name,email})
-            .then((req)=>Promise.resolve(req.data.userId))
-            .catch((err)=>Promise.reject())
+   return axios.post('/api/account/findId')
+            .then((res)=>Promise.resolve(res.data.userId))
+            .catch(()=>Promise.reject())
+    
      
 }
 
 /** 비밀번호 찾기. ->메일로 링크 쏴주기 ->비밀번호 바꾸는 창으로 감 */
 export function findPwd(id,email){
-    return new Promise((resolve,reject)=>{
-     if(id=='g1'&&email=='g1'){
-        resolve()
-         }else {reject()}
-    })
+    return axios.post('/api/account/findPwd')
+            .then(()=>Promise.resolve())
+            .catch(()=>Promise.reject())
+
+
     }
       
  
@@ -123,9 +123,9 @@ export function findPwd(id,email){
  * 
  */
 function pwdVerifyRequest(pwd){
-    return axios.post('/api/account/verified',{password:pwd})
-    .then((res)=>Promise.resolve())
-    .catch((err)=>Promise.reject())
+   return axios.post('/api/account/verified',{password:pwd})
+            .then((res)=>Promise.resolve())
+            .catch((err)=>Promise.reject())
 }
      
  
@@ -138,15 +138,16 @@ function pwdVerifyRequest(pwd){
 export function reSendEmail(email,userId) {
     return (dispatch)=>{
         return axios.post('/api/account/resend',{email,userId})
-            .then( dispatch({type: RESENDEMAIL})
-            );
+            .then((response) => {
+                dispatch({type: RESENDEMAIL});
+            });
     };
 }
 /** 로그아웃*/
 export function logoutRequest() {
     return (dispatch) => {
         return axios.post('/api/account/logout')
-            .then( dispatch({type: LOGOUT}));
+            .then(dispatch({type: LOGOUT}));
     };
 }
 export function cleanCurrentUser(){
