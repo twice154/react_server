@@ -1,3 +1,9 @@
+/**
+ * 
+ * @author G1
+ * @logs // 18.2.25
+ */
+
 import React, { Component } from 'react';
 
 class VerifyComponent extends Component {
@@ -15,6 +21,12 @@ class VerifyComponent extends Component {
 		nextState[e.target.name] = e.target.value;
 		this.setState(nextState);
     }
+    /**
+     * 이메일이 올바른 이메일인지를 확인한다.
+     * @param {string} email 
+     * @desc
+     *  완벽하지는 않지만 이메일 폼을 확인한다.
+     */
     handleVerify(email){
         var reg=/^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]{2,3}$/
         if(!reg.test(email)){

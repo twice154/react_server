@@ -1,0 +1,121 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`verify test renders correctly 1`] = `
+<Verify
+  cleanCurrentUser={[Function]}
+  reSendEmail={[Function]}
+>
+  <div>
+    <VerifyComponent
+      checkEmail={[Function]}
+      verify={[Function]}
+    >
+      <div>
+        <div
+          className="container auth"
+        >
+          <p>
+            인증되지 않은 아이디 입니다. 이메일을 확인해 주세요!!!! 아니면 이메일을 재 전송해 주세요
+          </p>
+          <div
+            className="card-content"
+          >
+            <div
+              className="row"
+            >
+              <a
+                className="waves-effect waves-light btn"
+                onClick={[Function]}
+              >
+                기존 이메일에 보내기
+              </a>
+              <hr />
+              <div
+                className="input-field col s12"
+              >
+                <label>
+                   이메일 새로 작성하기
+                </label>
+                <input
+                  className="validate"
+                  name="email"
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  type="text"
+                  value=""
+                />
+              </div>
+              <a
+                className="waves-effect waves-light btn"
+                onClick={[Function]}
+              >
+                SUBMIT
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </VerifyComponent>
+  </div>
+</Verify>
+`;
+
+exports[`verify test snapshot 1`] = `
+<Verify
+  cleanCurrentUser={[Function]}
+  reSendEmail={[Function]}
+>
+  <div>
+    <VerifyComponent
+      checkEmail={[Function]}
+      verify={[Function]}
+    >
+      <div>
+        <div
+          className="container auth"
+        >
+          <p>
+            인증되지 않은 아이디 입니다. 이메일을 확인해 주세요!!!! 아니면 이메일을 재 전송해 주세요
+          </p>
+          <div
+            className="card-content"
+          >
+            <div
+              className="row"
+            >
+              <a
+                className="waves-effect waves-light btn"
+                onClick={[Function]}
+              >
+                기존 이메일에 보내기
+              </a>
+              <hr />
+              <div
+                className="input-field col s12"
+              >
+                <label>
+                   이메일 새로 작성하기
+                </label>
+                <input
+                  className="validate"
+                  name="email"
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  type="text"
+                  value=""
+                />
+              </div>
+              <a
+                className="waves-effect waves-light btn"
+                onClick={[Function]}
+              >
+                SUBMIT
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </VerifyComponent>
+  </div>
+</Verify>
+`;

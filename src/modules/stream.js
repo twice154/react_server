@@ -1,3 +1,9 @@
+/**
+ * red5pro로 업데이트 예정
+ * @author G1
+ * @logs // 18.2.25
+ */
+
 import { Map, List, fromJS} from 'immutable';
 import {handleActions } from 'redux-actions';
 import axios from 'axios';

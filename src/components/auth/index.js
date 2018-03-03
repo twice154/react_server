@@ -3,4 +3,5 @@ import RegisterComponent from './RegisterComponent'
 import FindId from './FindId'
 import FindPwd from './FindPwd'
 import VerifyComponent from './VerifyComponent'
-export {LoginComponent, RegisterComponent, FindId, FindPwd, VerifyComponent} 
+import ChangeInfoPwd from './ChangeInfoPwd'
+export {LoginComponent, RegisterComponent, FindId, FindPwd, VerifyComponent, ChangeInfoPwd} 

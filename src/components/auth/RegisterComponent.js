@@ -37,37 +37,21 @@ class RegisterComponent extends React.Component {
 			phone:this.state.phone
 		};
 		if(!this.props.idCheck){ //alert창 이쁘게 띄울 수 있는지..
-			console.log(msg)
+		
 			return alert('id를 확인하세요')
 		}else if(!this.state.pwdVerified||!this.state.pwdCheck){
 			return alert('비밀번호를 확인하세요')
 		}else if(!this.props.emailCheck){
-			
-			console.log(msg)
 			return alert('이메일을 확인하세요')
 		}
-		console.log(msg)
-		this.props.onRegister(msg).then(
-					this.setState({
-						userId:"",
-						idcheck:this.props.idcheck,
-						password:"",
-						pwdVerifyPhrase:'비밀번호는 8자이상 최소 한개 이상의 특수문자가 있어야합니다.',
-						pwdVerified:false,
-						pwdCheckPhrase:'',
-						passwordCheck:"",
-						pwdcheck:false,
-						name:'',
-						nickname:'',
-						birth:'',
-						gender:'',
-						email:'',
-						emailcheck:this.props.emailcheck,
-						phone:''
-					})
-				
+		for(var p in msg){ 
+			if(msg.p===''){
+				return alert(p,"가 비어있습니다.")
+			}
+		}
+		this.props.onRegister(msg)
 			
-		)
+		
 	}
 
 	handleChange(e){ 
@@ -76,7 +60,9 @@ class RegisterComponent extends React.Component {
 		this.setState(nextState);
 	}
 
-	
+	/**
+	 * 패스워드가 동일한지 체크함
+	 */
     checkPwd(){
 		if(this.state.password !==this.state.passwordCheck || !this.state.password || !this.state.passwordCheck)
 		{
@@ -175,13 +161,32 @@ class RegisterComponent extends React.Component {
 						value={this.state.birth}/>
                		</div>
 					<div className="input-field col s12 ">
+					<label>성별..</label>
 						<select name='gender' value={this.state.gender} onChange={this.handleChange}>
-						<option value="" disabled >성별</option>
+						<option value="" disabled selected>성별</option>
 						<option value="M">남자</option>
 						<option value="F">여자</option>
 						</select>
                		</div>
-					<div className="input-field col s12 ">
+					   <div class="input-field col s12">
+    <select>
+      <option value="" disabled selected>Choose your option</option>
+      <option value="1">Option 1</option>
+      <option value="2">Option 2</option>
+      <option value="3">Option 3</option>
+    </select>
+    <label>Materialize Select</label>
+  </div>
+  <div class="input-field col s12">
+    <select>
+      <option value="" disabled selected>Choose your option</option>
+      <option value="1">Option 1</option>
+      <option value="2">Option 2</option>
+      <option value="3">Option 3</option>
+    </select>
+    <label>Materialize Select</label>
+  </div>
+					<div className="input-field col s6 ">
 						<label>이메일</label>
 						<i>{this.props.emailStatus}</i>
 						<input
@@ -190,9 +195,14 @@ class RegisterComponent extends React.Component {
 						className="validate"
 						onChange={this.handleChange}
 						value={this.state.email}
-						onBlur={(e)=>{this.props.checkEmail(e.target.value)}}/>
+						/>
                		</div>
-					<div className="input-field col s12 ">
+					<div className="input-field col s6 ">
+					<label></label>
+						<button onClick={()=>{this.props.checkEmail(this.state.email)}}>이메일체크</button>
+					
+               		</div>
+					<div className="input-field col s6 ">
 						<label>휴대폰</label>
 						<input
 						name="phone"
@@ -200,6 +210,11 @@ class RegisterComponent extends React.Component {
 						className="validate"
 						onChange={this.handleChange}
 						value={this.state.phone}/>
+               		</div>
+					   <div className="input-field col s6 ">
+					   <label></label>
+						<button onClick={(e)=>{this.props.checkEmail(e.target.value)}}>폰번호체크</button>
+					
                		</div>
                     <a className="waves-effect waves-light btn" onClick={this.handleRegister}>CREATE</a>
                 	

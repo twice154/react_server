@@ -1,10 +1,14 @@
-// 아이디 비밀번호 찾기
+/**
+ * 아이디 비밀번호 찾기
+ * @author G1
+ * @logs // 18.2.26
+ */
 
 import React from 'react';
 import {FindId,FindPwd} from '../components/auth'
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom'
-import {loginRequest,findId,findPwd} from 'modules/authentication';
+import {loginRequest,findId,findPwd} from '../modules/authentication';
 
 class Find extends React.Component {
     constructor(props) {
@@ -13,6 +17,10 @@ class Find extends React.Component {
         this.handleSelect=this.handleSelect.bind(this)
         this.sendEmail=this.sendEmail.bind(this)
     }
+    /**
+     * 아이디 찾기인지, 비밀번호 찾기인지 선택할 수 있게 한다.
+     * @param {boolean} select 
+     */
     handleSelect(select){
         if(select){
             this.setState({...this.state, select:true})

@@ -1,5 +1,11 @@
+/**
+ * connecto 컴포넌트
+ * @author G1
+ * @logs // 18.2.25
+ */
+
 import React from 'react';
-import {HostList} from 'components';
+import HostList from './HostList';
 import update from 'immutability-helper';
 
 class Moonlight extends React.Component {
@@ -38,7 +44,11 @@ class Moonlight extends React.Component {
 			console.log(err);
 		})
 	}
-
+/**
+ * 할 수 있는 게임을 보여준다.(호스트에 있는 게임목록)
+ * @param {s} hostId - bj아이디 
+ * 모드,호스트,게임이름을 갱신한다.
+ */
 	showApps(hostId){
 		this.props.getApps(hostId, this.props.currentUser).then(
 			(appList)=>{
@@ -52,7 +62,10 @@ class Moonlight extends React.Component {
 			return window.Materialize.toast('Failed to get apps', 2000);
 		})
 	}
-
+/**
+ * 게임을 실행한다.(게임 옵션을 추가한다.)
+ * @param {*} e 
+ */
 	startGame(e){
 		let option = {
 			"frameRate": this.state.streamSettings.fps,
@@ -70,7 +83,10 @@ class Moonlight extends React.Component {
 				return window.Materialize.toast('Failed to start the game', 2000);				
 			}) 
 	}
-
+/**
+ * 호스트를 추가한다.(비제이 컴퓨터랑 연결하는 작업)
+ * @param {*} e 
+ */
 	addHost(e){
 		if(e.charCode===13){
 			this.setState(update(this.state, {

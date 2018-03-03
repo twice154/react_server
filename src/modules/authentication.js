@@ -1,4 +1,8 @@
-
+/**
+ * 인증관련 함수들
+ * @author G1
+ * @logs // 18.2.25
+ */
 import {Map} from 'immutable';
 import { handleActions} from 'redux-actions';
 import axios from 'axios';
@@ -38,7 +42,13 @@ const PWDVERIFIED_LOADING = 'AUTH/PWDVERIFIED_LOADING'
 const PWDVERIFIED_SUCCESS = 'AUTH/PWDVERIFIED_SUCCESS'
 const PWDVERIFIED_FAILURE = 'AUTH/PWDVERIFIED_FAILURE'
 
-
+/** 
+ * login: 로그인 성공,실패 상태
+ * status :상태를 받아옴, 로그인됬는지, 유효한지, 현재 유저는 누구인지.
+ * findId :아이디 찾기에 사용. 찾은 아이디를 받아온다.
+ * allInfo:개인정보수정에 사용. 사용자의 모든 정보를 받아온다.
+ * pwdVerified: 개인정보 수정 할때 현재 비밀번호 확인이 되어있는지를 확인하는 함수
+*/
 const initialState = Map({
     login: Map({status: 'INIT'}),
     status: Map({
@@ -55,6 +65,12 @@ const initialState = Map({
 
 });
 
+/**
+ * 서버에 로그인 요청을 보낸다.
+ * @param {string} userId 
+ * @param {string} password 
+ * @var {object} res.data :{verified: boolean} -이메일 인증이 되었는지
+ */
 function loginApiRequest(userId, password){
     return axios.post('/api/account/signin', {userId, password})
             .then((res)=> {
@@ -63,6 +79,10 @@ function loginApiRequest(userId, password){
             .catch((err)=> Promise.reject(err))
 }
 
+/** 
+ * 로그인 된 상태를 얻어온다.
+ * @return {object} res.data.info :{userId : string} - 로그인 되어있으면 userId를 받아온다.
+ */
 function getStatusApiRequest(){
     return axios.get('/api/account/getinfo')
             .then((res)=>(Promise.resolve(res.data.info.userId)))
@@ -71,43 +91,50 @@ function getStatusApiRequest(){
 /**db에 담긴 모든 데이터를 받아온다
  * @param {res.data.info} {object}- 로그인 된 유저의 모든 db정보를 받아온다. pwd제외.
  */
-function getAllInfoRequest(){//TODO
-    console.log(1)
-    return Promise.resolve({userId:'g1',email:'g1',nickname:'g1',phone:'000-0000-0000'})
-    // return axios.get('/api/account/getinfo')
-    //         .then((res)=>(Promise.resolve(res.data.info)))
-    //         .catch(err=>(Promise.reject()))
+function getAllInfoRequest(){
+       return axios.get('/api/account/getinfo')
+            .then((res)=>(Promise.resolve(res.data.info)))
+            .catch(err=>(Promise.reject()))
 }
-
+/**
+ * 아이디 찾기.
+ * @param {*} name 
+ * @param {*} email 
+ */
 function findIdRequest(name,email){//todo: dispatch를 안했는데도 실행이 됨.... 2.24
-   return axios.post('/api/account/findId', {name, email})
-	.then((res)=>{
-	    return Promise.resolve(res.data.userId)})
-	.catch(err=>(Promise.reject(err)))
+   return axios.post('/api/account/findId')
+            .then((res)=>Promise.resolve(res.data.userId))
+            .catch(()=>Promise.reject())
+    
+     
 }
 
-
+/** 비밀번호 찾기. ->메일로 링크 쏴주기 ->비밀번호 바꾸는 창으로 감 */
 export function findPwd(id,email){
-    return new Promise((resolve,reject)=>{
-     if(id=='g1'&&email=='g1'){
-        resolve()
-         }else {reject()}
-    })
+    return axios.post('/api/account/findPwd')
+            .then(()=>Promise.resolve())
+            .catch(()=>Promise.reject())
+
+
     }
       
  
-
+/** 현재 비밀번호를 확인하는 함수
+ * 
+ */
 function pwdVerifyRequest(pwd){
-    if(pwd==='g1')
-    return Promise.resolve()
-    else{
-        return Promise.reject()
-    }
+   return axios.post('/api/account/verified',{password:pwd})
+            .then((res)=>Promise.resolve())
+            .catch((err)=>Promise.reject())
 }
      
  
 
-
+/**
+ * 이메일에 인증 링크를 재전송한다.
+ * @param {*} email 
+ * @param {*} userId 
+ */
 export function reSendEmail(email,userId) {
     return (dispatch)=>{
         return axios.post('/api/account/resend',{email,userId})
@@ -116,13 +143,11 @@ export function reSendEmail(email,userId) {
             });
     };
 }
-
+/** 로그아웃*/
 export function logoutRequest() {
     return (dispatch) => {
         return axios.post('/api/account/logout')
-            .then((response) => {
-                dispatch({type: LOGOUT});
-            });
+            .then(dispatch({type: LOGOUT}));
     };
 }
 export function cleanCurrentUser(){

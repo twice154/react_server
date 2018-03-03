@@ -1,3 +1,9 @@
+/**
+ * 결제페이지. 아임포트를 사용. TODO: 카카오페이 같은 결제 모듈도 사용할 수 있게.
+ * @author G1
+ * @logs // 18.2.25
+ */
+
 import React from 'react';
 
 class Payment extends React.Component {

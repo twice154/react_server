@@ -1,3 +1,9 @@
+/**
+ * conneto관련 함수들.
+ * @author G1
+ * @logs // 18.2.25
+ */
+
 import { Map, List, fromJS } from 'immutable';
 import {handleActions } from 'redux-actions';
 import axios from 'axios';
@@ -23,6 +29,14 @@ const START_GAME_LOADING = "MOONLIGHT/START_GAME_LOADING"
 const START_GAME_SUCCESS = "MOONLIGHT/START_GAME_SUCCESS"
 const START_GAME_FAILURE = "MOONLIGHT/START_GAME_FAILURE"
 
+
+/**
+ * status는 connecto에 연결되어 있는지 확인한다.
+ * hostList: conneto의 캐쉬에 저장된 비제이 목록(한번 연결했었던 목록)
+ * appList: 연결된 컴퓨터의 게임목록
+ * startGame:게임 스타트 상태
+ * newHost : 새롭게 호스트를 호출할때 상태랑 엔비디아 비밀번호 저장.
+ */
 const initialState = Map({
     status:'INIT',
     hostList: Map({
@@ -42,7 +56,11 @@ const initialState = Map({
         pairingNum: '' //it's not used for now
     })
 })
-
+/**
+ * 커넥토랑 연결되어 있는지 확인
+ * @param {s} userId 
+ * res.data는 의미 없음. 단지 true,false리턴.
+ */
 function getStatusApiRequest(userId){
     return axios.post('/api/moonlight/getStatus', {userId})
         .then(res=>{
@@ -52,7 +70,10 @@ function getStatusApiRequest(userId){
             return Promise.resolve(res.data)
         })
 }
-
+/**
+ * 호스트 목록을 불러오는 함수.
+ * @param {*} userId 
+ */
 function getHostsApiRequest(userId){
     return axios.post('/api/moonlight/gethosts', {userId})
         .then((res)=>{
@@ -67,7 +88,11 @@ function getHostsApiRequest(userId){
             return Promise.reject(err);
         })
 }
-
+/**
+ * 게임 목록을 불러오는 함수
+ * @param {*} userId 
+ * @param {*} hostId 
+ */
 function getAppsApiRequest(userId, hostId){
     return axios.post('/api/moonlight/getapps', {userId, hostId})
         .then(res=>{
@@ -80,7 +105,12 @@ function getAppsApiRequest(userId, hostId){
             return Promise.reject();
         })
 }
-
+/**
+ * 비제이랑 연결시켜 주는 함수.
+ * @param {*} userId 
+ * @param {*} hostIp 
+ * @param {*} pairingNum 
+ */
 function addHostApiRequest(userId, hostIp, pairingNum){
     return axios.post('/api/moonlight/addhost', {userId, hostIpaddress: hostIp, pairingNum})
         .then(res=>{
@@ -94,7 +124,13 @@ function addHostApiRequest(userId, hostIp, pairingNum){
             return Promise.resolve(err);
         })
 }
-
+/**
+ * 게임 시작시키는 함수.
+ * @param {*} userId 
+ * @param {*} hostId 
+ * @param {*} appId 
+ * @param {*} option 
+ */
 function startGameApiRequest(userId, hostId, appId, option){
     return axios.post('/api/moonlight/startgame', {userId, hostId, appId, option})
         .then(res=>{

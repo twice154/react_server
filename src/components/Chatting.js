@@ -1,5 +1,11 @@
+/**
+ * 채팅 컴포넌트.
+ * @author G1
+ * @logs // 18.2.26
+ */
+
 import React from 'react';
-import { getStatusRequest } from 'modules/authentication';
+import {getStatusRequest} from '../modules/authentication'
 import { connect } from 'react-redux';
 
 
@@ -7,7 +13,13 @@ import { connect } from 'react-redux';
 class Chatting extends React.Component {
 	
 	componentWillMount() {
-		this.props.connectToServer().then(this.props.getStatus)
+		
+		this.props.getStatus().then(()=>{
+			const userId =this.props.userId
+		console.log(userId)
+			this.props.connectToServer()
+			return Promise.resolve(userId)
+		})
 			.then((userId) => {
 					console.log("room: " + this.props.room);
 					this.props.joinRoom(this.props.room, userId)

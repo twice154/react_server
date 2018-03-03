@@ -13,6 +13,9 @@ class LoginComponent extends React.Component {
 		this.handleKeyPress = this.handleKeyPress.bind(this);
 	}
 
+	/** 
+	 * 로그인 후 성공이 아니면 패스워드를 지워준다.
+	 */
 	handleLogin(){
 		let userId = this.state.userId;
 		let pw = this.state.password;

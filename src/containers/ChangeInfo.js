@@ -1,7 +1,14 @@
+/**
+ * 실제로 정보를 바꾸는 함수.
+ * @author G1
+ * @logs // 18.2.27
+ */
+
 import React, { Component } from 'react';
 import {connect} from 'react-redux'
 import {getAllInfo} from '../modules/authentication'
 import {newRegister} from'../modules/register'
+import {ChangeInfoPwd} from '../components/auth'
 class ChangeInfo extends Component {
     constructor(props) {
         super(props);
@@ -33,14 +40,20 @@ class ChangeInfo extends Component {
 		
 		this.setState({value: e.target.value});
     }
+    /**
+     * 개인정보를 변경하는 함수.
+     * db에 등록 후 세팅화면으로 리다이렉트
+     */
     submit(){
         let msg ={}
-        msg[this.state.type]=this.state.value
+        msg[this.state.typename]=this.state.value
        this.props.newRegister(msg).then(()=>{
         alert('변경되었습니다.')
         this.props.history.push('/settings')
        }
-       )
+       ).catch((err)=>{
+           console.log(err)
+       })
     } 
     render() { 
         
@@ -48,7 +61,7 @@ class ChangeInfo extends Component {
         <div>
             새로운 {this.state.typename}을 입력하세요.
             <div className='card container'>
-            {this.state.typename==='password'? <input type='password' onChange={this.handleChange} value={this.state.value}/>
+            {this.state.typename==='password'? <ChangeInfoPwd/>
              :<input onChange={this.handleChange} value={this.state.value}/> }
             
             <button onClick={this.submit}>완료</button>
@@ -71,8 +84,8 @@ const mapDispatchtoProps = (dispatch) => {
 		getAllInfo:()=>{
             return dispatch(getAllInfo())
         },
-        newRegister:()=>{
-            return dispatch(newRegister())
+        newRegister:(msg)=>{
+            return dispatch(newRegister(msg))
         }
        
 	};

@@ -1,7 +1,12 @@
+/**
+ * 회원가입 컨테이너
+ * @author G1
+ * @logs // 18.2.25
+ */
 import React from 'react';
 import {connect} from 'react-redux';
 import {RegisterComponent} from '../components/auth'
-import {idRequest,emailRequest,registerRequest} from 'modules/register';//todo
+import {idRequest,emailRequest,registerRequest} from '../modules/register';//todo
 
 class Register extends React.Component {
 
@@ -21,8 +26,13 @@ class Register extends React.Component {
 		console.log(this.props.status);
 		console.log(this.props.errorCode)
 	}
+	/**
+	 * 회원가입요청.
+	 * @param {object} msg - 회원가입 form이 들어있다.
+	 * @desc
+	 *  성공시 로그인 페이지로 리다이렉트.
+	 */
 	handleRegister(msg){
-		console.log(msg+'hi')
 		return this.props.registerRequest(msg).then(
 			
 			() => {
@@ -33,8 +43,8 @@ class Register extends React.Component {
 					return true;
 				}
 			}
-		).catch(()=>{
-			alert('something worng')
+		).catch((err)=>{
+			alert('something worng'+err)
 
 			return 0
 		
@@ -43,6 +53,8 @@ class Register extends React.Component {
 	}
 	/**id가 사용 가능한지알아본다
 	 * @param {string} id - 아이디.
+		 * @var emailState - 사용가능한아이디입니다 / 아이디가 이미 사용중입니다.
+	 * 
 	 */
 	checkId(id){
 		console.log(id)
@@ -58,6 +70,11 @@ class Register extends React.Component {
 			
 		
 		}
+		/**
+		 * 이메일이 사용 가능한 이메일인지 찾는다.
+		 * @param {*} email 
+		 * @var emailState - 사용가능한이메일입니다 / 이메일이 이미 사용중입니다.
+		 */
 	checkEmail(email){
 		console.log(email)
 		if(email===''){
@@ -71,9 +88,6 @@ class Register extends React.Component {
 			this.setState({emailState:this.props.emailState, emailCheck:this.props.emailCheck})
 		})
 	
-		// this.props.emailRequest(email).then(
-
-		// )
 	}
 	render(){
 		return (

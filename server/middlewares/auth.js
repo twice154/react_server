@@ -13,33 +13,33 @@ const authMiddleware = (req, res, next) => {
     const tempToken = req.headers['x-access-token']||req.query.token
     const token = req.cookies.token
 
-	console.log(tempToken)
-	console.log(token)
+	console.log(req)
+	console.log('.......')
 
     if(!token && !tempToken){
-	return res.status(403).json({
-	    success: false,
-	    message: 'not logged in'
-	})
+		return res.status(403).json({
+			success: false,
+			message: 'not logged in'
+		})
     }
 
     const p = new Promise(
-	(resolve, reject) => {
-	    if(tempToken){
-		jwt.verify(tempToken, "ChocoPi", (err, decoded) => {
-		    if(err) reject(err)
-		    console.log('correct token')
-		    resolve(decoded)
-		})
-	    }
-	    else if(token){
-		jwt.verify(token, secret, (err, decoded) => {
-		    if(err) reject(err)
-		    console.log('correct token')
-		    resolve(decoded)
-		})
-	    }
-	}
+		(resolve, reject) => {
+			if(tempToken){
+			jwt.verify(tempToken, "ChocoPi", (err, decoded) => {
+				if(err) reject(err)
+				console.log('correct token')
+				resolve(decoded)
+			})
+			}
+			else if(token){
+			jwt.verify(token, secret, (err, decoded) => {
+				if(err) reject(err)
+				console.log('correct token')
+				resolve(decoded)
+			})
+			}
+		}
     ) 
     const onError = (error) => {
 	res.status(403).json({
@@ -49,7 +49,8 @@ const authMiddleware = (req, res, next) => {
     }
 
     p.then((decoded)=>{
-	req.decoded = decoded
+		console.log('hey?')
+		req.decoded = decoded
 	next()
     }).catch(onError)
 }

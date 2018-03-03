@@ -151,7 +151,20 @@ exports.login = (req, res) => {
 		res.status(403).json({
 	    	message: error.message
 		})
-    }
+	}
+	const ifVer = (user) => {
+		return new Promise((res, reject) =>{
+			if(user.verified == 'false'){
+				throw new Error("not verified")
+			}
+			else{
+
+				console.log(user.verified)
+				res(user)
+			}
+		})
+
+	}
     const temp = (user) => {
 		res.cookie('token', user.token)
 			var msg = {verified: user.verified, token: user.token}
@@ -161,8 +174,9 @@ exports.login = (req, res) => {
 	// Promise Chains
 	//
 	User.findOneByUserid(info)
-	.then(user => check(user, info))
-	.then(user => tokenize(user,secret))
+	.then( user => check(user, info))
+	.then( user => ifVer(user))
+	.then( user => tokenize(user,secret))
 	.then( user => temp(user))
 	.then( msg=> respond(res,msg) )
 	.catch(onError)
@@ -259,15 +273,11 @@ exports.putUserInfo = (req, res) => {
 		})
 	}
 	const isTrue = (user, info)=>{
-
 		return new Promise( (res,reject) => {
-		console.log('put User Info')
 		var input = Object.keys(info)
 			if(input.length != 2){
-				console.log("worng access")
-				throw new Error("worng access")}
-
-			else{
+				throw new Error("worng access")
+			}else{
 				console.log(input.length)
 				res(user)
 			}
@@ -278,17 +288,68 @@ exports.putUserInfo = (req, res) => {
 	//
 	//  Promise Chain
 	//
+	var info = req.body
+	info.userId = req.decoded.userId
+	//info.userId = req.decoded.userId
+	console.log(info)
+	if(!info.email){
+		User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
+		.then( user => isTrue(user,info))
+		.then( user => modify(user, info))
+		.then( ()=>respond(res,"success") )
+		.catch(onError)
+	}else{
+		res.clearCookie("token");
+		info.verified = false
+		User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
+		.then( user => modify(user, info))
+		.then( user => tempTokenize(user, secret))
+		.then( user => sendmail(user))
+		.then( msg => ()=>res.redirect("http://localhost:4000/login")		)
+		.catch(onError)
+	}
+    
+}
+
+
+/**
+ *  @brief  유저 개인정보를 수정할 때 사용할 라우터 \n
+ *  @param	req.decoded
+ *	  @property String userId: 정보를 수정할 유저의 ID
+ *
+ *  @return	No Return
+ */
+exports.getUserInfo = (req, res) => {dd
+	const onError = (error) => {
+		res.status(409).json({
+			message: error.message
+		})
+	}
+	const onRespond = (user) => {
+		res.json({
+			userId: user.userId,
+			email: user.email,
+			phone: user.phone,
+			name: user.name,
+			nickname: user.nickname,
+			birth: user.birth
+		})
+	}
+	
+	//
+	//  Promise Chain
+	//
 	var info = req.body	
 	info.userId = req.decoded.userId
 	console.log('change info')
 	
 	User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
-	.then( user => isTrue(user,info))
-	.then( user => modify(user, info))
 	.then( ()=>respond(res,"success") )
 	.catch(onError)
     
 }
+
+
 
 /**
  *  @brief
@@ -362,7 +423,7 @@ exports.userIdcheck = (req, res) => {
 /**
  *  @brief  개인정보 수정 및 기타 패스워드 확인 작업을 위한 라우터
  *  @param	req.body
- *    @property	String name: 유저의 이름
+ *    @property	String userId: 유저의 아이디
  *    @property String password: 유저의 패스워드
  *
  *  @return	No Return \n
@@ -371,13 +432,15 @@ exports.userIdcheck = (req, res) => {
  * 			암호를 그대로 전송하는 것은 위험하기 때문에 보안을 위해 추가적인 처리가 필요
  */
 exports.verified = (req, res) => {
-    const info = req.body
+	const info = req.body
+	info.userId = req.decoded.userId
     const onError = (error) => {
 		console.log('error발생')
 	res.status(403).json({
 	    message: error.message
 	})
-    }
+}
+	console.log(info)
 	//
 	// Promise Chains
 	//

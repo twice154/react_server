@@ -1,3 +1,8 @@
+/**
+ * 비밀번호 찾기 컴포넌트
+ * author G1
+ * logs // 18.2.26
+ */
 import React from 'react';
 
 class FindPwd extends React.Component {

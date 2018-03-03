@@ -1,3 +1,9 @@
+/**
+ * 등록할때 사용하는 리덕스
+ * @author g1
+ * @log 18.02.27
+ */
+
 import { handleActions} from 'redux-actions';
 import axios from 'axios';
 const REGISTER = "REGIST/REGISTER";
@@ -24,11 +30,15 @@ const ID_SUCCESS='REGIST/ID_SUCCESS'
 const ID_FAILURE='REGIST/ID_FAILURE'
 
 
-
+/**
+ * regist: 등록에 성공,실패여부
+ * id: 아이디가 존재 하는지 안하는지를 확인(사용가능여부)
+ * email: 위와같음
+ * 
+ */
 const initialState ={
     regist:{
-        status: 'INIT',
-         error: -1
+        status: 'INIT'
     },
     id:{
         status:'init',
@@ -40,28 +50,41 @@ const initialState ={
     }
 }
 
-
+/**
+ * db에 등록한다.
+ * @param {object} msg {userId, password, name, nickname, birth, gender, email, phone,}
+ */
 function registerApiRequest(msg){
     console.log(msg)
-    return axios.post('./api/account/signup', msg)
+    return axios.post('/api/account/signup', msg)
             .then((res)=>Promise.resolve())
-            .catch(err=>Promise.reject(err.response.data.code))
+            .catch(err=>Promise.reject())
 }
-
+/**
+ * 개인정보 수정에 사용. 새롭게 정보를 등록한다.
+ * @param {object} msg {property이름: string} ex)nickname,phone,password,email
+ */
 function newRegisterApiRequest(msg){
-    console.log(msg)
-    return Promise.resolve()
+   return axios.put('/api/account/userInfo',msg)
+            .then(()=>Promise.resolve())
+            .catch(err=>Promise.reject())
 }
-
+/**
+ * 이메일이 사용 가능한지 여부를 확인한다.
+ * @param {string} email 
+ */
 function emailApiRequest(email){
-        return axios.post('./api/account/emailcheck',{email})
+        return axios.post('/api/account/emailcheck',{email})
         .then((res)=>Promise.resolve())
         .catch(err=>Promise.reject())
       
     }
-
+/**
+ * 아이디 사용 가능 여부를 확인한다.
+ * @param {string} userId 
+ */
 function idApiRequest(userId){
-    return axios.post('./api/account/userIdcheck',{userId})
+    return axios.post('/api/account/userIdcheck',{userId})
     .then((res)=>Promise.resolve())
     .catch(err=>Promise.reject())
        
@@ -91,15 +114,15 @@ export const emailRequest = (email)=>({
 
 export default handleActions({
 [REGISTER_LOADING]: (state, action)=>{
-    return {...state, regist:{...state.register, status:'LOADING'}};
+    return {...state, regist:{ status:'LOADING'}};
 },
 
 [REGISTER_SUCCESS]: (state, action)=>{
-    return {...state, regist:{...state.register, status:'SUCCESS'}};
+    return {...state, regist:{ status:'SUCCESS'}};
 },
 
 [REGISTER_FAILURE]: (state, action)=>{
-    return {...state, regist:{ error:action.payload,status:'fail'}};
+    return {...state, regist:{status:'FAILURE'}};
 },
 
 [NEWREGIST_LOADING]: (state, action)=>{

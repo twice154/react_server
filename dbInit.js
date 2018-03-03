@@ -18,7 +18,7 @@ var db = dbServer.create({  //userinfo라는 이름의 database를 만든다
 }).then(function (db) {
     db.class.create('User','V').then(function(user){ //사용자 정보 저장을 위한 User 클래스를 정의
         user.property.create({
-                name: 'id',
+                name: 'userId',
                 type: 'String'
             },{
                 name: 'password',
