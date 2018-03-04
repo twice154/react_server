@@ -50,27 +50,27 @@ console.log('init DB')
  */
 User.create = (info) =>{
     const nonSatisfied = (info) =>{
-	if(!info.userId) return "userId"
-	else if(!info.password) return "password"
-	else if(!info.name) return "name"
-	else if(!info.nickname) return "nickname"
-	else if(!info.birth) return "birth"
-	else if(!info.email) return "email"
-	else if(!info.phone) return "phone"
-	else if(!info.verified) return "verified"
-	else if(!info.admin) return "admin"
-	//else if(!info.gender) return "gender"
-	else return ""
-    }
+		if(!info.userId) return "userId"
+		else if(!info.password) return "password"
+		else if(!info.name) return "name"
+		else if(!info.nickname) return "nickname"
+		else if(!info.birth) return "birth"
+		else if(!info.email) return "email"
+		else if(!info.phone) return "phone"
+		//else if(!info.verified) return "verified"
+		//else if(!info.admin) return "admin"
+		//else if(!info.gender) return "gender"
+		else {console.log("done"); return ""}
+		}
     info.password = crypto.createHmac('sha1',config.secret)
 			.update(info.password)
 			.digest('base64')
-	info.verified = false
-	console.log(info.verified)
+    info.verified = false
     info.admin = false
     
     return new Promise((res,reject)=>{
-		if( nonSatisfied(info) === "" ){
+		console.log( nonSatisfied(info))
+		if( nonSatisfied(info) == "" ){
 			console.log('create query')
 			User.db.query(
 				"CREATE VERTEX User SET " +
@@ -88,7 +88,7 @@ User.create = (info) =>{
 			res(info)
 	//  		.catch(onError)
 		}else{
-			console.log('wrong')
+			console.log(info)
 			reject()
 		}
     })

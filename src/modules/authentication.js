@@ -96,7 +96,7 @@ function getAllInfoRequest(){
        return axios.get('/api/account/userInfo')
             .then((res)=>{
                 console.log(res.data)
-                Promise.resolve(res.data)})
+                return Promise.resolve(res.data)})
             .catch(err=>(Promise.reject()))
 }
 /**

@@ -278,9 +278,9 @@ exports.putUserInfo = (req, res) => {
 	//
 	var info = req.body
 	info.userId = req.decoded.userId
-	//info.userId = req.decoded.userId
 	console.log(info)
 	if(!info.email){
+		console.log('일반적인 상황 modify')
 		User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
 		.then( user => isTrue(user,info))
 		.then( user => modify(user, info))
@@ -327,12 +327,12 @@ exports.getUserInfo = (req, res) => {
 	//
 	//  Promise Chain
 	//
-	var info = req.body	
+	var info = req.body
 	info.userId = req.decoded.userId
-	console.log('change info')
+	console.log(info)
 	
 	User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
-	.then( ()=>onRespond(user) )
+	.then( user => onRespond(user) )
 	.catch(onError)
     
 }
