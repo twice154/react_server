@@ -134,7 +134,7 @@ User.update = (user, info) =>{
 		"', phone='" 	+ newDat.phone + 
 		"', verified='"	+ newDat.verified +
 		//"', gender='" + info.gender +
-		"'")
+		"' WHERE id='" + newDat.userId + "'")
 	.catch((err)=>reject(err))
 	res(newDat)
     })
@@ -177,6 +177,39 @@ User.findOneByUserid = (info) => {
     var TempDat={}
     return new Promise( (res,reject)=>{
 	User.db.query("SELECT * FROM User WHERE userId='" + info.userId + "'")
+	.then( (results) =>{
+	    if( results.length === 0 ){
+		console.log('Not found!')
+		res(TempDat)
+	    } else{
+		console.log('found!')
+		TempDat = Object.assign({},results[0])
+		res(TempDat);
+	    }
+	})
+	.catch((err)=>console.log(err))
+    })
+}
+
+
+
+
+/**
+ *  @brief  SELECT 쿼리 실행, phone으d로 유저를 검색
+ *  @param	{Object}	info
+ * 	  @property	{String}	phone	- 정보를 찾을 유저의 ID, 쿼리의 where문에 사용한다.
+ *
+ *  @return Promise
+ * 	  @resolve	{Object} 	- 유저 정보를 찾았을 때 실행, 찾은 User정보 객체를 다음 Promise로 넘겨준다.
+ *    			{Object} 	- 유저 정보를 찾지 못했을 때 실행, 빈 객체 { }를 다음 Promise로 넘겨준다.
+ *    @reject	{String} 	- SELECT 쿼리 실행 중 오류가 발생했을 때 실행, 오류 메세지를 출력한다.
+ * 
+ *    @todo		에러핸들러 작성
+ */
+User.findOneByUserPhone = (info) => {
+    var TempDat={}
+    return new Promise( (res,reject)=>{
+	User.db.query("SELECT * FROM User WHERE phone='" + info.phone + "'")
 	.then( (results) =>{
 	    if( results.length === 0 ){
 		console.log('Not found!')

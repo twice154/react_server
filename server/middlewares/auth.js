@@ -9,7 +9,7 @@ const {secret} = require('../config')
 //적합하지 않다면 success 속성이 false인 객체를 res요청이 온 곳으로 돌려준다.
 const authMiddleware = (req, res, next) => {
     //Change header to cookie
-    //
+		//
     const tempToken = req.headers['x-access-token']||req.query.token
     const token = req.cookies.token
 

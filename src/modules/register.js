@@ -29,6 +29,11 @@ const ID_LOADING='REGIST/ID_LOADING'
 const ID_SUCCESS='REGIST/ID_SUCCESS'
 const ID_FAILURE='REGIST/ID_FAILURE'
 
+//폰 번호가 유효한지.
+const PHONE ='REGIST/PHONE'
+const PHONE_LOADING ='REGIST/PHONE_LOADING'
+const PHONE_SUCCESS ='REGIST/PHONE_SUCCESS'
+const PHONE_FAILURE ='REGIST/PHONE_FAILURE'
 
 /**
  * regist: 등록에 성공,실패여부
@@ -47,7 +52,9 @@ const initialState ={
     email:{
         status:'init',
         check:false
-    }
+    },
+    phone:{status:'init',
+        check:false}
 }
 
 /**
@@ -81,6 +88,17 @@ function emailApiRequest(email){
       
     }
 /**
+ * 폰 번호가 사용 가능한지 여부를 확인한다.
+ * @param {string} phone
+ */
+function phoneApiRequest(phone){
+    console.log(1)
+    return axios.post('/api/account/phonecheck',{phone})
+    .then((res)=>Promise.resolve())
+    .catch(err=>Promise.reject())
+    
+}
+/**
  * 아이디 사용 가능 여부를 확인한다.
  * @param {string} userId 
  */
@@ -111,6 +129,10 @@ export const idRequest = (id)=>({
 export const emailRequest = (email)=>({
     type: EMAIL,
     payload: emailApiRequest(email)
+})
+export const phoneRequest = (phone)=>({
+    type: PHONE,
+    payload: phoneApiRequest(phone)
 })
 
 export default handleActions({
@@ -158,6 +180,17 @@ export default handleActions({
 
 [EMAIL_FAILURE]: (state, action)=>{
     return { ...state,email:{check:false,status:'이메일이 이미 사용중입니다.'}};
+},
+[PHONE_LOADING]: (state, action)=>{
+    return {...state, phone:{...state.phone,status:'loading'}};
+},
+
+[PHONE_SUCCESS]: (state, action)=>{
+    return {...state, phone:{check:true,status:'폰 번호를 사용할 수 있습니다.'}};
+},
+
+[PHONE_FAILURE]: (state, action)=>{
+    return { ...state, phone:{check:false,status:'폰 번호를 이미 사용중입니다.'}};
 }
 },initialState)
 

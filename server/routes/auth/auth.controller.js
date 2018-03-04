@@ -264,6 +264,7 @@ exports.putUserInfo = (req, res) => {
 		return new Promise( (res,reject) => {
 		var input = Object.keys(info)
 			if(input.length != 2){
+				console.log(input.length)
 				throw new Error("worng access")
 			}else{
 				console.log(input.length)
@@ -271,14 +272,13 @@ exports.putUserInfo = (req, res) => {
 			}
 		})
 	}
-
 	
 	//
 	//  Promise Chain
 	//
 	var info = req.body
 	info.userId = req.decoded.userId
-	console.log(info)
+
 	if(!info.email){
 		console.log('일반적인 상황 modify')
 		User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
@@ -329,7 +329,6 @@ exports.getUserInfo = (req, res) => {
 	//
 	var info = req.body
 	info.userId = req.decoded.userId
-	console.log(info)
 	
 	User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
 	.then( user => onRespond(user) )
@@ -381,6 +380,31 @@ exports.emailcheck = (req, res) => {
     .catch(onError)
 }
 
+/**
+ *  @brief  핸드폰번호 중복 체크에 사용할 라우터
+ *  @param	req.body
+ *    @property {String}	phone		- 중복 체크할 유저의 이메일
+ *
+ *  @return	No Return \n
+ */
+exports.phonecheck = (req, res) => {
+    const info = req.body;
+    const isEmpty = ( user ) =>{
+		if(!user || !user.email)
+			respond(res, {})
+		else
+			throw new Error("Already exist")
+    }
+    const onError = (error) => {
+		res.status(403).json({
+			message: error.message
+		})
+    }
+    User.findOneByUserPhone(info)
+    .then(user => isEmpty(user))
+    .catch(onError)
+}
+
 
 /**
  *  @brief  이메일 중복 체크에 사용할 라우터
@@ -428,7 +452,6 @@ exports.verified = (req, res) => {
 	    message: error.message
 	})
 }
-	console.log(info)
 	//
 	// Promise Chains
 	//

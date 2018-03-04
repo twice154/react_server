@@ -16,11 +16,13 @@ class Register extends React.Component {
 			idState:'',
 			emailState:'',
 			idCheck:false,
-			emailCheck:false
+			emailCheck:false,
+			phoneCheck:false
 		}
 		this.handleRegister = this.handleRegister.bind(this);
 		this.checkId=this.checkId.bind(this)
 		this.checkEmail=this.checkEmail.bind(this)
+		this.checkPhone=this.checkPhone.bind(this)
 	}
 	componentDidMount(){
 		console.log(this.props.status);
@@ -89,12 +91,24 @@ class Register extends React.Component {
 		})
 	
 	}
+	checkPhone(phone){
+			console.log(this.state.phone)
+			if(check.length<12){
+				alert('정확한 길이의 번호를 입력하세요')
+				return 0;
+			}
+			this.props.checkPhone(this.state.phone).then(()=>{
+				this.setState({phoneCheck:this.props.phoneCheck})
+			})
+	
+
+	}
 	render(){
 		return (
 			<div>
 				< RegisterComponent onRegister={this.handleRegister} checkId={this.checkId} checkEmail={this.checkEmail}
 									emailStatus={this.state.emailState} idStatus={this.state.idState} idCheck={this.state.idCheck}
-									emailCheck={this.state.emailCheck}/>
+									emailCheck={this.state.emailCheck} phoneCheck={this.state.phoneCheck}/>
 			</div>
 		);
 	}
@@ -107,7 +121,8 @@ const mapStateToProps = (state) => {
 		idState: state.register.id.status,
 		emailState: state.register.email.status,
 		idCheck:state.register.id.check,
-		emailCheck:state.register.email.check
+		emailCheck:state.register.email.check,
+		phoneCheck:state.register.phone.check
 	};
 };
 
