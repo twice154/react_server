@@ -43,7 +43,7 @@ class ChangeInfo extends Component {
      */
     submit(msg){
         console.log(msg)
-       this.props.newRegister().then(()=>{
+       this.props.newRegister(msg).then(()=>{
         alert('변경되었습니다.')
         this.props.history.push('/settings')
        }

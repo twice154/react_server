@@ -63,18 +63,18 @@ describe('authentication test',()=>{
         expect(reducers(undefined,{type:'AUTH/GET_STATUS_FAILURE'})).toEqual(initialState.setIn(['status','isLoggedIn'], false))
 
     })
-    it('getAllInfo actionCreator,reducer test',()=>{
+    it('getAllInfo actionCreator,reducer test',async()=>{
         mock.onGet('/api/account/userInfo').replyOnce(200,{ email: "jwc2094@naver.com", phone: "000-0000-0000", nickname: "g1"})
         .onGet('/api/account/userInfo').replyOnce(404)
         var expectedActions = [{"type": "AUTH/GET_ALLINFO_LOADING"}, {"payload": { email: "jwc2094@naver.com", phone: "000-0000-0000", nickname: "g1"}, "type": "AUTH/GET_ALLINFO_SUCCESS"}, {"type": "AUTH/GET_ALLINFO_LOADING"}, {"error": true, "type": "AUTH/GET_ALLINFO_FAILURE"}]
         
-        await store.dispatch(getStatusRequest())
-        await store.dispatch(getStatusRequest()).catch(()=>{
+        await store.dispatch(getAllInfo())
+        await store.dispatch(getAllInfo()).catch(()=>{
             expect(store.getActions()).toEqual(expectedActions)
         })
-        expect(reducers(undefined,{type:'AUTH/GET_ALLINFO_LOADING'})).toEqual(initialState.setIn(['status','isLoggedIn'], true))
-        expect(reducers(undefined,{type:'AUTH/GET_ALLINFO_SUCCESS',payload:'g1'})).toEqual(initialState.mergeIn(['status'], Map({isLoggedIn: true, currentUser: 'g1'})))
-        expect(reducers(undefined,{type:'AUTH/GET_ALLINFO_FAILURE'})).toEqual(initialState.setIn(['status','isLoggedIn'], false))
+        expect(reducers(undefined,{type:'AUTH/GET_ALLINFO_LOADING'})).toEqual(initialState)
+        expect(reducers(undefined,{type:'AUTH/GET_ALLINFO_SUCCESS',payload:{ email: "jwc2094@naver.com", phone: "000-0000-0000", nickname: "g1"}})).toEqual(initialState.set('allInfo',Map({ email: "jwc2094@naver.com", phone: "000-0000-0000", nickname: "g1"})))
+        expect(reducers(undefined,{type:'AUTH/GET_ALLINFO_FAILURE'})).toEqual(initialState)
 
     })
     it('logout actionCreator,reducer test',()=>{
