@@ -44,7 +44,12 @@ connectToCentralServer();
 //		of same purpose. It doesn't seems like the best, but better.
 
 router.post('/getStatus', (req, res)=>{
-	sendMsgToCentralServerAndRegisterResHandler(res, { command: 'checkStatus', userId: req.body.userId });
+	sendMsgToCentralServerAndRegisterResHandler(res, {
+		command: 'checkStatus', 
+		source: 'WEB', 
+		dest: 'CONNETO', 
+		userId: req.body.userId 
+	});
 	if(!httpResponses.status[req.body.userId]){
 		httpResponses.status[req.body.userId] = [];
 	}
@@ -53,7 +58,12 @@ router.post('/getStatus', (req, res)=>{
 
 //get moonlight host list
 router.post('/gethosts', (req, res)=>{
-	sendMsgToCentralServerAndRegisterResHandler(res, {command: 'getHosts_TO_ML', userId: req.body.userId});
+	sendMsgToCentralServerAndRegisterResHandler(res, {
+		command: 'getHosts', 
+		source: 'WEB', 
+		dest: 'CONNETO', 
+		userId: req.body.userId
+	});
 	if (!httpResponses.getHosts[req.body.userId]) {
 		httpResponses.getHosts[req.body.userId] = [];
 	}	
@@ -62,7 +72,13 @@ router.post('/gethosts', (req, res)=>{
 
 //get game list of the selected host
 router.post('/getapps', (req, res)=>{
-	sendMsgToCentralServerAndRegisterResHandler(res, {command: 'getApps_TO_ML', userId: req.body.userId, hostId: req.body.hostId});
+	sendMsgToCentralServerAndRegisterResHandler(res, {
+		command: 'getApps', 
+		source: 'WEB', 
+		dest: 'CONNETO',
+		userId: req.body.userId, 
+		hostId: req.body.hostId
+	});
 	if (!httpResponses.getApps[req.body.userId]) {
 		httpResponses.getApps[req.body.userId] = [];
 	}	
@@ -71,7 +87,14 @@ router.post('/getapps', (req, res)=>{
 
 //add new moonlight host
 router.post('/addhost', (req, res)=>{
-	sendMsgToCentralServerAndRegisterResHandler(res, {command: 'addHost_TO_ML', userId: req.body.userId, hostIpaddress: req.body.hostIpaddress, pairingNum: req.body.pairingNum});
+	sendMsgToCentralServerAndRegisterResHandler(res, {
+		command: 'addHost', 
+		source: 'WEB', 
+		dest: 'CONNETO',
+		userId: req.body.userId, 
+		hostIpaddress: req.body.hostIpaddress, 
+		pairingNum: req.body.pairingNum
+	});
 	if (!httpResponses.addHost[req.body.userId]) {
 		httpResponses.addHost[req.body.userId] = [];
 	}	
@@ -80,7 +103,15 @@ router.post('/addhost', (req, res)=>{
 
 //start the game of selected host
 router.post('/startgame', (req, res)=>{
-	sendMsgToCentralServerAndRegisterResHandler(res, {command: "startGame_TO_ML",userId: req.body.userId, appId: req.body.appId, hostId: req.body.hostId, option: req.body.option});
+	sendMsgToCentralServerAndRegisterResHandler(res, {
+		command: "startGame", 
+		source: 'WEB', 
+		dest: 'CONNETO',
+		userId: req.body.userId, 
+		appId: req.body.appId, 
+		hostId: req.body.hostId, 
+		option: req.body.option
+	});
 	if (!httpResponses.startGame[req.body.userId]) {
 		httpResponses.startGame[req.body.userId] = [];
 	}	
@@ -102,23 +133,23 @@ function commandHandler(data){ //handler for data from central server
 	switch(data.command){
 
 		case "checkStatus":
-			iterativelySendResponse(httpResponses.status[data.userID], data);
+			iterativelySendResponse(httpResponses.status[data.userId], data);
 			break;
-		case "getHostsResult_TO_WEB":
-			iterativelySendResponse(httpResponses.getHosts[data.userID], data);
+		case "getHostsResult":
+			iterativelySendResponse(httpResponses.getHosts[data.userId], data);
 			break;
-		case "addHostResult_TO_WEB":
-			iterativelySendResponse(httpResponses.addHost[data.userID], data);
+		case "addHostResult":
+			iterativelySendResponse(httpResponses.addHost[data.userId], data);
 			break;
-		case "getAppsResult_TO_WEB":
-			iterativelySendResponse(httpResponses.getApps[data.userID], data);
+		case "getAppsResult":
+			iterativelySendResponse(httpResponses.getApps[data.userId], data);
 			break;
-		case "startGameResult_TO_WEB":
-			iterativelySendResponse(httpResponses.startGame[data.userID], data);
+		case "startGameResult":
+			iterativelySendResponse(httpResponses.startGame[data.userId], data);
 			break;
-		case "networkTest_TO_WEB":
+		case "networkTest":
 			axios.post('/api/speedtest').then((res)=>{
-				socketForCentralServer.write(JSON.stringify({command: "networkTest_TO_ML", data: res.data.data}));
+				socketForCentralServer.write(JSON.stringify({command: "networkTest",source: "WEB", dest:"CONNETO", data: res.data.data}));
 			});
 			break;
 

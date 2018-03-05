@@ -1,14 +1,17 @@
-//separate tcp server which communicates with moonlight-chrome (originally in web server) 
+/**
+ * @file independent central tcp server communicating with Conneto & react-web-server
+ * it manages overall dataflow and communiction between Conneto & react-web-server 
+ * without any other specification, all of this file are written by SSH
+ * @author SSH
+ * @see {@link https://nodejs.org/api/net.html} for nodejs net API
+ * @todo making error handler, crypto communication
+ */
+'use strict'
 
-var net = require('net'),
-	//app = require('express')();
-
-	bodyParser = require('body-parser'),
-	orientDB = require('orientjs');
-	portForMoonlight= 4001,
+const net = require('net'),
+	orientDB = require('orientjs'),
+	portForConneto= 4001,
 	portForWebServer= 4002;
-//app.use(bodyParser.json()); // for parsing application/json
-//app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 const server =  orientDB({
 	host: "localhost",
 	port: 2424,
@@ -19,95 +22,165 @@ const db = server.use('usersinfo');
 
 
 
-var clients = {}; //TODO: Change this part to using db later
-
-				  
-var serverForMoonlight = net.createServer();  //For Many Moonlight 
+var clients = {}; //TODO: Change this part to using db later				  
+var serverForConneto = net.createServer();  //For Many Conneto clients 
 var serverForWebServer = net.createServer();  //For only one Web server
 var socketForWebServer;
-serverForMoonlight.on('connection', function(socket){
-	//clients[socket.remotePort] = socket;
-	console.log('Server has a new Moonlight client connection: ' + socket.remotePort);
-	socket.on('close', function(){
-		console.log('Moonlight client connection is closed: ' + socket.remotePort);
+
+/**
+ * @callback
+ * @description establish settings & register event handlers for socket when Conneto is connected
+ * @param {Socket} socketForConneto - socket used for communicating with Conneto client 
+ */
+
+function connetoConnectionHandler(socketForConneto) {
+	console.log('Server has a new Conneto client connection: ' + socketForConneto.remotePort);
+
+	/**
+	 * @callback 
+	 * @description handler for closed connection
+	 */
+	socketForConneto.on('close', function () {
+		console.log('Conneto client connection is closed: ' + socketForConneto.remotePort);
 	});
-	socket.on('error', function(err){
-		console.log("err occured in connection with Moonlight client: " + socket.remotePort + err);
+
+	/**
+	 * @callback
+	 * @description handler for error during communication
+	 * @param {Error} err - Error Object specifying error
+	 */
+	socketForConneto.on('error', function (err) {
+		console.log("err occured in connection with Conneto client: " + socketForConneto.remotePort + err);
 	})
-	socket.on('data', function(data){
+
+	/**
+	 * @typedef {Object} HostInfo
+	 * 		@property {string} hostId - unique identifier of conneto host (given by conneto client)
+	 * 		@property {string} hostname - name of the conneto host
+	 * 		@property {boolean} online - whether the host is online
+	 * 		@property {boolean} paired - whether the host is paired (paired means ready for remote-control)
+	 * @typedef {Object} AppInfo
+	 * 		@property {string} id - unique id of the game (given by conneto client)
+	 * 		@property {string} title - name of the game
+	 */
+	
+
+	/**
+	 * @callback 
+	 * @description handler for processing data from Conneto; it register necessary handlers;
+	 * 				it just transfer the data to react_web_server as it is
+	 * @param {string(JSON)} data- data from Conneto, it is JSON string, so it needs to be converted to object by JSON.parse
+	 * 							   @see {@link https://www.w3schools.com/Js/js_json_parse.asp}
+	 * 
+	//
+	// ─── ESSENTIAL FIELDS ──────────────────────────────────────────────
+	//			
+	 *  	@property {string} data.command - purpose of this data, other fields change depending on this field  
+	 *		@property {string} data.userId - Id of the user for authenticaion, it exists in every cases.
+	 *		@property {string} data.source - server which sent the  data: WEB or CONNETO
+	 *		@property {string} data.dest - server which should receive the data: WEB or CONNETO
+	 * 		Other fields change according to the value of the command 
+ 	//
+ 	// ───  ───────────────────────────────────────────────────────────────────────────
+	//
+	 	
+	 * 		isAccount: @description used for authentication of the conneto
+	 * 								centralServer will send result to the conneto
+	 * 				   @property {string} data.userPW - password of the user
+	 * 
+	 * 		getHostsResult: @description it is reply to the request from web server(getHosts)
+	 * 							   @property {HostInfo[]} data.list - Array that contains information of conneto's connected hosts
+	 * 							   @see {@link @HostInfo}
+	 * 
+	 *  	addHostResult: @description it is reply to the request from web server(addHost)
+	 * 							  @property {string} data.hostId - Id of the added host
+	 * 							  @property {string} data.hostname - name of the added host
+	 * 							  @property {boolean} data.online - online status of the added host
+	 * 							  @property {boolean} data.paired - pairing status of the added host
+	 * 							  @property {number} data.error - if this field exists, means failed to add new host 
+	 * 
+	 * 		getAppsResult: @description it is reply to the request from web server(getApps)
+	 * 							  @property {string} data.hostId - Id of the chosen host
+	 * 							  @property {string} data.hostname - name of the chosen host
+	 * 							  @property {AppInfo[]} data.appList - List of apps(games) the host has @see {@link @AppInfo}
+	 * 
+	 *      startGameResult: @description it is reply to the request from web server(startGame)
+	 * 								@property {string} data.hostId - Id of the host
+	 * 								@property {string} data.appId - Id of the app(game) webserver wanted to start
+	 * 		
+	 * 		networkTest: @description when central server receives this request, it sends networkTest_ request to web server  
+	 * 				     @todo it's not stable version, it needs modification
+	 */
+	socketForConneto.on('data', function (data) {
 		data = JSON.parse(data);
 		console.log("new msg received: " + JSON.stringify(data));
-		if(data.command.slice(-6, ) === "TO_WEB"){
-			//getMLSocket(data.userID).then((socketforML)=>{
-				//if(socketforML){
-					/*switch(data.command){
-						//If there's any difference between them, then add!
-						case "getHostsResult_TO_WEB": 
-
-						case "addHostResult_TO_WEB":
-						
-						case "getAppsResult_TO_WEB":
-
-						case "startGameResult_TO_WEB": 				
-					}*/
-					sendMsg(socketForWebServer, data);	
-				//}			
-			/*}).catch((err)=>{
-				console.log("Something broken while getting ML socket data from db: " + err);
-			})*/
+		if (data.dest === "WEB") {
+			sendMsg(socketForWebServer, data);
 		}
-		else{
-			if(data.command === "isAccount"){
-				isValidUser(data.userID, data.userPW)
-					.then((isValid)=>{
-						if(isValid){
-							socket.write(JSON.stringify({command: "loginApproval", isApproved: true, userID: data.userID}), function(err){
-								if(err){
-									console.log("There's error while sending loginApproval to ML");
-								}
-								else{
-									//clients[data.userID] = socket;
-									saveMLSocket(data.userID, socket);
-									socket.on('close', function(){
-										console.log("Connection closed: " + data.userID);
-										//delete clients[data.userID];
-										deleteMLSocket(data.userID, socket);
-									});
-								}						
-							});
-						}
+		else {
+			if (data.command === "isAccount") {
+				isRegisteredUser(data.userId, data.userPW)
+					.then((userId) => {
+						/**
+						 * @callback
+						 * @description when successfully logined, send approval message to Conneto socket
+						 */
+						socketForConneto.write(JSON.stringify({ command: "loginApproval", isApproved: true, userId}), function (err) {
+							if (err) {
+								console.log("There's error while sending loginApproval to ML");
+							}
+							else {
+								saveMLSocket(userId, socketForConneto);
 
-						else{
-							socket.write(JSON.stringify({command: "loginApproval", isApproved: false}), function(err){
-								if(err){
-									console.log("There's error while sending loginApproval to ML");
-								}
-							});
-						}
-						
-					}).catch((err)=>{
-						console.log("SOmething broken while getting account info");
-					});
+								/**
+								 * @callback 
+								 * @description when socket is closed, delete stored socket information
+								 */
+								socketForConneto.on('close', function () {
+									console.log("Connection closed: " + userId);
+									deleteMLSocket(userId, socketForConneto);
+								});
+							}
+						})
+					}).catch((error)=>{
+						console.log(error);
+						/**
+						 * @callback 
+						 * @description when failed to login, send failure message to Conneto socket   
+						 */
+						socketForConneto.write(JSON.stringify({ command: "loginApproval", isApproved: false }), function (err) {
+							if (err) {
+								console.log("There's error while sending loginApproval to ML");
+							}
+						});
+					})		
 			}
-			else if(data.command === "networkTest"){
-				//TODO: get the network info from the web server and transmit it to the moonlight-client
-				socketForWebServer.write(JSON.stringify({command: "networkTest_TO_WEB", userID: data.userID}, function(){
-					
+			else if (data.command === "networkTest") {
+				/**
+				 @todo: get the network info from the web server and transmit it to the Conneto-client 
+				 */
+				socketForWebServer.write(JSON.stringify({ command: "networkTest_", userId: data.userId }, function () {
+
 				}));
 			}
-			else{
+			else {
 				console.log("Invalid command!");
 			}
 		}
 	})
+}
+
+serverForConneto.on('connection', connetoConnectionHandler);
+serverForConneto.on('error', function(err){
+	console.log('error on serverForConneto: ' + err);
 });
+serverForConneto.listen(portForConneto, 'localhost');
 
-serverForMoonlight.on('error', function(err){
-	console.log('error on serverForMoonlight: ' + err);
-});
-
-serverForMoonlight.listen(portForMoonlight, 'localhost');
-
+/**
+ * @callback
+ * @description establish settings & register event handlers for socket when web-server is connected
+ * @param {Socket} socket - socket for communicating with web-server 
+ */
 serverForWebServer.on('connection', function(socket){
 	console.log("Server has a Webserver connection: " + socket.remotePort);
 	socketForWebServer = socket;
@@ -115,45 +188,85 @@ serverForWebServer.on('connection', function(socket){
 		console.log("Webserver connection has disconnected");
 	});
 	socket.on('error', function(err){
-		console.log("error occured in Webserver socket connection");
+		console.log("error occured in Webserver socket connection: " + err);
 	})
 	
+	/**
+	 * @callback 
+	 * @description handler for data from web-server
+	 * @param {string(JSON)} data - data from web-server; it is JSON string, needs to be converted to Object by JSON.parse
+	 * 								@see {@link https://www.w3schools.com/Js/js_json_parse.asp}
+	 * 		
+	//
+	// ─── ESSENTIAL FIELDS ──────────────────────────────────────────────
+	//
+	 *  	@property {string} data.command - purpose of this data, other fields change depending on this field
+	 *		@property {string} data.userId - Id of the user for authenticaion, it exists in every cases.
+	 *		@property {string} data.source - server which sent the  data: WEB or CONNETO
+	 *		@property {string} data.dest - server which should receive the data: WEB or CONNETO or even nothing(when it just needs to pass centralServer)
+	 *		Other fields change according to the value of the command
+	//
+ 	// ───  ───────────────────────────────────────────────────────────────────────────
+	//
+	 * 		checkStatus: @description used for getting current status of  the user's CONNETO client: online or offline
+	 * 								no addtional property
+	 * 		
+	 *		getHosts: @description used for getting connected(paired) hosts of the CONNETO
+	 *				  			   no additional property
+	 *
+	 *		getApps: @description used for getting available(executable) apps from the selected host
+	 *							   no additional property
+	 *		
+	 *		addHost: @description used for adding a new host to the CONNETO client
+	 *				 	@property {string} data.hostIpaddress - ip address of the host user want to add to their CONNETO					   	     	 			    
+	 * 					@property {string} data.pairingNum - random number used for pairing with host, \[0-9]{4}\ ex)"3847"
+	 * 		
+	 * 		startGame: @description used for starting chosen game of the chosen host with the CONNETO client
+	 * 				       @property {string} data.hostId - unique id of the host user want to start the game of
+	 * 					   @property {string} data.appId - unique id of the game user want to start
+	 * 				       @property {Object} data.option - option for starting game
+	 * 					       @property {string} data.option.frameRate - frameRate of the remote control subscribtion
+	 * 					       @property {string} data.option.streamWidth - width of the remote control subscribtion
+	 * 					       @property {string} data.option.streamHeight - height of the remote control subscribtion
+	 * 					       @property {string} data.option.remote_audio_enabled - whether the sound during remote control will be enabled
+	 * 					       @property {string} data.option.bitrate - bitrate of the remote control subscribtion
+	 */						
 	socket.on('data', function(data){
 		data = JSON.parse(data);
 		var userId = data.userId;
-		getMLSocket(data.userId).then((socketForML)=>{
-			if(!socketForML){
+		getMLSocket(data.userId).then((socketForConneto)=>{
+			if(!socketForConneto){
 				console.log("ML of " + userId + " is offline");
 				return sendMsg(socketForWebServer, {error: -1, status: false});
 			}
 			console.log(data.command);
-			if(data.command.slice(-5, ) === "TO_ML"){
+			if(data.dest === 'CONNETO'){
 				switch(data.command){
 
-					case "getHosts_TO_ML":
+					case "getHosts":
 						console.log('request from ' + userId + ": getting hosts");
-						sendMsg(socketForML, {command: "getHosts", userID: userId});
+						sendMsg(socketForConneto, {command: "getHosts", userId});
 						break;
 
-					case "addHost_TO_ML":
+					case "addHost":
 						console.log('request form ' + userId + ": adding hosts");
-						sendMsg(socketForML, {command: "addHost", userID: userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum});
+						sendMsg(socketForConneto, {command: "addHost", userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum});
 						break;
 
-					case "getApps_TO_ML":
+					case "getApps":
 						console.log('request from ' + userId  + ": getting apps");
-						sendMsg(socketForML, {command: "getApps",userID: userId, hostId: data.hostId});
+						sendMsg(socketForConneto, {command: "getApps", userId, hostId: data.hostId});
 						break;
 
-					case "startGame_TO_ML":
+					case "startGame":
 						console.log('request from ' + userId + ": starting game");
-						sendMsg(socketForML, {command: "startGame", userID: userId, appId: data.appId, hostId: data.hostId, option: data.option});
+						sendMsg(socketForConneto, {command: "startGame", userId, appId: data.appId, hostId: data.hostId, option: data.option});
 						break;
 
-					case "networkTest_TO_ML":
+					case "networkTest":
 						console.log("request from " + userId + ": networkTest");
 						data = data.data;
-						sendMsg(socketforML, {command: "networkTest", userID: userId, ip:data.client.ip, latency: data.server.ping, download: data.speeds.download});
+						sendMsg(socketForConneto, {command: "networkTest", userId, ip:data.client.ip, latency: data.server.ping, download: data.speeds.download});
 						break;
 
 					default:
@@ -162,8 +275,8 @@ serverForWebServer.on('connection', function(socket){
 				}
 			}
 			else if(data.command == "checkStatus"){
-				console.log('request from ' + userId + ": checking moonlight status");
-				sendMsg(socketForWebServer, { command: "checkStatus", status: true, userID: userId});
+				console.log('request from ' + userId + ": checking Conneto status");
+				sendMsg(socketForWebServer, { command: "checkStatus", status: true, userId: userId});
 			}		
 		}).catch((err)=>{
 			console.log("Something broken while getting ML Socket from db: " + err);
@@ -172,7 +285,7 @@ serverForWebServer.on('connection', function(socket){
 		/*else if(data.command.slice(0, 4) === "AUTH"){
 			switch(data.command){
 				case "AUTH_signIn":
-					if(isValidUser(data.userID, data.userPW)){
+					if(isRegisteredUser(data.userID, data.userPW)){
 
 					}
 					else{
@@ -184,110 +297,113 @@ serverForWebServer.on('connection', function(socket){
 })
 
 
-
+/**
+ * @author SSH
+ * @description Used for sending msg to the socket you want
+ * @param {Socket} socket - the socket you want to write message through
+ * @param {Object} msg - the message you want to send to the socket
+ * @returns {Promise} Promise object for sending Msg 
+ * @promise
+ * @resolve {string}  
+ * @reject {Error}
+ */
 function sendMsg(socket, msg){
-	socket.write(JSON.stringify(msg), function(err){
-		if(err){
-			console.log("err on sending msg: " + err);
-		}
-		else{
-			console.log("Successfully sent msg: " + msg.command);
-		}
-	});
+	return new Promise((resolve, reject)=>{
+		socket.write(JSON.stringify(msg), function(err){
+			if(err){
+				reject(err);
+			}
+			else{
+				resolve(msg.command);
+			}
+		});
+	})
 }
 
-////TODO: merge these functions into one class, it will be more elegant 
-////
+/**
+ * Checking whether the user is registerd by checking id, password
+ * @author SSH
+ * @param {string} userId - Id of the user
+ * @param {string} password - password of the user
+ * @returns {Promise} Promise object represents whether user is valid
+ * @promise Check whether the user account is registered by requesting to db
+ * @resolve {string} userID equivalent to param userID 
+ * @reject {Error} message contains why it fails 
+ */
+ function isRegisteredUser(userId, password){
+	return new Promise((resolve, reject) => {
+		db.query("SELECT * FROM USER WHERE id='" + userId + "'").then((exist) => {
+			if (!exist[0]) {
+				reject(new Error("Login failed: no such a id"));
+			}
 
-/*function isLoginedUser(userID){
-	if(userID){
-		if(clients[userID]){
-			return true;
+			else if (exist[0].password != password) {
+				reject(new Error("Login failed: wrong password"));
+			}
+
+			else {
+				console.log("Login Success!!: " + userId);
+				resolve(userId);
+			}
+		})
+	})
+ }
+
+/**
+ * @author SSH
+ * @description save the Conneto client socket information by matching it to userId 
+ * @param {string} userId - userId of the owner of the Conneto 
+ * @param {Socket} socket - Conneto socket
+ * @todo DB would handle this part
+ * @return {Promise} save the client information and return userId to the next resolve
+ * @promise 
+ * @resolve {string} userId 
+ */
+function saveMLSocket(userId, socket){
+	return Promise.resolve().then(
+		()=>{
+			clients[userId] = socket;
+			return userId
+		}
+	)
+}
+
+/**
+ * @description delete the Conneto client socket information, it is usually called when client is disconnected
+ * @param {string} userId - userID of the owner of the Conneto
+ * @return {Promise}  
+ * @promise 
+ * @resolve {string} userID
+ * @reject {string} "Invalid user: failing to delete ML socket"
+ * @todo DB would handle this part 
+ */
+function deleteMLSocket(userId){		
+	return new Promise((resolve, reject)=>{
+		if(clients[userId]){
+			delete clients[userId];
+			resolve(userId);
 		}
 		else{
-			console.log("Not a logined user!");
-		}
-	}else{
-		console.log("There's no userID!");
-	}
-	return false;
-}*/ //deprecated
-
-/*function isValidUser(userID, userPW){
-	db.query("SELECT * FROM USER WHERE id='" + userID + "'").then((exist)=>{
-		if(!exist[0]){
-			console.log("Login failed: no such a id");	
-			return false; 
-		}
-
-		else if(exist[0].password!=userPW){
-			console.log("Login failed: wrong password");
-			return false;
-		}
-
-		else{
-			console.log("Login Success!!: " + userID);					
-			return true;
-		}
-	});		
-}*/ 
-
-isValidUser =(userID, userPW) => new Promise((resolve)=>{
-	db.query("SELECT * FROM USER WHERE id='" + userID + "'").then((exist)=>{
-		if(!exist[0]){
-			console.log("Login failed: no such a id");	
-			resolve(false); 
-		}
-
-		else if(exist[0].password!=userPW){
-			console.log("Login failed: wrong password");
-			resolve(false);
-		}
-
-		else{
-			console.log("Login Success!!: " + userID);					
-			resolve(true);
+			reject("Invalid user: failing to delete ML socket")
 		}
 	})
-	.catch((err)=>{
-		console.log("Something broken whiile checking validity of user");
-	});		
-})
-
-function saveMLSocket(userID, socket){
-	//console.log("BEFORE: " + socket.write);
-	//console.log("AFTER: " + jc.retrocycle(JSON.parse(JSON.stringify(jc.decycle(socket)))).write);
-
-	/*db.query("UPDATE USER SET ML_socket='" + JSON.stringify(socket) + "', ML_login_status='true'" + " WHERE id='" + userID + "'")
-		.then(function(update){
-			console.log('MLSocket info updated');
-		}).catch(function(err){
-			console.log('err occured while MLSocket info updated');
-		})*/
-	clients[userID] = socket;
-
 }
 
-function deleteMLSocket(userID){
-	/*db.query("UPDATE USER SET ML_login_status='false', ML_socket=''" + " WHERE id='" + userID + "'")
-		.then(function(update){
-			console.log('MLSocket info updated');
-		}).catch(function(err){
-			console.log('err occured while MLSocket info updated');
-		})*/		
-
-		if(clients[userID]){
-			delete clients[userID];
-		}
-		else{
-			console.log("Invalid user: failing to delete ML socket");
-		}
-}
-
-getMLSocket = (userID)=> new Promise((resolve)=>{
-		//THIS IS THE VERSION USING DB, BUT I COULDN'T FOUND THE WAY OF STORING SOCKET OBJECT INTO THE FORM DB CAN ACCEPT
+/**
+ * @author SSH 
+ * @description get Conneto socket of the user by userID
+ * @param {string} userId - Id of the user
+ * @return {Promise}
+ * @promise
+ * @resolve {Socket} the Conneto socket of the user
+ * @reject  {Boolean} "Invalid user: failing to get ML socket"
+ * @todo DB would handle this part in near future
+ */
+function getMLSocket(userId){
+	return new Promise((resolve)=>{
+		//COMMENTED PART IS THE VERSION USING DB, BUT I COULDN'T FOUND THE WAY OF STORING SOCKET OBJECT INTO THE FORM DB CAN ACCEPT
 		//BECAUSE SOCKET OBJECT IS CIRCULAR, AND HAVE METHOD. SO IT MAKES REALLY HARD TO CONVERT IT INTO STRING..
-		/*db.query("SELECT * FROM USER WHERE id='" + userID + "'").then(function(exist){
+		/*db.query("SELECT * FROM USER WHERE id='" + userId + "'").then(function(exist){
 			if(exist[0].ML_login_status){
 				resolve(circularJSON.parse(exist[0].ML_socket));
 			}
@@ -298,16 +414,14 @@ getMLSocket = (userID)=> new Promise((resolve)=>{
 			console.log("error occured while getting ML socket from db: " + err);
 			resolve(false);
 		})*/
-
-
-		if(clients[userID]){
-			resolve(clients[userID]);	
+		if(clients[userId]){
+			resolve(clients[userId]);	
 		}
 		else{
-			console.log("INvalid user: failing to get ML socket");
-			resolve(false);
+			resolve("Invalid user: failing to get ML socket");
 		}
-})
+	})
+}
 
 serverForWebServer.on('error', function(err){
 	console.log('error on portForWebServer: ' + err);
