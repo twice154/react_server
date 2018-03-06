@@ -35,7 +35,8 @@ class ChattingContainer extends Component {
     connectToIoServer() {
         return Promise.resolve().then(() => {
             console.log("CONNECTIng to SERVER");
-            socket = io.connect("http://localhost:3000", { 'forceNew': true });
+            socket = io.connect("http://35.190.183.146:3000", { 'forceNew': true });
+            console.log(socket);
             socket.on('init', this.init);
             socket.on('send:message', this.onReceiveMsg);
             socket.on('user:join', this.onUserJoin);
@@ -64,7 +65,7 @@ class ChattingContainer extends Component {
             }))
         })
     }
-
+    
     onReceiveMsg(msg) {
         console.log("send:message has arrived")
         this.setState(update(this.state, {

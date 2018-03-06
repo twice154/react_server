@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import session from 'express-session';
 import orientDB from 'orientjs';
-
+import cors from 'cors';
 import webpack from 'webpack';
 import WebpackDevServer from 'webpack-dev-server';
 import api from './routes';
@@ -27,6 +27,7 @@ const db = dbServer.use('usersinfo');
 const server = http.Server(app);
 const io = socket_io(server);
 
+app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use('/api', api);

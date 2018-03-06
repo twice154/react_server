@@ -43,8 +43,18 @@ const initialState = Map({
     })
 })
 
+/**
+ * 
+ * @param {Object} obj - literal object that will be converted to base64 format
+ * @return {string} converted value
+ */
+function objectToBase64(obj){
+    return new Buffer(JSON.stringify(obj)).toString('base64');
+}
+
 function getStatusApiRequest(userId){
-    return axios.post('/api/moonlight/getStatus', {userId})
+    return axios.get(`/api/${userId}/conneto/status`)
+
         .then(res=>{
             if(res.data.error){
                 return Promise.reject(res.data.error);
@@ -54,7 +64,7 @@ function getStatusApiRequest(userId){
 }
 
 function getHostsApiRequest(userId){
-    return axios.post('/api/moonlight/gethosts', {userId})
+    return axios.get(`/api/${userId}/conneto/hosts`)
         .then((res)=>{
             if(res.data.error){
                 return Promise.reject(res.data.error);
@@ -62,27 +72,25 @@ function getHostsApiRequest(userId){
             else{
                 return Promise.resolve(res.data);
             }
-        })
-        .catch((err)=>{
-            return Promise.reject(err);
-        })
+    })
 }
 
 function getAppsApiRequest(userId, hostId){
-    return axios.post('/api/moonlight/getapps', {userId, hostId})
-        .then(res=>{
-            if (res.data.error) {
-                return Promise.reject(res.data.error);
-            }
-            return Promise.resolve(res.data);
-        })
-        .catch(err=>{
-            return Promise.reject();
-        })
+    return axios({
+        method: 'get',
+        url:`/api/${userId}/conneto/apps`,
+        headers: {'authorization': objectToBase64({hostId})}
+    })
+    .then(res=>{
+        if (res.data.error) {
+            return Promise.reject(res.data.error);
+        }
+        return Promise.resolve(res.data);
+    })
 }
 
 function addHostApiRequest(userId, hostIp, pairingNum){
-    return axios.post('/api/moonlight/addhost', {userId, hostIpaddress: hostIp, pairingNum})
+    return axios.post(`/api/${userId}/conneto/hosts`, {userId, hostIpaddress: hostIp, pairingNum})
         .then(res=>{
             if (res.data.error) {
                 return Promise.reject(res.data.error);
@@ -90,21 +98,15 @@ function addHostApiRequest(userId, hostIp, pairingNum){
 
             return Promise.resolve(JSON.parse(res.data));
         })
-        .catch(err=>{
-            return Promise.resolve(err);
-        })
 }
 
 function startGameApiRequest(userId, hostId, appId, option){
-    return axios.post('/api/moonlight/startgame', {userId, hostId, appId, option})
+    return axios.post(`/api/${userId}/conneto/apps`, {userId, hostId,appId, option})
         .then(res=>{
             if (res.data.error) {
                 return Promise.reject(res.data.error);
             }
             return Promise.resolve(appId);
-        })
-        .catch(err=>{
-            return Promise.reject(err);
         })
 }
 

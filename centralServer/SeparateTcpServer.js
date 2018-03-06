@@ -32,7 +32,6 @@ var socketForWebServer;
  * @description establish settings & register event handlers for socket when Conneto is connected
  * @param {Socket} socketForConneto - socket used for communicating with Conneto client 
  */
-
 function connetoConnectionHandler(socketForConneto) {
 	console.log('Server has a new Conneto client connection: ' + socketForConneto.remotePort);
 
@@ -69,7 +68,7 @@ function connetoConnectionHandler(socketForConneto) {
 	 * @callback 
 	 * @description handler for processing data from Conneto; it register necessary handlers;
 	 * 				it just transfer the data to react_web_server as it is
-	 * @param {string(JSON)} data- data from Conneto, it is JSON string, so it needs to be converted to object by JSON.parse
+	 * @param {JSON} data- data from Conneto, it is JSON string, so it needs to be converted to object by JSON.parse
 	 * 							   @see {@link https://www.w3schools.com/Js/js_json_parse.asp}
 	 * 
 	//
@@ -127,10 +126,10 @@ function connetoConnectionHandler(socketForConneto) {
 						 */
 						socketForConneto.write(JSON.stringify({ command: "loginApproval", isApproved: true, userId}), function (err) {
 							if (err) {
-								console.log("There's error while sending loginApproval to ML");
+								console.log("There's error while sending loginApproval to Conneto");
 							}
 							else {
-								saveMLSocket(userId, socketForConneto);
+								saveConnetoSocket(userId, socketForConneto);
 
 								/**
 								 * @callback 
@@ -138,7 +137,7 @@ function connetoConnectionHandler(socketForConneto) {
 								 */
 								socketForConneto.on('close', function () {
 									console.log("Connection closed: " + userId);
-									deleteMLSocket(userId, socketForConneto);
+									deleteConnetoSocket(userId, socketForConneto);
 								});
 							}
 						})
@@ -150,7 +149,7 @@ function connetoConnectionHandler(socketForConneto) {
 						 */
 						socketForConneto.write(JSON.stringify({ command: "loginApproval", isApproved: false }), function (err) {
 							if (err) {
-								console.log("There's error while sending loginApproval to ML");
+								console.log("There's error while sending loginApproval to Conneto");
 							}
 						});
 					})		
@@ -194,7 +193,7 @@ serverForWebServer.on('connection', function(socket){
 	/**
 	 * @callback 
 	 * @description handler for data from web-server
-	 * @param {string(JSON)} data - data from web-server; it is JSON string, needs to be converted to Object by JSON.parse
+	 * @param {JSON} data - data from web-server; it is JSON string, needs to be converted to Object by JSON.parse
 	 * 								@see {@link https://www.w3schools.com/Js/js_json_parse.asp}
 	 * 		
 	//
@@ -208,7 +207,7 @@ serverForWebServer.on('connection', function(socket){
 	//
  	// ───  ───────────────────────────────────────────────────────────────────────────
 	//
-	 * 		checkStatus: @description used for getting current status of  the user's CONNETO client: online or offline
+	 * 		getStatus: @description used for getting current status of the user's CONNETO client: online or offline
 	 * 								no addtional property
 	 * 		
 	 *		getHosts: @description used for getting connected(paired) hosts of the CONNETO
@@ -234,9 +233,9 @@ serverForWebServer.on('connection', function(socket){
 	socket.on('data', function(data){
 		data = JSON.parse(data);
 		var userId = data.userId;
-		getMLSocket(data.userId).then((socketForConneto)=>{
+		getConnetoSocket(data.userId).then((socketForConneto)=>{
 			if(!socketForConneto){
-				console.log("ML of " + userId + " is offline");
+				console.log("Conneto of " + userId + " is offline");
 				return sendMsg(socketForWebServer, {error: -1, status: false});
 			}
 			console.log(data.command);
@@ -274,12 +273,12 @@ serverForWebServer.on('connection', function(socket){
 						break;
 				}
 			}
-			else if(data.command == "checkStatus"){
+			else if(data.command == "getStatus"){
 				console.log('request from ' + userId + ": checking Conneto status");
-				sendMsg(socketForWebServer, { command: "checkStatus", status: true, userId: userId});
+				sendMsg(socketForWebServer, { command: "getStatus", status: true, userId: userId});
 			}		
 		}).catch((err)=>{
-			console.log("Something broken while getting ML Socket from db: " + err);
+			console.log("Something broken while getting Conneto Socket from db: " + err);
 		})
 		
 		/*else if(data.command.slice(0, 4) === "AUTH"){
@@ -304,7 +303,7 @@ serverForWebServer.on('connection', function(socket){
  * @param {Object} msg - the message you want to send to the socket
  * @returns {Promise} Promise object for sending Msg 
  * @promise
- * @resolve {string}  
+ * @resolve {string} command field of the message  
  * @reject {Error}
  */
 function sendMsg(socket, msg){
@@ -359,7 +358,7 @@ function sendMsg(socket, msg){
  * @promise 
  * @resolve {string} userId 
  */
-function saveMLSocket(userId, socket){
+function saveConnetoSocket(userId, socket){
 	return Promise.resolve().then(
 		()=>{
 			clients[userId] = socket;
@@ -374,17 +373,17 @@ function saveMLSocket(userId, socket){
  * @return {Promise}  
  * @promise 
  * @resolve {string} userID
- * @reject {string} "Invalid user: failing to delete ML socket"
+ * @reject {string} "Invalid user: failing to delete Conneto socket"
  * @todo DB would handle this part 
  */
-function deleteMLSocket(userId){		
+function deleteConnetoSocket(userId){		
 	return new Promise((resolve, reject)=>{
 		if(clients[userId]){
 			delete clients[userId];
 			resolve(userId);
 		}
 		else{
-			reject("Invalid user: failing to delete ML socket")
+			reject("Invalid user: failing to delete Conneto socket")
 		}
 	})
 }
@@ -396,29 +395,19 @@ function deleteMLSocket(userId){
  * @return {Promise}
  * @promise
  * @resolve {Socket} the Conneto socket of the user
- * @reject  {Boolean} "Invalid user: failing to get ML socket"
+ * @reject  {Boolean} "Invalid user: failing to get Conneto socket"
  * @todo DB would handle this part in near future
  */
-function getMLSocket(userId){
+function getConnetoSocket(userId){
 	return new Promise((resolve)=>{
 		//COMMENTED PART IS THE VERSION USING DB, BUT I COULDN'T FOUND THE WAY OF STORING SOCKET OBJECT INTO THE FORM DB CAN ACCEPT
 		//BECAUSE SOCKET OBJECT IS CIRCULAR, AND HAVE METHOD. SO IT MAKES REALLY HARD TO CONVERT IT INTO STRING..
-		/*db.query("SELECT * FROM USER WHERE id='" + userId + "'").then(function(exist){
-			if(exist[0].ML_login_status){
-				resolve(circularJSON.parse(exist[0].ML_socket));
-			}
-			else{
-				resolve(false);
-			}
-		}).catch(function(err){
-			console.log("error occured while getting ML socket from db: " + err);
-			resolve(false);
-		})*/
+
 		if(clients[userId]){
 			resolve(clients[userId]);	
 		}
 		else{
-			resolve("Invalid user: failing to get ML socket");
+			resolve("Invalid user: failing to get Conneto socket");
 		}
 	})
 }

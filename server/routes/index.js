@@ -14,7 +14,7 @@ router.use('/*', (req, res, next) => {
 
 router.use('/account', account);
 router.use('/stream', stream);
-router.use('/moonlight', moonlight);
+router.use('/*/conneto', moonlight);
 router.use('/speedtest', speedtest);
 
 export default router;

@@ -5,6 +5,7 @@
   "dependencies": {
     "axios": "^0.17.1",
     "babel-polyfill": "^6.26.0",
+    "cors": "^2.8.4",
     "immutability-helper": "^2.6.5",
     "immutable": "^3.8.2",
     "react": "^16.2.0",
@@ -27,5 +28,9 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:3000/"
+  "proxy": "http://localhost:3000/",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "mocha": "^5.0.2"
+  }
 }
