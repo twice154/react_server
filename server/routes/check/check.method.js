@@ -19,7 +19,11 @@
 const User = require('../../models/user')
 const express = require('express')
 const jwt = require('jsonwebtoken')
+const nodemailer = require('nodemailer')
 const app = express()
+const Conf = require('./mailconfig')
+const mailConfig = Conf.mailConfig
+const smtpTransport = nodemailer.createTransport(Conf.smtpConfig)
 
 
 /**
@@ -49,8 +53,7 @@ exports.check = (user, info) => {
 		if(User.verify(user, info)){
 			res(user)
 		} else{
-			reject(
-				{
+			reject({
 				success: false,
 				status: 200,
 				message: "ID or password was incorrect"
@@ -59,45 +62,3 @@ exports.check = (user, info) => {
 	}
     })
 }
-
-
-
-/**
- *  @brief  로그인 정보를 담을 토큰을 발행한다.
- * 
- *  @param	{Object}	user	 - DB에서 찾은 정보.
- *    @property	{String}	userId		- 토큰을 통해 유저를 식별하기 위한 id 정보
- *    @property {Boolean}	verified	- 유저가 verified 되어있는지 확인하기 위해 추가
- *  @param	{string}	secret 	- config에 저장되어있는 토큰의 해싱키
- * 
- *  @return	Promise
- *    @resolve	{Object}	- 토큰이 정상적으로 발행되었을 경우 실행한다. user.token에 토큰 정보를 저장하고 다음 Promise에 user를 넘겨줌
- *	  @reject	{String}	- 토큰 발생과정에서 오류가 생기면 error throw
-
- *  @todo	payload부분 나중에 수정하기, admin 권한이 필요할 때 추가하기
- *			에러핸들러 작성 후 에러 처리부분 다시 짜기
- *
- *  @deprecate	nickname이 필요없다고 생각되면 지우기
- */
-exports.tokenize = (user, secret) => {
-    return new Promise((res, reject) => {
-	console.log('start tokenize')
-	jwt.sign(
-	    {
-			userId: user.userId,
-			verified: user.verified
-	    },
-	    secret,
-	    {
-			issuer:	'sprout.io' ,//TODO: what is our domain?!
-			subject: 'UserInformation'
-	    }, (err, token) => {
-		if(err) console.log(err)
-		else{
-			user.token = token
-			res(user)}
-	    })
-    })
-}
-
-

@@ -134,8 +134,8 @@ User.update = (user, info) =>{
 		"', phone='" 	+ newDat.phone + 
 		"', verified='"	+ newDat.verified +
 		//"', gender='" + info.gender +
-		"' WHERE id='" + newDat.userId + "'")
-	.catch((err)=>reject(err))
+		"' WHERE userId='" + newDat.userId + "'")
+	.catch((err)=>console.log(err))
 	res(newDat)
     })
 }
@@ -174,21 +174,22 @@ User.del = (info) => {
  *    @todo		에러핸들러 작성
  */
 User.findOneByUserid = (info) => {
-    var TempDat={}
-    return new Promise( (res,reject)=>{
-	User.db.query("SELECT * FROM User WHERE userId='" + info.userId + "'")
-	.then( (results) =>{
-	    if( results.length === 0 ){
-		console.log('Not found!')
-		res(TempDat)
-	    } else{
-		console.log('found!')
-		TempDat = Object.assign({},results[0])
-		res(TempDat);
-	    }
-	})
-	.catch((err)=>console.log(err))
-    })
+		var TempDat={}
+		return new Promise( (res,reject)=>{
+		User.db.query("SELECT * FROM User WHERE userId='" + info.userId + "'")
+		.then( (results) =>{
+			if( results.length === 0 ){
+				console.log('Not found!')
+				res(TempDat)
+			} else{
+			console.log('found!')
+			TempDat = Object.assign({},results[0])
+			res(TempDat);
+			}
+		})
+		.catch((err)=>console.log(err))
+		})
+
 }
 
 
@@ -241,18 +242,18 @@ User.findOneByUserPhone = (info) => {
 User.findOneByUseremail = (info) => {
     var TempDat={}
     return new Promise( (res,reject)=>{
-	User.db.query("SELECT * FROM USER WHERE email='" + info.email + "'")
-	.then( (results)=>{
-	    if( results.length === 0 ){
-		console.log('Not found!')
-		res(TempDat)
-	    } else{
-		console.log('found')
-		TempDat = Object.assign({},results[0])
-		res(TempDat);
-	    }
-	})
-	.catch((err)=>reject(err))
+		User.db.query("SELECT * FROM USER WHERE email='" + info.email + "'")
+		.then( (results)=>{
+			if( results.length === 0 ){
+				console.log('Not found!')
+				res(TempDat)
+			} else{
+				console.log('found')
+				TempDat = Object.assign({},results[0])
+				res(TempDat);
+			}
+		})
+		.catch((err)=>reject(err))
     })
 }			
 
