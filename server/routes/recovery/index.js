@@ -15,8 +15,8 @@ const controller = require('./recovery.controller')
 /*
  * @brief -
 **/
-router.get('/',(req,res)=>{res.json({success:'hello'})})
-router.get('/userId/*', controller.recoveryId)
+//router.get('/',(req,res)=>{res.json({success:'hello'})})
+//router.get('/userId/*', controller.recoveryId)
 router.put('/password',controller.recoveryPassword)
 router.put('/email',controller.recoveryEmail)
 

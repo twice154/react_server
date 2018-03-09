@@ -1,3 +1,20 @@
+
+/**
+ *  @file       Readme.txt
+ *  @brief      각 URL에 대한 요청과 응답에 대해 정리해둠
+ *  @author     DotOut Inc, KKS
+ *  @see        namespace error 모든 응답은 위 space와 비슷한 정보를 전달
+ *
+ *  @todo       아이디 찾기      (  ) - base64 적용
+ *              비번찾기 링크수정  (  )
+ *              유저정보 받아오기  (  )
+ *
+ *              DB 자체에 문제가 생겼을 때의 에러 처리
+ *              추가적인 인증에 대해 처리하기
+ *				secret2 부분 config으로 빼기
+ */
+
+
 /*
  *  @namespace   error
  *  @property   {Boolean}   success - 요청 성공 여부
@@ -192,7 +209,7 @@
 
 /*
  * * * * * * * * * * * * * * * * * * * * * *
- *  @URL    PUT /api/recovery/{id}/
+ *  @URL    PUT /api/recovery/email/{id}/
  *  @brief  회원 탈퇴에 사용하는 라우터 
  *  @see    이메일을 바꾸지 않을 때 파라미터의 email 필드가 undefined가 되면 안되고 ""으로 해야함
  * * * * * * * * * * * * * * * * * * * * * *
@@ -220,5 +237,27 @@
  *
  *  @throw  {error}     메일 전송에 실패했을 경우
  *      @respond { false, 400, "Can not send mail" }
+ *
+**/
+
+
+
+/*
+ * * * * * * * * * * * * * * * * * * * * * *
+ *  @URL    PUT /api/recovery/password/{id}/
+ *  @brief  회원 탈퇴에 사용하는 라우터 
+ *  @see    현재 localhost:4000/login 으로 되있는 리다이렉트 링크를 패스워드 수정 링크로 바꿔야함
+ * * * * * * * * * * * * * * * * * * * * * *
+ *
+ *  @params {enum}      req.url.params
+ *    @property {String}    ifChange  - 회원탈퇴를 하려는 회원의 ID
+ *  @params {Object}    req.body
+ *    @property {String}	userId
+ *    @property {String}    email   - 다시 바꿀 email, 이메일을 바꾸지 않을 경우 ""로 전송
+ *
+ *  @respond {error}    패스워드 변경을 위한 토큰 검증에 성공했을 때 리다이렉트
+ *      @respond { undefined, 300 " __password 변경 페이지___ " }
+ *  @throw {error}    토큰이 만료되었을 때
+ *      @respond    { false, 403, "This token was expired" }
  *
 **/

@@ -159,16 +159,17 @@ exports.recoveryPassword = (req, res) => {
 	}
 	const timeCheck = (user, time) => {
 	    return new Promise( (res, reject) => {
-		if(time > 300)
-			throw new Error("The time goes on~~")
-		else
-			res(user)
-	    })
+			if(time > 300)
+			reject({
+				success: false,
+				status: 403,
+				message: "This token was expired"
+			})
+			else
+				res(user)
+			})
 
 	}
-	var info={}			
-	info.userId = req.decoded.userId	//Token검증 Middleware를 통과하고 나면 req.decoded에 해당 토큰의 정보가 들어있다.
-	var elasped = (req.decoded.date - Date.now())/1000
 
 
 	//

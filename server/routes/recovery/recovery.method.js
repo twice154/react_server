@@ -246,19 +246,27 @@ exports.create = function (user,info){
 exports.sendmail = (info) => {
     return new Promise((res, reject) => {
 
-	var host = 'localhost:3000'
-	var link = "http://" + host + "/api/account/verify?token="+info.token;
-	mailConfig.html = "<a href="+link+">Click</a>"
-	mailConfig.to = info.email
-	smtpTransport.sendMail(mailConfig, (error, response) => {
-		console.log(info)
-		if(error){
-			console.log(error);
-			//reject("error");
-		}else{
-			console.log("Message sent: " + mailConfig.to);
-			res("Mail Sent!"+info.userId);
-		}
-	});
-    })
-};
+		var host = 'localhost:3000'
+		var link = "http://" + host + "/api/account/verify?token="+info.token;
+		mailConfig.html = "<a href="+link+">Click</a>"
+		mailConfig.to = info.email
+		smtpTransport.sendMail(mailConfig, (error, response) => {
+			console.log(info)
+			if(error){
+				console.log(error)
+				reject({
+					success: false,
+					status: 400,
+					message: "Can not send mail"
+				})
+			}else{
+				console.log("Message sent: " + mailConfig.to);
+				res({
+					success: true,
+					status: 400,
+					message: "Mail send to "+info.email});
+			}
+		})
+	})
+}
+
