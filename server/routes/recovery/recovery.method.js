@@ -162,9 +162,14 @@ exports.tempTokenize = (user, secret) => {
  */
 exports.modify = ( user, info ) => {
     return new Promise((res, reject) => {
-		if(info.email == ""){
-			console.log(info)
-			console.log(user)
+		if(user==undefined || user.userId == undefined){
+			reject({
+				success: false,
+				status: 404,
+				message: "Not exist user"
+			})
+		}
+		else if(info.email == ""){
 			res(user)
 		}
 		else{

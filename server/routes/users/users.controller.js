@@ -83,7 +83,8 @@ exports.postUsers = (req, res) => {
 	}
 	//for error catch
 	const onError = (error) => {
-		res.status(409).json({
+		res.status(error.status).json({
+			success: error.success,
 			message: error.message
 		})
 	}
@@ -94,8 +95,7 @@ exports.postUsers = (req, res) => {
 	.then(info => User.findOneByUserid(info))
 	.then(user => create(user,info))
 	.then(user => tempTokenize(user, secret))
-	.then(user => sendmail(user))
-	.then(msg => respond(res, msg))		
+	.then(user => sendmail(user))	
 	.catch(onError)
 }
 
@@ -118,23 +118,25 @@ exports.deleteUsers = (req, res) => {
 	const info = req.body
 	var urlParameter = url.parse(req.url).pathname.split('/')
 	
-    const onError = (error) => {
-		res.status(409).json({
-	   	 message: error.message
+	const onError = (error) => {
+		res.status(error.status).json({
+			success: error.success,
+			message: error.message
 		})
-    }
+	}
 	//
 	// Promise Chains
 	//
 	if(urlParameter[1] == info.userId){
 		User.findOneByUserid(info)
 		.then(user => _del(user))
-		.then(msg => respond(res, msg))
+		.then(msg => res.json(msg))
 		.catch(onError)
 	}
 	else{
-		res.status(409).json({
-			message: 'hhhh'
+		res.status(404).json({
+			success: false,
+			message: "URL was not match to field"
 		})
 	}
 }
@@ -167,7 +169,8 @@ exports.putUsers = (req, res) => {
 	urlParameter[2] //field
 	
 	const onError = (error) => {
-		res.status(409).json({
+		res.status(error.status).json({
+			success: error.success,
 			message: error.message
 		})
 	}
@@ -186,28 +189,8 @@ exports.putUsers = (req, res) => {
 	.then(info => temp(info))
 	.then(info => User.findOneByUserid(info))
 	.then( user => modify(user, infos))
-	.then( ()=> respond(res,"success"))
+	.then( ()=> respond.json({success:true}))
 	.catch(onError)
-	/*
-	if(!info.email){
-		console.log('일반적인 상황 modify')
-		User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
-		.then( user => isTrue(user, info))
-		.then( user => modify(user, info))
-		.then( ()=>respond(res,"success") )
-		.catch(onError)
-	}else{
-		res.clearCookie("token");
-		info.verified = false
-		User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
-		.then( user => modify(user, info))
-		.then( user => tempTokenize(user, secret))
-		.then( user => sendmail(user))
-		.then( msg => ()=>res.redirect("http://localhost:4000/login")		)
-		.catch(onError)
-		
-	}
-    */
 }
 
 
@@ -247,58 +230,3 @@ exports.getUsers = (req, res) => {
     
 }
 
-
-
-/**
- *  @brief
- *  @param
- *  @return
- */
-exports.getinfo = (req, res) => {
-    let token = req.cookies.token
-    if(typeof token === "undefined"){
-	return res.status(401).json({
-		error: 1
-	});
-    }
-    const p = jwt.verify(token,secret)
-    res.json({info: p});
-}
-
-
-
-
-/**
- *  @brief  유저인증(email)을 위한 라우터. 클라이언트에서 이 api에 직접 접속하고 인증에 성공하면 login페이지로 리다이렉트 된다.
- *  @param	req.decoded
- *    @property	{String}	userId		- 토큰에서 검출한 유저의 ID
- *
- *  @return	No Return
- * 
- *  @see	req: 해당 req는 auth 미들웨어에서 전달받은 결과. req.userId와 req.token에 값이 추가되어 전달된다.
- */
-exports.veri = (req, res) => {
-	const onError = (error) => {
-		res.status(409).json({
-			message: error.message
-		})
-	}
-	const toLogin = (res) => {
-		console.log('tologin')
-		return Promise(res.redirect('http://localhost:4000/login'))
-	}
-
-	//
-	//  Promise Chain
-	//
-	var info={}			
-	info.userId = req.decoded.userId
-	console.log(req.decoded)
-	console.log(Date.now())
-	User.findOneByUserid(info)
-	.then(user => _verify(user))
-	.then(user => modify(user,{verified: true}))
-	.then(user => toLogin(res) )
-	.catch(onError)
-    
-}

@@ -99,5 +99,3 @@ exports.tokenize = (user, secret) => {
 	    })
     })
 }
-
-

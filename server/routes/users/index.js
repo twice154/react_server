@@ -10,9 +10,6 @@ const usersMiddleware = require('../../middlewares/users')
 const controller = require('./users.controller')
 
 
-/*
- * @brief - 회원가입을 위한 라우터
-**/
 router.post('/*', controller.postUsers)
 
 router.use('/*', usersMiddleware)

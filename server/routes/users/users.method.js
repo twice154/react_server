@@ -42,8 +42,15 @@ const smtpTransport = nodemailer.createTransport(Conf.smtpConfig)
  */
 exports.del = (user) => {
     return new Promise( (res,reject) => {
-		User.del(user)
-		res("success")
+		if(user.userId == undefined)
+			reject({
+				success: false,
+				status: 400,
+				message: "Not exist user"})
+		else{
+			User.del(user)
+			res({success:true})
+		}
     })
 }
 
@@ -122,8 +129,6 @@ exports.tempTokenize = (user, secret) => {
  */
 exports.modify = ( user, info ) => {
     return new Promise((res, reject) => {
-		console.log('modifying')
-		console.log(info)
 	    User.update(user, info)
 	    .then((user)=>{res(user)})
     })
@@ -188,11 +193,14 @@ exports.sendmail = (info) => {
 			reject({
 				success: false,
 				status: 400,
-				message: "The field was able to modify"
+				message: "Can not send mail"
 			})
 		}else{
 			console.log("Message sent: " + mailConfig.to);
-			res("Mail Sent!"+info.userId);
+			res({
+				success: true,
+				status: 400,
+				message: "Mail send to "+info.email});
 			}
 		})
 	})
@@ -272,9 +280,9 @@ exports.fieldCheck = (info, fieldUrl) => {
 				break;
 
 
-				case 'gender':
-					res({gender: info.gender})
-				break;
+				//case 'gender':
+				//	res({gender: info.gender})
+				//break;
 
 
 				default:

@@ -14,7 +14,6 @@ const controller = require('./check.controller')
 /*
  * @brief - 이메일 중복 체크를 위한 라우터
 **/
-//router.get('/',(req,res)=>{res.json({success:'hello'})})
 router.get('/duplication/email/*', controller.emailcheck)
 
 
