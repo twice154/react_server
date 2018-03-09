@@ -19,39 +19,47 @@ const server =  orientDB({
 	password: 'ssh2159'
 });
 const db = server.use('usersinfo');
-
-
-
 var clients = {}; //TODO: Change this part to using db later				  
 var serverForConneto = net.createServer();  //For Many Conneto clients 
 var serverForWebServer = net.createServer();  //For only one Web server
 var socketForWebServer;
 
-/**
- * @callback
- * @description establish settings & register event handlers for socket when Conneto is connected
- * @param {Socket} socketForConneto - socket used for communicating with Conneto client 
- */
-function connetoConnectionHandler(socketForConneto) {
-	console.log('Server has a new Conneto client connection: ' + socketForConneto.remotePort);
+let connetoSocketHandler = {
+	
+	/**
+	 * @callback
+ 	 * @description establish settings & register event handlers for socket when Conneto is connected
+ 	 * @param {Socket} socketForConneto- socket used for communicating with Conneto client 
+ 	 * @param {Socket} sokcetForWebServer- socket used for communicati
+ 	 */
+	connection: (socketForConneto, socketForWebServer)=>{
+		console.log('Server has a new Conneto client connection: ' + socketForConneto.remotePort);
+		socketForConneto.on('close', connetoSocketHandler.close);
+		socketForConneto.on('error', connetoSocketHandler.error);
+		socketForConneto.on('data', (data)=>{
+			connetoSocketHandler.data(data, socketForConneto, socketForWebServer);	
+		})
+	},
 
 	/**
-	 * @callback 
+	 * @callback
 	 * @description handler for closed connection
+	 * @param {Socket} socketForConneto - socket used for communication with Conneto client  
 	 */
-	socketForConneto.on('close', function () {
-		console.log('Conneto client connection is closed: ' + socketForConneto.remotePort);
-	});
+	close: (socketForConneto)=>{
+		console.log('Conneto client connection is closed: ' + socketForConneto.remotePort);		
+	},
 
 	/**
 	 * @callback
 	 * @description handler for error during communication
 	 * @param {Error} err - Error Object specifying error
-	 */
-	socketForConneto.on('error', function (err) {
-		console.log("err occured in connection with Conneto client: " + socketForConneto.remotePort + err);
-	})
-
+	 * @param {Socket} socketForConneto - socket used for communicating with Conneto client
+ 	 */
+	error: (err, socketForConneto)=>{
+		console.log("err occured in connection with Conneto client: " + socketForConneto.remotePort + err);		
+	},
+	
 	/**
 	 * @typedef {Object} HostInfo
 	 * 		@property {string} hostId - unique identifier of conneto host (given by conneto client)
@@ -62,7 +70,7 @@ function connetoConnectionHandler(socketForConneto) {
 	 * 		@property {string} id - unique id of the game (given by conneto client)
 	 * 		@property {string} title - name of the game
 	 */
-	
+
 
 	/**
 	 * @callback 
@@ -85,51 +93,55 @@ function connetoConnectionHandler(socketForConneto) {
 	 	
 	 * 		isAccount: @description used for authentication of the conneto
 	 * 								centralServer will send result to the conneto
-	 * 				   @property {string} data.userPW - password of the user
+	 * 				   @property {string} data.userPW- password of the user
 	 * 
 	 * 		getHostsResult: @description it is reply to the request from web server(getHosts)
-	 * 							   @property {HostInfo[]} data.list - Array that contains information of conneto's connected hosts
+	 * 							   @property {HostInfo[]} data.list- Array that contains information of conneto's connected hosts
 	 * 							   @see {@link @HostInfo}
 	 * 
 	 *  	addHostResult: @description it is reply to the request from web server(addHost)
-	 * 							  @property {string} data.hostId - Id of the added host
-	 * 							  @property {string} data.hostname - name of the added host
-	 * 							  @property {boolean} data.online - online status of the added host
-	 * 							  @property {boolean} data.paired - pairing status of the added host
-	 * 							  @property {number} data.error - if this field exists, means failed to add new host 
+	 * 							  @property {string} data.hostId- Id of the added host
+	 * 							  @property {string} data.hostname- name of the added host
+	 * 							  @property {boolean} data.online- online status of the added host
+	 * 							  @property {boolean} data.paired- pairing status of the added host
+	 * 							  @property {number} data.error- if this field exists, means failed to add new host 
 	 * 
 	 * 		getAppsResult: @description it is reply to the request from web server(getApps)
-	 * 							  @property {string} data.hostId - Id of the chosen host
-	 * 							  @property {string} data.hostname - name of the chosen host
-	 * 							  @property {AppInfo[]} data.appList - List of apps(games) the host has @see {@link @AppInfo}
+	 * 							  @property {string} data.hostId- Id of the chosen host
+	 * 							  @property {string} data.hostname- name of the chosen host
+	 * 							  @property {AppInfo[]} data.appList- List of apps(games) the host has @see {@link @AppInfo}
 	 * 
 	 *      startGameResult: @description it is reply to the request from web server(startGame)
-	 * 								@property {string} data.hostId - Id of the host
-	 * 								@property {string} data.appId - Id of the app(game) webserver wanted to start
+	 * 								@property {string} data.hostId- Id of the host
+	 * 								@property {string} data.appId- Id of the app(game) webserver wanted to start
 	 * 		
 	 * 		networkTest: @description when central server receives this request, it sends networkTest_ request to web server  
 	 * 				     @todo it's not stable version, it needs modification
 	 */
-	socketForConneto.on('data', function (data) {
+	data: (data, socketForConneto, socketForWebServer)=>{
 		data = JSON.parse(data);
-		console.log("new msg received: " + JSON.stringify(data));
+		//console.log("new msg received: " + JSON.stringify(data));
 		if (data.dest === "WEB") {
-			sendMsg(socketForWebServer, data);
+			exports.sendMsg(socketForWebServer, data);
 		}
 		else {
 			if (data.command === "isAccount") {
-				isRegisteredUser(data.userId, data.userPW)
+				exports.isRegisteredUser(data.userId, data.userPW)
 					.then((userId) => {
 						/**
 						 * @callback
 						 * @description when successfully logined, send approval message to Conneto socket
 						 */
-						socketForConneto.write(JSON.stringify({ command: "loginApproval", isApproved: true, userId}), function (err) {
+						socketForConneto.write(JSON.stringify({
+							command: "loginApproval",
+							isApproved: true,
+							userId
+						}), function (err) {
 							if (err) {
 								console.log("There's error while sending loginApproval to Conneto");
 							}
 							else {
-								saveConnetoSocket(userId, socketForConneto);
+								exports.saveConnetoSocket(userId, socketForConneto);
 
 								/**
 								 * @callback 
@@ -137,58 +149,82 @@ function connetoConnectionHandler(socketForConneto) {
 								 */
 								socketForConneto.on('close', function () {
 									console.log("Connection closed: " + userId);
-									deleteConnetoSocket(userId, socketForConneto);
+									exports.deleteConnetoSocket(userId, socketForConneto);
 								});
 							}
 						})
-					}).catch((error)=>{
-						console.log(error);
+					}).catch((error) => {
+						//console.log(error);
 						/**
 						 * @callback 
 						 * @description when failed to login, send failure message to Conneto socket   
 						 */
-						socketForConneto.write(JSON.stringify({ command: "loginApproval", isApproved: false }), function (err) {
+						socketForConneto.write(JSON.stringify({
+							command: "loginApproval",
+							isApproved: false
+						}), function (err) {
 							if (err) {
 								console.log("There's error while sending loginApproval to Conneto");
 							}
 						});
-					})		
+					})
 			}
-			else if (data.command === "networkTest") {
-				/**
-				 @todo: get the network info from the web server and transmit it to the Conneto-client 
-				 */
-				socketForWebServer.write(JSON.stringify({ command: "networkTest_", userId: data.userId }, function () {
+			// else if (data.command === "networkTest") {
+			// 	/**
+			// 	 @todo: get the network info from the web server and transmit it to the Conneto-client 
+			// 	 */
+			// 	socketForWebServer.write(JSON.stringify({ command: "networkTest_", userId: data.userId }, function () {
 
-				}));
-			}
+			// 	}));
+			// }
 			else {
-				console.log("Invalid command!");
+				throw new Error("invalid command");
+				//console.log("Invalid command!");
 			}
 		}
-	})
+	}	
 }
 
-serverForConneto.on('connection', connetoConnectionHandler);
+serverForConneto.on('connection', function(connetoSocket){
+	connetoSocketHandler.connection(connetoSocket, socketForWebServer);
+});
 serverForConneto.on('error', function(err){
 	console.log('error on serverForConneto: ' + err);
 });
 serverForConneto.listen(portForConneto, 'localhost');
 
-/**
- * @callback
- * @description establish settings & register event handlers for socket when web-server is connected
- * @param {Socket} socket - socket for communicating with web-server 
- */
-serverForWebServer.on('connection', function(socket){
-	console.log("Server has a Webserver connection: " + socket.remotePort);
-	socketForWebServer = socket;
-	socket.on('close', function(){
+let webServerSocketHandler = {
+	/**
+	 * @callback
+ 	 * @description establish settings & register event handlers for socket when Conneto is connected
+ 	 * @param {Socket} socket- socket used for communicating with web server 
+ 	 */
+	connection:	(socket)=>{
+		//console.log("Server has a Webserver connection: " + socket.remotePort);
+		socketForWebServer = socket;
+		socket.on('close', webServerSocketHandler.close);
+		socket.on('error', webServerSocketHandler.error);
+		socket.on('data', (data)=>{	
+			webServerSocketHandler.data(socketForWebServer, data);
+		})
+	},
+
+	/**
+	 * @callback
+	 * @description handler for closed connection of web server
+	 */
+	close: ()=>{
 		console.log("Webserver connection has disconnected");
-	});
-	socket.on('error', function(err){
-		console.log("error occured in Webserver socket connection: " + err);
-	})
+	},
+	
+	/**
+	 * @callback
+	 * @description handler for error during communication
+	 * @param {Error} err - Error Object specifying error
+ 	 */
+	error: (err)=>{ 
+		console.log("error occured in Webserver socket connection: " + err);		
+	},
 	
 	/**
 	 * @callback 
@@ -229,71 +265,66 @@ serverForWebServer.on('connection', function(socket){
 	 * 					       @property {string} data.option.streamHeight - height of the remote control subscribtion
 	 * 					       @property {string} data.option.remote_audio_enabled - whether the sound during remote control will be enabled
 	 * 					       @property {string} data.option.bitrate - bitrate of the remote control subscribtion
-	 */						
-	socket.on('data', function(data){
+	 */
+	data: (data, socketForWebServer)=>{
 		data = JSON.parse(data);
 		var userId = data.userId;
-		getConnetoSocket(data.userId).then((socketForConneto)=>{
-			if(!socketForConneto){
+		exports.getConnetoSocket(data.userId).then((socketForConneto) => {
+			if (!socketForConneto) {
 				console.log("Conneto of " + userId + " is offline");
-				return sendMsg(socketForWebServer, {error: -1, status: false});
+				return exports.sendMsg(socketForWebServer, { error: 1, status: false });
 			}
-			console.log(data.command);
-			if(data.dest === 'CONNETO'){
-				switch(data.command){
+			//console.log(data.command);
+			if (data.dest === 'CONNETO') {
+				switch (data.command) {
+
+					case 'getStatus':
+						console.log('request from ' + userId + ": checking Conneto status");
+						exports.sendMsg(socketForConneto, { command: "getStatus", userId});
+						break;
 
 					case "getHosts":
 						console.log('request from ' + userId + ": getting hosts");
-						sendMsg(socketForConneto, {command: "getHosts", userId});
+						exports.sendMsg(socketForConneto, { command: "getHosts", userId });
 						break;
 
 					case "addHost":
 						console.log('request form ' + userId + ": adding hosts");
-						sendMsg(socketForConneto, {command: "addHost", userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum});
+						exports.sendMsg(socketForConneto, { command: "addHost", userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum });
 						break;
 
 					case "getApps":
-						console.log('request from ' + userId  + ": getting apps");
-						sendMsg(socketForConneto, {command: "getApps", userId, hostId: data.hostId});
+						console.log('request from ' + userId + ": getting apps");
+						exports.sendMsg(socketForConneto, { command: "getApps", userId, hostId: data.hostId });
 						break;
 
 					case "startGame":
 						console.log('request from ' + userId + ": starting game");
-						sendMsg(socketForConneto, {command: "startGame", userId, appId: data.appId, hostId: data.hostId, option: data.option});
+						exports.sendMsg(socketForConneto, { command: "startGame", userId, appId: data.appId, hostId: data.hostId, option: data.option });
 						break;
 
 					case "networkTest":
 						console.log("request from " + userId + ": networkTest");
 						data = data.data;
-						sendMsg(socketForConneto, {command: "networkTest", userId, ip:data.client.ip, latency: data.server.ping, download: data.speeds.download});
+						exports.sendMsg(socketForConneto, { command: "networkTest", userId, ip: data.client.ip, latency: data.server.ping, download: data.speeds.download });
 						break;
 
 					default:
 						console.log("Invalid command from WebServer");
-						break;
+						exports.sendMsg(socketForWebServer, { error: 2, status: false });
 				}
 			}
-			else if(data.command == "getStatus"){
-				console.log('request from ' + userId + ": checking Conneto status");
-				sendMsg(socketForWebServer, { command: "getStatus", status: true, userId: userId});
-			}		
-		}).catch((err)=>{
+		}).catch((err) => {
+			return exports.sendMsg(socketForWebServer, { error: 3, status: false });
 			console.log("Something broken while getting Conneto Socket from db: " + err);
 		})
-		
-		/*else if(data.command.slice(0, 4) === "AUTH"){
-			switch(data.command){
-				case "AUTH_signIn":
-					if(isRegisteredUser(data.userID, data.userPW)){
+	}	
+}
 
-					}
-					else{
-
-					}
-			}
-		}*/ //TODO: move the db operation stuff to central server
-	})
-})
+serverForWebServer.on('connection', webServerSocketHandler.connection);
+serverForWebServer.on('error', function(err){
+	console.log('error on portForWebServer: ' + err);
+});
 
 
 /**
@@ -313,7 +344,7 @@ function sendMsg(socket, msg){
 				reject(err);
 			}
 			else{
-				resolve(msg.command);
+				resolve();
 			}
 		});
 	})
@@ -329,7 +360,8 @@ function sendMsg(socket, msg){
  * @resolve {string} userID equivalent to param userID 
  * @reject {Error} message contains why it fails 
  */
- function isRegisteredUser(userId, password){
+
+function isRegisteredUser(userId, password){
 	return new Promise((resolve, reject) => {
 		db.query("SELECT * FROM USER WHERE id='" + userId + "'").then((exist) => {
 			if (!exist[0]) {
@@ -346,7 +378,7 @@ function sendMsg(socket, msg){
 			}
 		})
 	})
- }
+}
 
 /**
  * @author SSH
@@ -358,6 +390,7 @@ function sendMsg(socket, msg){
  * @promise 
  * @resolve {string} userId 
  */
+
 function saveConnetoSocket(userId, socket){
 	return Promise.resolve().then(
 		()=>{
@@ -399,7 +432,7 @@ function deleteConnetoSocket(userId){
  * @todo DB would handle this part in near future
  */
 function getConnetoSocket(userId){
-	return new Promise((resolve)=>{
+	return new Promise((resolve, reject)=>{
 		//COMMENTED PART IS THE VERSION USING DB, BUT I COULDN'T FOUND THE WAY OF STORING SOCKET OBJECT INTO THE FORM DB CAN ACCEPT
 		//BECAUSE SOCKET OBJECT IS CIRCULAR, AND HAVE METHOD. SO IT MAKES REALLY HARD TO CONVERT IT INTO STRING..
 
@@ -407,13 +440,17 @@ function getConnetoSocket(userId){
 			resolve(clients[userId]);	
 		}
 		else{
-			resolve("Invalid user: failing to get Conneto socket");
+			resolve();
 		}
 	})
 }
-
-serverForWebServer.on('error', function(err){
-	console.log('error on portForWebServer: ' + err);
-});
-
 serverForWebServer.listen(portForWebServer, 'localhost');
+
+exports.connetoSocketHandler = connetoSocketHandler;
+exports.webServerSocketHandler = webServerSocketHandler;
+exports.sendMsg = sendMsg;
+exports.isRegisteredUser = isRegisteredUser;
+exports.saveConnetoSocket = saveConnetoSocket;
+exports.deleteConnetoSocket = deleteConnetoSocket;
+exports.getConnetoSocket = getConnetoSocket;
+module.exports = exports;

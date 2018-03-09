@@ -106,8 +106,12 @@ io.on('connection', (socket) => {
         getUsersInRoom(data.room).then(result=>{
             console.log(JSON.stringify(result));
         });
-        io.to(data.room).emit("send:message", data.msg);
+        if(getSocketsInRoom(data.room).includes(socket.id)){
+            io.to(data.room).emit("send:message", data.msg);
+        }
     });
+
+    socket.on
 
     socket.on('disconnecting', function () {
         console.log('disconnecting ');
@@ -118,9 +122,6 @@ io.on('connection', (socket) => {
                 if(counts == 0){
                     console.log("room: " + room);
                     return io.to(room).emit('user:left', {userId})
-                    /*getUsersInRoom(room).then(result=>{
-                        consol
-                    })*/
                 }
             })
         })
@@ -183,17 +184,25 @@ function broadcastToRoom(socket, room, event, data){
 function getCountsOfUserInRoom(userId, room){
     return new Promise((resolve, reject)=>{
         if(userId=="") return resolve(-1);
+        getSocketsInRoom(room).then((socketIds)=>{
+            let counts = socketIds.reduce((acc, element)=>{
+                if(getUserIdBySocketId(element) === userId) return acc + 1;
+            }, 0)
+            resolve(counts);            
+            console.log(counts + " " + userId + " is in the room: " + room);
+        })
+    })
+}
+
+function getSocketsInRoom(room){
+    return new Promise((resolve, reject)=>{
         io.in(room).clients((error, clients)=>{
-        if(error){
-            throw new Error("");
-        }
-        let counts = clients.reduce((acc, element)=>{
-            if(getUserIdBySocketId(element) === userId) return acc + 1;
-            return acc;
-        }, 0)
-        console.log(counts + " " + userId + " is in the room: " + room);
-        resolve(counts);
-    })})
+            if(error){
+                return reject(error);
+            }
+            resolve(clients)
+        })
+    })
 }
 
 function socketIoErrHandler(err){
