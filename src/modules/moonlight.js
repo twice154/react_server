@@ -90,24 +90,32 @@ function getAppsApiRequest(userId, hostId){
 }
 
 function addHostApiRequest(userId, hostIp, pairingNum){
-    return axios.post(`/api/${userId}/conneto/hosts`, {userId, hostIpaddress: hostIp, pairingNum})
-        .then(res=>{
-            if (res.data.error) {
-                return Promise.reject(res.data.error);
-            }
+    return axios.post(`/api/${userId}/conneto/hosts`, {userId, 
+        hostIpaddress: hostIp, 
+        pairingNum
+    })
+    .then(res=>{
+        if (res.data.error) {
+            return Promise.reject(res.data.error);
+        }
 
-            return Promise.resolve(JSON.parse(res.data));
-        })
+        return Promise.resolve(JSON.parse(res.data));
+    })
 }
 
 function startGameApiRequest(userId, hostId, appId, option){
-    return axios.post(`/api/${userId}/conneto/apps`, {userId, hostId,appId, option})
-        .then(res=>{
-            if (res.data.error) {
-                return Promise.reject(res.data.error);
-            }
-            return Promise.resolve(appId);
-        })
+    return axios.post(`/api/${userId}/conneto/apps`, {
+        userId, 
+        hostId,
+        appId, 
+        option
+    })
+    .then(res=>{
+        if (res.data.error) {
+            return Promise.reject(res.data.error);
+        }
+        return Promise.resolve(appId);
+    })
 }
 
 export const getStatusRequest = (userId)=>({

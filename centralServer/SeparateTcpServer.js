@@ -1,3 +1,5 @@
+import * from '../lib/customError';
+
 /**
  * @file independent central tcp server communicating with Conneto & react-web-server
  * it manages overall dataflow and communiction between Conneto & react-web-server 
@@ -82,63 +84,88 @@ let connetoSocketHandler = {
 	//
 	// ─── ESSENTIAL FIELDS ──────────────────────────────────────────────
 	//			
-	 *  	@property {string} data.command - purpose of this data, other fields change depending on this field  
-	 *		@property {string} data.userId - Id of the user for authenticaion, it exists in every cases.
-	 *		@property {string} data.source - server which sent the  data: WEB or CONNETO
-	 *		@property {string} data.dest - server which should receive the data: WEB or CONNETO
+	 * 		@property {string} data.header.type - sort of the message: Request or Response
+	 * 		@property {string} data.header.token - token used for authentication
+	 *  	@property {string} data.header.command - purpose of this data, other fields change depending on this field  
+	 *		@property {string} data.header.source - server which sent the  data: WEB or CONNETO
+	 *		@property {string} data.header.dest - server which should receive the data: WEB or CONNETO
+	 *		@property {string} data.body.userId - Id of the user for authenticaion, it exists in every cases.
 	 * 		Other fields change according to the value of the command 
+	 * 		@todo diversify statusCode and sort responses according to the criteria 
  	//
  	// ───  ───────────────────────────────────────────────────────────────────────────
 	//
-	 	
+	 * 		@property {number} data.header.statusCode - it only exists in response message: 200: Success, 400: Failure for now
+	 * 	
 	 * 		isAccount: @description used for authentication of the conneto
 	 * 								centralServer will send result to the conneto
-	 * 				   @property {string} data.userPW- password of the user
+	 * 				   @property {string} data.body.userPW- password of the user
 	 * 
 	 * 		getHostsResult: @description it is reply to the request from web server(getHosts)
-	 * 							   @property {HostInfo[]} data.list- Array that contains information of conneto's connected hosts
+	 * 							   @property {HostInfo[]} data.body.list- Array that contains information of conneto's connected hosts
 	 * 							   @see {@link @HostInfo}
 	 * 
 	 *  	addHostResult: @description it is reply to the request from web server(addHost)
-	 * 							  @property {string} data.hostId- Id of the added host
-	 * 							  @property {string} data.hostname- name of the added host
-	 * 							  @property {boolean} data.online- online status of the added host
-	 * 							  @property {boolean} data.paired- pairing status of the added host
-	 * 							  @property {number} data.error- if this field exists, means failed to add new host 
+	 * 							  @property {string} data.body.hostId- Id of the added host
+	 * 							  @property {string} data.body.hostname- name of the added host
+	 * 							  @property {boolean} data.body.online- online status of the added host
+	 * 							  @property {boolean} data.body.paired- pairing status of the added host
+	 * 							  @property {number} data.body.error- if this field exists, means failed to add new host 
 	 * 
 	 * 		getAppsResult: @description it is reply to the request from web server(getApps)
-	 * 							  @property {string} data.hostId- Id of the chosen host
-	 * 							  @property {string} data.hostname- name of the chosen host
-	 * 							  @property {AppInfo[]} data.appList- List of apps(games) the host has @see {@link @AppInfo}
+	 * 							  @property {string} data.body..hostId- Id of the chosen host
+	 * 							  @property {string} data.body.hostname- name of the chosen host
+	 * 							  @property {AppInfo[]} data.body.ppList- List of apps(games) the host has @see {@link @AppInfo}
 	 * 
 	 *      startGameResult: @description it is reply to the request from web server(startGame)
-	 * 								@property {string} data.hostId- Id of the host
-	 * 								@property {string} data.appId- Id of the app(game) webserver wanted to start
+	 * 								@property {string} data.body.hostId- Id of the host
+	 * 								@property {string} data.body.appId- Id of the app(game) webserver wanted to start
 	 * 		
 	 * 		networkTest: @description when central server receives this request, it sends networkTest_ request to web server  
 	 * 				     @todo it's not stable version, it needs modification
 	 */
-	data: (data, socketForConneto, socketForWebServer)=>{
-		data = JSON.parse(data);
-		//console.log("new msg received: " + JSON.stringify(data));
-		if (data.dest === "WEB") {
-			exports.sendMsg(socketForWebServer, data);
+	data: (message, socketForConneto, socketForWebServer)=>{
+		try {
+			message = JSON.parse(message);
+			isValidHeader(message.header);
+		}
+		catch (e) {
+			message.header.statusCode = 400;
+			message.body.error = e;
+			return exports.sendMsg(socketForWebServer, message);
+		}
+
+		if (message.header.dest === "WEB") {
+			exports.sendMsg(socketForWebServer, message);
 		}
 		else {
-			if (data.command === "isAccount") {
-				exports.isRegisteredUser(data.userId, data.userPW)
+			if (message.header.command === "login") {
+				let msg = {
+					header: {
+						type: 'Response',
+						token: '',
+						command: 'login',
+						source: 'DB',
+						dest: 'CONNETO'
+					},
+					body: {
+						userId: message.body.userId
+					}
+				}
+				exports.isRegisteredUser(message.body.userId, message.body.userPW)
 					.then((userId) => {
+						msg.header.statusCode = 200;
 						/**
 						 * @callback
 						 * @description when successfully logined, send approval message to Conneto socket
 						 */
 						socketForConneto.write(JSON.stringify({
-							command: "loginApproval",
-							isApproved: true,
-							userId
+						
+
 						}), function (err) {
 							if (err) {
 								console.log("There's error while sending loginApproval to Conneto");
+								throw new SocketError();
 							}
 							else {
 								exports.saveConnetoSocket(userId, socketForConneto);
@@ -154,32 +181,19 @@ let connetoSocketHandler = {
 							}
 						})
 					}).catch((error) => {
+						msg.header.statusCode = 400;
+						msg.body.error = error;
 						//console.log(error);
 						/**
 						 * @callback 
 						 * @description when failed to login, send failure message to Conneto socket   
 						 */
-						socketForConneto.write(JSON.stringify({
-							command: "loginApproval",
-							isApproved: false
-						}), function (err) {
+						socketForConneto.write(JSON.stringify(msg), function (err) {
 							if (err) {
 								console.log("There's error while sending loginApproval to Conneto");
 							}
 						});
 					})
-			}
-			// else if (data.command === "networkTest") {
-			// 	/**
-			// 	 @todo: get the network info from the web server and transmit it to the Conneto-client 
-			// 	 */
-			// 	socketForWebServer.write(JSON.stringify({ command: "networkTest_", userId: data.userId }, function () {
-
-			// 	}));
-			// }
-			else {
-				throw new Error("invalid command");
-				//console.log("Invalid command!");
 			}
 		}
 	}	
@@ -230,19 +244,24 @@ let webServerSocketHandler = {
 	 * @callback 
 	 * @description handler for data from web-server
 	 * @param {JSON} data - data from web-server; it is JSON string, needs to be converted to Object by JSON.parse
-	 * 								@see {@link https://www.w3schools.com/Js/js_json_parse.asp}
+	 * @see {@link https://www.w3schools.com/Js/js_json_parse.asp}
 	 * 		
 	//
 	// ─── ESSENTIAL FIELDS ──────────────────────────────────────────────
 	//
-	 *  	@property {string} data.command - purpose of this data, other fields change depending on this field
-	 *		@property {string} data.userId - Id of the user for authenticaion, it exists in every cases.
-	 *		@property {string} data.source - server which sent the  data: WEB or CONNETO
-	 *		@property {string} data.dest - server which should receive the data: WEB or CONNETO or even nothing(when it just needs to pass centralServer)
-	 *		Other fields change according to the value of the command
+	 * 		@property {string} data.header.type - sort of the message: Request or Response
+	 * 		@property {string} data.header.token - token used for authentication
+	 *  	@property {string} data.header.command - purpose of this data, other fields change depending on this field
+	 *		@property {string} data.header.source - server which sent the  data: WEB or CONNETO
+	 *		@property {string} data.header.dest - server which should receive the data: WEB or CONNETO
+	 *		@property {string} data.body.userId - Id of the user for authenticaion, it exists in every cases.
+	 * 		Other fields change according to the value of the command
+	 * 		@todo diversify statusCode and sort responses according to the criteria
 	//
  	// ───  ───────────────────────────────────────────────────────────────────────────
 	//
+	 * 		@property {number} data.header.statusCode - it only exists in response message: 200: Success, 400: Failure for now
+	 * 
 	 * 		getStatus: @description used for getting current status of the user's CONNETO client: online or offline
 	 * 								no addtional property
 	 * 		
@@ -253,65 +272,70 @@ let webServerSocketHandler = {
 	 *							   no additional property
 	 *		
 	 *		addHost: @description used for adding a new host to the CONNETO client
-	 *				 	@property {string} data.hostIpaddress - ip address of the host user want to add to their CONNETO					   	     	 			    
-	 * 					@property {string} data.pairingNum - random number used for pairing with host, \[0-9]{4}\ ex)"3847"
+	 *				 	@property {string} data.body.hostIpaddress - ip address of the host user want to add to their CONNETO					   	     	 			    
+	 * 					@property {string} data.body.pairingNum - random number used for pairing with host, \[0-9]{4}\ ex)"3847"
 	 * 		
 	 * 		startGame: @description used for starting chosen game of the chosen host with the CONNETO client
-	 * 				       @property {string} data.hostId - unique id of the host user want to start the game of
-	 * 					   @property {string} data.appId - unique id of the game user want to start
-	 * 				       @property {Object} data.option - option for starting game
-	 * 					       @property {string} data.option.frameRate - frameRate of the remote control subscribtion
-	 * 					       @property {string} data.option.streamWidth - width of the remote control subscribtion
-	 * 					       @property {string} data.option.streamHeight - height of the remote control subscribtion
-	 * 					       @property {string} data.option.remote_audio_enabled - whether the sound during remote control will be enabled
-	 * 					       @property {string} data.option.bitrate - bitrate of the remote control subscribtion
+	 * 				       @property {string} data.body.hostId - unique id of the host user want to start the game of
+	 * 					   @property {string} data.body.appId - unique id of the game user want to start
+	 * 				       @property {Object} data.body.option - option for starting game
+	 * 					       @property {string} data.body.option.frameRate - frameRate of the remote control subscribtion
+	 * 					       @property {string} data.body.option.streamWidth - width of the remote control subscribtion
+	 * 					       @property {string} data.body.option.streamHeight - height of the remote control subscribtion
+	 * 					       @property {string} data.body.option.remote_audio_enabled - whether the sound during remote control will be enabled
+	 * 					       @property {string} data.body.option.bitrate - bitrate of the remote control subscribtion
 	 */
-	data: (data, socketForWebServer)=>{
-		data = JSON.parse(data);
-		var userId = data.userId;
-		exports.getConnetoSocket(data.userId).then((socketForConneto) => {
+	data: (message, socketForWebServer)=>{
+		try{
+			message = JSON.parse(message);
+			isValidHeader(message.header);
+		}
+		catch(e){
+			message.header.statusCode = 400;
+			message.body.error = e;
+			return exports.sendMsg(socketForWebServer, message);
+		}
+		var userId = message.body.userId;
+		exports.getConnetoSocket(message.body.userId).then((socketForConneto) => {
 			if (!socketForConneto) {
 				console.log("Conneto of " + userId + " is offline");
 				return exports.sendMsg(socketForWebServer, { error: 1, status: false });
 			}
 			//console.log(data.command);
-			if (data.dest === 'CONNETO') {
-				switch (data.command) {
-
-					case 'getStatus':
-						console.log('request from ' + userId + ": checking Conneto status");
-						exports.sendMsg(socketForConneto, { command: "getStatus", userId});
-						break;
-
-					case "getHosts":
-						console.log('request from ' + userId + ": getting hosts");
-						exports.sendMsg(socketForConneto, { command: "getHosts", userId });
-						break;
-
-					case "addHost":
-						console.log('request form ' + userId + ": adding hosts");
-						exports.sendMsg(socketForConneto, { command: "addHost", userId, hostIp: data.hostIpaddress, randomNumber: data.pairingNum });
-						break;
-
-					case "getApps":
-						console.log('request from ' + userId + ": getting apps");
-						exports.sendMsg(socketForConneto, { command: "getApps", userId, hostId: data.hostId });
-						break;
-
-					case "startGame":
-						console.log('request from ' + userId + ": starting game");
-						exports.sendMsg(socketForConneto, { command: "startGame", userId, appId: data.appId, hostId: data.hostId, option: data.option });
-						break;
+			if (message.header.dest === 'CONNETO') {
+				exports.sendMsg(socketForConneto, message)
+				switch (message.header.command) {
 
 					case "networkTest":
 						console.log("request from " + userId + ": networkTest");
-						data = data.data;
-						exports.sendMsg(socketForConneto, { command: "networkTest", userId, ip: data.client.ip, latency: data.server.ping, download: data.speeds.download });
+						exports.sendMsg(socketForConneto, {
+							command: "networkTest", 
+							userId, 
+							ip: message.body.data.client.ip, 
+							latency: message.body.data.server.ping, 
+							download: message.body.data.speeds.download 
+						});
 						break;
 
 					default:
 						console.log("Invalid command from WebServer");
 						exports.sendMsg(socketForWebServer, { error: 2, status: false });
+				}
+			}
+			else{
+				if(message.header.command === 'getStatus'){
+					console.log('request from ' + userId + ": checking Conneto status");
+					getConnetoSocket(userId).then((connetoSocket)=>{
+						if(connetoSocket){
+							exports.sendMsg(connetoSocket, {
+								command: "getStatusResult",
+								userId
+							})
+						}
+						else{
+							console.log("this user's conneto is offline");
+						}
+					})
 				}
 			}
 		}).catch((err) => {
@@ -444,6 +468,76 @@ function getConnetoSocket(userId){
 		}
 	})
 }
+
+/**
+ * @description check whether the message is valid
+ * @param {Object} msg - message you want to check its validation 
+ */
+function isValidMessage(msg){
+	return isValidHeader(msg.header);
+}
+
+/**
+ * 
+ * @param {Object} header - the header field of the message you want to check its validation 
+ * @return {boolean} whether the header is valid
+ * @throws {InvalidFormatError} throws it when essential field of header is blank
+ * @throws {TokenError} throws it when token is unvalid
+ */
+function isValidHeader(header){
+	if(!checkEssentialFields(header)){
+		let error = new InvalidFormatError();
+		error.code = 'ERR_BLANK_ESSENTIAL_FIELD';
+		throw error;
+	}
+	if(!isValidCommand(header.command) 
+		|| (header.type!=='Request' && header.type!=='Response')
+		|| (header.source!=='WEB' && header.source!=='CONNETO' && header.source!=='DB')
+		|| (header.dest!== 'WEB' &&header.dest!=="CONNETO" && header.dest!=='DB')
+	){
+		let error = new InvalidFormatError();
+		error.code = 'ERR_INVALID_VALUE'
+		throw error;
+	}
+	else if(!isValidToken(token, user)){
+		let error = new TokenError();
+		error.code = "ERR_INVALID_TOKEN"
+		throw error;
+	}
+	return true;
+}
+
+/**
+ * @description check whetehr the command of the message is valid
+ * @param {string} command - command you want to check 
+ * @return {boolean} whether the command is valid
+ */
+function isValidCommand(command){
+	let validCommands = ['getStatus', 'getHosts', 'getApps', 'addHost', 'startGame', 'networkTest']
+	return validCommands.includes(command);
+}
+
+/**
+ * @description check whether any essential field of the header is blank 
+ * @param {Object} header - header you want to check
+ * @return {boolean} whether the header has all essential values
+ */
+function checkEssentialFields(header){
+	return (!header.type || !header.token || !header.command || !header.source || !header.dest || (header.type === 'Response' && !header.statusCode))	
+}
+ 
+
+/**
+ * 
+ * @param {string} token
+ * @description it returns true if token is valid, otherwise return false 
+ * @todo not implemented yet
+ * @return {boolean} whether the token is valid
+ */
+function isValidToken(token){
+	return true;
+}
+
 serverForWebServer.listen(portForWebServer, 'localhost');
 
 exports.connetoSocketHandler = connetoSocketHandler;

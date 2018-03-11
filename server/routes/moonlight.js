@@ -1,6 +1,12 @@
 /**
  * @file api backend router for handling process related to Conneto
  * @author SSH
+ * @description router name& method changed: POST /api/moonlight/checkstatus => GET /api/users/conneto/checkstatus
+ *  										 POST /api/moonlight/gethosts => GET /api/users/conneto/hosts
+ * 											 POST /api/moonlight/addhost => POST /api/users/conneto/hosts
+ * 											 POST /api/moonlight/getapps => GET /api/users/conneto/apps
+ * 											 POST /api/moonlight/startgame => POST /api/users/conneto/apps
+ * 											 	
  */
 
 import express from 'express';
@@ -76,10 +82,16 @@ router.get('/status', (req, res)=>{
 	
 	let userId = req.baseUrl.split('/')[2];
 	sendMsgToCentralServer(res, {
-		command: 'getStatus', 
-		source: 'WEB', 
-		dest: 'CONNETO', 
-		userId
+		header: {
+			type: 'Request',
+			token: "",
+			command:'getStatus',
+			source: 'WEB',
+			dest: 'CONNETO',
+		},
+		body: {
+			userId
+		}
 	});
 	if(!httpResponses.status[userId]){
 		httpResponses.status[userId] = [];
@@ -100,10 +112,16 @@ router.route('/hosts')
 	.get((req, res) => {
 		let userId = req.baseUrl.split('/')[2];
 		sendMsgToCentralServer(res, {
-			command: 'getHosts',
-			source: 'WEB',
-			dest: 'CONNETO',
-			userId
+			header:{
+				type: 'Request',
+				token: "",
+				command: 'getHosts',
+				source: 'WEB',
+				dest: 'CONNETO'
+			},
+			body: {
+				userId
+			}
 		});
 		if (!httpResponses.getHosts[userId]) {
 			httpResponses.getHosts[userId] = [];
@@ -113,12 +131,18 @@ router.route('/hosts')
 	.post((req, res) => {
 		let userId = req.baseUrl.split('/')[2];
 		sendMsgToCentralServer({
-			command: 'addHost',
-			source: 'WEB',
-			dest: 'CONNETO',
-			userId,
-			hostIpaddress: req.body.hostIpaddress,
-			pairingNum: req.body.pairingNum
+			header:{
+				type: 'Request',
+				token: "",
+				command: 'addHost',
+				source: 'WEB',
+				dest: 'CONNETO'
+			},
+			data: {
+				userId,
+				hostIpaddress: req.body.hostIpaddress,
+				pairingNum: req.body.pairingNum
+			}
 		});
 		if (!httpResponses.addHost[userId]) {
 			httpResponses.addHost[userId] = [];
@@ -141,11 +165,17 @@ router.route('/apps')
 		let userId = req.baseUrl.split('/')[2];
 		let hostId = getDatainAuthHeader(req).hostId;
 		sendMsgToCentralServer({
-			command: 'getApps',
-			source: 'WEB',
-			dest: 'CONNETO',
-			userId: userId,
-			hostId: req.body.hostId
+			header: {
+				type: 'Request',
+				token:'',
+				command: 'getApps',
+				source: 'WEB',
+				dest: 'CONNETO',
+			},
+			data: {
+				userId,
+				hostId: req.body.hostId
+			}
 		});
 		if (!httpResponses.getApps[userId]) {
 			httpResponses.getApps[userId] = [];
@@ -155,13 +185,19 @@ router.route('/apps')
 	.post((req, res)=> {
 		let userId = req.baseUrl.split('/')[2];
 		sendMsgToCentralServer({
-			command: "startGame",
-			source: 'WEB',
-			dest: 'CONNETO',
-			userId,
-			appId: req.body.appId,
-			hostId: req.body.hostId,
-			option: req.body.option
+			header: {
+				type: 'Request',
+				token:'',
+				command: 'startGame',
+				source: 'WEB',
+				dest: 'CONNETO'
+			},
+			body: {
+				userId,
+				appId: req.body.appId,
+				hostId: req.body.hostId,
+				option: req.body.option
+			}
 		});
 		if (!httpResponses.startGame[userId]) {
 			httpResponses.startGame[userId] = [];
@@ -194,28 +230,57 @@ function commandHandler(data){ //handler for data from central server
 	console.log(typeof(data));
 	data = JSON.parse(data);
 	console.log("IN CommandHandler: " + JSON.stringify(data));
-	console.log("Receiver msg: " + data.command);
-	switch(data.command){
+	console.log("Receiver msg: " + data.header.command);
+	switch(data.header.command){
 
 		case "checkStatus":
-			processsResponseQueue(httpResponses.status[data.userId], data);
+			processsResponseQueue(httpResponses.status[data.body.userId], data.body);
 			break;
 		case "getHostsResult":
-			processsResponseQueue(httpResponses.getHosts[data.userId], data);
+			processsResponseQueue(httpResponses.getHosts[data.body.userId], data.body);
 			break;
 		case "addHostResult":
-			processsResponseQueue(httpResponses.addHost[data.userId], data);
+			processsResponseQueue(httpResponses.addHost[data.body.userId], data.body);
 			break;
 		case "getAppsResult":
-			processsResponseQueue(httpResponses.getApps[data.userId], data);
+			processsResponseQueue(httpResponses.getApps[data.body.userId], data.body);
 			break;
 		case "startGameResult":
-			processsResponseQueue(httpResponses.startGame[data.userId], data);
+			processsResponseQueue(httpResponses.startGame[data.body.userId], data.body);
 			break;
 		case "networkTest":
+			let msg = {};
 			axios.post('/api/speedtest').then((res)=>{
-				socketForCentralServer.write(JSON.stringify({command: "networkTest",source: "WEB", dest:"CONNETO", data: res.data.data}));
-			});
+				msg ={
+					header: {
+						type: 'Response',
+						token:"",
+						command: 'networkTest',
+						source: 'WEB',
+						dest: 'CONNETO',
+						statusCode: 200
+					},
+					body: {
+						ip: res.data.data.client.ip,
+						latency: res.data.server.ping,
+						download: body.data.speeds.download,
+						userId: data.body.userId
+					}
+				}	
+			}).catch((error)=>{
+				msg = {
+					header: {
+						type: 'Response',
+						token: "",
+						command: 'networkTest',
+						source: 'WEB',
+						dest: 'CONNETO',
+						statusCode: 400
+					}
+				}
+			}).then(()=>{
+				socketForCentralServer.write(JSON.stringify(msg))
+			})
 			break;
 
 		default:
