@@ -20,7 +20,7 @@ import jwt from 'jsonwebtoken'
 import url from 'url'
 
 const User = require('../../models/user')	//Module for user database
-
+const check = require('./check.method').check
 
 
 /**
@@ -125,6 +125,39 @@ exports.userIdcheck = (req, respond) => {
   
 
 /**
+ *  @brief  닉네임 중복 체크에 사용할 라우터
+ *  @param	req.body
+ *    @property {String}	nickname		- 유저의 닉네임
+ *
+ *  @return	No Return \n
+ */
+exports.nicknamecheck = (req, respond) => {
+    var urlParameter = url.parse(req.url).pathname.split('/')
+    const info = {userId: urlParameter[3]}
+    const isEmpty = ( user ) =>{
+        return new Promise( (res, reject) => {
+            if(!user || !user.userId)
+                respond.json({success:true})
+            else
+                reject({
+                    success: false,
+                    status: 200,
+                    message: "nickname exist"
+                })
+        })
+    }
+    const onError = (error) => {
+        respond.status(error.status).json({
+            success: error.success,
+            message: error.message
+	    })
+    }
+    User.findOneByUserid(info)
+    .then(user => isEmpty(user))
+    .catch(onError)
+}
+
+/**
  *  @brief  개인정보 수정 및 기타 패스워드 확인 작업을 위한 라우터
  *  @param	req.body
  *    @property	{String}	userId			- 유저의 아이디
@@ -136,22 +169,75 @@ exports.userIdcheck = (req, respond) => {
  * 			암호를 그대로 전송하는 것은 위험하기 때문에 보안을 위해 추가적인 처리가 필요
  */
 exports.passwordcheck = (req, res) => {
-	const info = req.body
+	const info = {}
     info.userId = req.decoded.userId
+    info.password = new Buffer(req.query.password, 'base64').toString()
     
-    const onError = (error) => {
         const onError = (error) => {
-            respond.status(error.status).json({
+            console.log(error)
+            res.status(error.status).json({
                 success: error.success,
                 message: error.message
-            })
-        }
-}
+            })   
+    }
 	//
 	// Promise Chains
 	//
 	User.findOneByUserid(info)	
 	.then(user => check(user, info))
-	.then(user => ()=>{res({success:true})} )
+	.then(msg => onError(msg) )
+	.catch(onError)
+}
+
+
+
+/**
+ *  @brief  개인정보 수정 및 기타 패스워드 확인 작업을 위한 라우터
+ *  @param	req.body
+ *    @property	{String}	userId			- 유저의 아이디
+ *    @property {String}	password		- 유저의 패스워드
+ *
+ *  @return	No Return \n
+ * 
+ *  @todo	respond - respond를 위한 함수를 생성한 뒤 처리하도록 해야함 \n
+ * 			암호를 그대로 전송하는 것은 위험하기 때문에 보안을 위해 추가적인 처리가 필요
+ */
+exports.tokencheck = (req, res) => {
+    const info = {}
+    info.userId = req.decoded.userId
+	const time = (Date.now()-req.decoded.date)/1000
+   
+        const onError = (error) => {
+            res.status(error.status).json({
+                success: error.success,
+                message: error.message,
+                data: error.data
+            })
+        }
+
+	const timeCheck = (user, time) => {
+	    return new Promise( (resolve, reject) => {
+			if(time > 300)
+                reject({
+                    success: false,
+                    status: 403,
+                    message: "This token was expired"
+                })
+			else
+                resolve({
+                    success: true,
+                    status: 200,
+                    message: "correct token",
+                    data: {userId: user.userId}
+                })
+
+        })
+    }
+	//
+	// Promise Chains
+	//
+	User.findOneByUserid(info)	
+	.then(user => timeCheck(user, time))
+	.then(msg => onError(msg) )
 	.catch(onError)
 }

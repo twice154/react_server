@@ -42,7 +42,7 @@ const smtpTransport = nodemailer.createTransport(Conf.smtpConfig)
  */
 exports.del = (user) => {
     return new Promise( (res,reject) => {
-		if(user.userId == undefined)
+		if(user==undefined||user.userId == undefined)
 			reject({
 				success: false,
 				status: 400,
@@ -182,8 +182,8 @@ exports.create = (user,info) => {
  */
 exports.sendmail = (info) => {
     return new Promise((res, reject) => {
-	var host = 'localhost:3000'
-	var link = "http://" + host + "/api/account/verify?token="+info.token;
+	var host = 'localhost:4000'
+	var link = "http://" + host + "/verified/"+info.token;
 	mailConfig.html = "<a href="+link+">Click</a>"
 	mailConfig.to = info.email
 
@@ -196,7 +196,7 @@ exports.sendmail = (info) => {
 				message: "Can not send mail"
 			})
 		}else{
-			console.log("Message sent: " + mailConfig.to);
+			console.log("Message sent: " + info.email);
 			res({
 				success: true,
 				status: 400,
@@ -268,6 +268,9 @@ exports.fieldCheck = (info, fieldUrl) => {
 					res({birth: info.birth})
 				break;
 
+				case 'gender':
+					res({gender: info.gender})
+				break;
 
 				case 'email':
 				// 추가 인증 여부
@@ -279,10 +282,6 @@ exports.fieldCheck = (info, fieldUrl) => {
 					res({phone: info.phone})
 				break;
 
-
-				//case 'gender':
-				//	res({gender: info.gender})
-				//break;
 
 
 				default:

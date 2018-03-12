@@ -65,8 +65,8 @@ exports.postUsers = (req, res) => {
 			else if(info.name == undefined){
 				empty = "name"
 			}
-			else if(info.nickname == undefined){
-				empty = "nickname"
+			else if(info.gender == undefined){
+				empty = "gender"
 			}
 			else if(info.birth == undefined){
 				empty = "birth"
@@ -130,7 +130,7 @@ exports.deleteUsers = (req, res) => {
 	if(urlParameter[1] == info.userId){
 		User.findOneByUserid(info)
 		.then(user => _del(user))
-		.then(msg => res.json(msg))
+		.then(msg => (msg)=>{res.json(msg); res.clearCookie("token");})
 		.catch(onError)
 	}
 	else{

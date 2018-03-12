@@ -243,11 +243,11 @@ exports.create = function (user,info){
  *			- respond 함수가 완성되면 다음 Promise로 보낼 내용 수정하기
  *			- 에러핸들러 완성하면 에러 처리
  */
-exports.sendmail = (info) => {
+exports.sendmail_email = (info) => {
     return new Promise((res, reject) => {
 
-		var host = 'localhost:3000'
-		var link = "http://" + host + "/api/account/verify?token="+info.token;
+		var host = 'localhost:4000'
+		var link = "http://" + host + "/verified/"+info.token;
 		mailConfig.html = "<a href="+link+">Click</a>"
 		mailConfig.to = info.email
 		smtpTransport.sendMail(mailConfig, (error, response) => {
@@ -260,13 +260,56 @@ exports.sendmail = (info) => {
 					message: "Can not send mail"
 				})
 			}else{
-				console.log("Message sent: " + mailConfig.to);
+				console.log("Message sent: " + info.email);
 				res({
 					success: true,
-					status: 400,
+					status: 200,
 					message: "Mail send to "+info.email});
 			}
 		})
 	})
 }
 
+
+/**
+ *  @brief  인증을 위한 토큰을 url 쿼리에 포함하여 메일로 발송하는 함수
+ * 
+ *  @param  {Object}	info		- 회원가입할 때 사용한 유저 정보를 그대로 받아온다.
+ *    @property	{String}	token		- url쿼리에 들어갈 유저의 토큰 값
+ * 	  @property	{String}	email		- 메일을 전송 받을 유저의 이메일 정보
+ * 	  @property	{String}	userId		- 이 함수를 실행할 때 필요한 필드는 아니나 console에 기록하기 위해 넣음 
+ *	
+ *  @return	Promise
+ *    @resolve	{String}	- 메일 발송이 성공적으로 이루어졌을 때 다음 Promise로 "Mail Sent!" 라는 메세지를 보냄
+ *    @reject:  {String}	- 메일 발송이 실패했을 때 error 처리
+ * 
+ *  @todo	- 유효번호로 메일 인증받는 시스템 생각해보기 (할지 안할지 다시 얘기해보기)
+ *			- respond 함수가 완성되면 다음 Promise로 보낼 내용 수정하기
+ *			- 에러핸들러 완성하면 에러 처리
+ */
+exports.sendmail_password = (info) => {
+    return new Promise((res, reject) => {
+
+		var host = 'localhost:4000'
+		var link = "http://" + host + "/newpassword/"+info.token;
+		mailConfig.html = "<a href="+link+">Click</a>"
+		mailConfig.to = info.email
+		smtpTransport.sendMail(mailConfig, (error, response) => {
+			console.log(info)
+			if(error){
+				console.log(error)
+				reject({
+					success: false,
+					status: 400,
+					message: "Can not send mail"
+				})
+			}else{
+				console.log("Message sent: " + info.email);
+				res({
+					success: true,
+					status: 200,
+					message: "Mail send to "+info.email});
+			}
+		})
+	})
+}

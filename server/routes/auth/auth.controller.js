@@ -50,8 +50,8 @@ exports.postAuth = (req, res) => {
 			res.cookie('token', user.token)
 			res.json({
 				success:	true,
-				verified:	user.verified
-	//			,token:	user.token
+				data:	{verified:	user.verified}
+				,token:	user.token
 			})
 		})
     }

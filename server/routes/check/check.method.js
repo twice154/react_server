@@ -19,13 +19,7 @@
 const User = require('../../models/user')
 const express = require('express')
 const jwt = require('jsonwebtoken')
-const nodemailer = require('nodemailer')
 const app = express()
-const Conf = require('./mailconfig')
-const mailConfig = Conf.mailConfig
-const smtpTransport = nodemailer.createTransport(Conf.smtpConfig)
-
-
 /**
  *  @brief  암호가 일치하는지 확인하는 함수
  * 
@@ -43,22 +37,27 @@ const smtpTransport = nodemailer.createTransport(Conf.smtpConfig)
  */
 exports.check = (user, info) => {
     return new Promise((res, reject) => {
-	if(!user){
-		reject({
-			success: false,
-			status: 200,
-			message: "ID or password was incorrect"
-		})
-	}else{
-		if(User.verify(user, info)){
-			res(user)
-		} else{
+		if(!user){
+			console.log('no User')
 			reject({
 				success: false,
 				status: 200,
 				message: "ID or password was incorrect"
 			})
+		}else{
+			if(User.verify(user, info)){
+				res({
+					success: true,
+					status: 200,
+					message: "correct password"})
+			} else{
+				console.log('password error')
+				reject({
+					success: false,
+					status: 200,
+					message: "ID or password was incorrect"
+				})
+			}
 		}
-	}
     })
 }
