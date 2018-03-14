@@ -56,6 +56,7 @@ function getStatusApiRequest(userId){
     return axios.get(`/api/${userId}/conneto/status`)
 
         .then(res=>{
+            console.log(res)
             if(res.data.error){
                 return Promise.reject(res.data.error);
             }

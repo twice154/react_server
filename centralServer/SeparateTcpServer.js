@@ -1,4 +1,12 @@
-import * from '../lib/customError';
+'use strict'
+const customError = require('../lib/CustomError');
+const DBError = customError.DBError;
+const TokenError = customError.TokenError;
+const IllegalAccessError = customError.IllegalAccessError;
+const InvalidFormatError = customError.InvalidFormatError;
+const SocketError = customError.SocketError;
+const UntreatableError = customError.UntreatableError;
+const HostConnectionError = customError.HostConnectionError;
 
 /**
  * @file independent central tcp server communicating with Conneto & react-web-server
@@ -49,7 +57,9 @@ let connetoSocketHandler = {
 	 * @param {Socket} socketForConneto - socket used for communication with Conneto client  
 	 */
 	close: (socketForConneto)=>{
-		console.log('Conneto client connection is closed: ' + socketForConneto.remotePort);		
+		console.log('Conneto client connection is closed: ' + socketForConneto.remotePort);
+		
+		exports.deleteConnetoSocket(socketForConneto);		
 	},
 
 	/**
@@ -130,16 +140,17 @@ let connetoSocketHandler = {
 			isValidHeader(message.header);
 		}
 		catch (e) {
+			console.log(e);
 			message.header.statusCode = 400;
 			message.body.error = e;
-			return exports.sendMsg(socketForWebServer, message);
+			return exports.sendMsg(socketForConneto, message);
 		}
 
-		if (message.header.dest === "WEB") {
-			exports.sendMsg(socketForWebServer, message);
+		if(message.header.dest === 'WEB'){
+			exports.sendMsg(socketForWebServer, message);			
 		}
-		else {
-			if (message.header.command === "login") {
+		else if(message.header.dest === 'DB'){
+			if(message.header.command === "login"){
 				let msg = {
 					header: {
 						type: 'Response',
@@ -153,47 +164,35 @@ let connetoSocketHandler = {
 					}
 				}
 				exports.isRegisteredUser(message.body.userId, message.body.userPW)
-					.then((userId) => {
-						msg.header.statusCode = 200;
-						/**
-						 * @callback
-						 * @description when successfully logined, send approval message to Conneto socket
-						 */
-						socketForConneto.write(JSON.stringify({
-						
-
-						}), function (err) {
-							if (err) {
-								console.log("There's error while sending loginApproval to Conneto");
-								throw new SocketError();
-							}
-							else {
-								exports.saveConnetoSocket(userId, socketForConneto);
-
-								/**
-								 * @callback 
-								 * @description when socket is closed, delete stored socket information
-								 */
-								socketForConneto.on('close', function () {
-									console.log("Connection closed: " + userId);
-									exports.deleteConnetoSocket(userId, socketForConneto);
-								});
-							}
-						})
-					}).catch((error) => {
-						msg.header.statusCode = 400;
-						msg.body.error = error;
-						//console.log(error);
-						/**
-						 * @callback 
-						 * @description when failed to login, send failure message to Conneto socket   
-						 */
-						socketForConneto.write(JSON.stringify(msg), function (err) {
-							if (err) {
-								console.log("There's error while sending loginApproval to Conneto");
-							}
-						});
+				.then((userId) => {
+					msg.header.statusCode = 200;
+					/**
+					 * @callback
+					 * @description when successfully logined, send approval message to Conneto socket
+					 */
+					socketForConneto.write(JSON.stringify(msg), function (err) {
+						if (err) {
+							throw new SocketError("there's error while sending loginApproval to Conneto");
+						}
+						else {
+							console.log(socketForConneto.remotePort);
+							exports.saveConnetoSocket(userId, socketForConneto);
+						}
 					})
+				}).catch((error) => {
+					msg.header.statusCode = 400;
+					msg.body.error = error;
+					//console.log(error);
+					/**
+					 * @callback 
+					 * @description when failed to login, send failure message to Conneto socket   
+					 */
+					socketForConneto.write(JSON.stringify(msg), function (err) {
+						if (err) {
+							throw new SocketError("There's error while sending loginApproval to Conneto");
+						}
+					});
+				})
 			}
 		}
 	}	
@@ -219,7 +218,7 @@ let webServerSocketHandler = {
 		socket.on('close', webServerSocketHandler.close);
 		socket.on('error', webServerSocketHandler.error);
 		socket.on('data', (data)=>{	
-			webServerSocketHandler.data(socketForWebServer, data);
+			webServerSocketHandler.data(data, socketForWebServer);
 		})
 	},
 
@@ -239,6 +238,7 @@ let webServerSocketHandler = {
 	error: (err)=>{ 
 		console.log("error occured in Webserver socket connection: " + err);		
 	},
+
 	
 	/**
 	 * @callback 
@@ -288,6 +288,7 @@ let webServerSocketHandler = {
 	data: (message, socketForWebServer)=>{
 		try{
 			message = JSON.parse(message);
+			console.log(message);
 			isValidHeader(message.header);
 		}
 		catch(e){
@@ -296,46 +297,54 @@ let webServerSocketHandler = {
 			return exports.sendMsg(socketForWebServer, message);
 		}
 		var userId = message.body.userId;
+		console.log(userId);
+		
 		exports.getConnetoSocket(message.body.userId).then((socketForConneto) => {
 			if (!socketForConneto) {
 				console.log("Conneto of " + userId + " is offline");
-				return exports.sendMsg(socketForWebServer, { error: 1, status: false });
+				if(message.header.command === "getStatus"){
+					return exports.sendMsg(socketForWebServer, {
+						header: {
+							type: 'Response',
+							token: '',
+							command: 'getStatus',
+							source:'CONNETO',
+							dest: 'WEB',
+							statusCode: 400	
+						},
+						body:{
+							userId
+						}
+					})
+				}
+				return exports.sendMsg(socketForWebServer, {
+					error: 1, 
+					status: false
+				});
 			}
-			//console.log(data.command);
 			if (message.header.dest === 'CONNETO') {
-				exports.sendMsg(socketForConneto, message)
+				
 				switch (message.header.command) {
-
-					case "networkTest":
-						console.log("request from " + userId + ": networkTest");
-						exports.sendMsg(socketForConneto, {
-							command: "networkTest", 
-							userId, 
-							ip: message.body.data.client.ip, 
-							latency: message.body.data.server.ping, 
-							download: message.body.data.speeds.download 
-						});
+					
+					case "getStatus":
+						exports.sendMsg(socketForWebServer, {
+							header: {
+								type: 'Response',
+								token: '',
+								command: 'getStatus',
+								source: 'CONNETO',
+								dest: 'WEB',
+								statusCode: 200
+							},
+							body: {
+								userId
+							}	
+						})
 						break;
 
 					default:
-						console.log("Invalid command from WebServer");
-						exports.sendMsg(socketForWebServer, { error: 2, status: false });
-				}
-			}
-			else{
-				if(message.header.command === 'getStatus'){
-					console.log('request from ' + userId + ": checking Conneto status");
-					getConnetoSocket(userId).then((connetoSocket)=>{
-						if(connetoSocket){
-							exports.sendMsg(connetoSocket, {
-								command: "getStatusResult",
-								userId
-							})
-						}
-						else{
-							console.log("this user's conneto is offline");
-						}
-					})
+						console.log(message.header.command);
+						exports.sendMsg(socketForConneto, message)
 				}
 			}
 		}).catch((err) => {
@@ -368,6 +377,7 @@ function sendMsg(socket, msg){
 				reject(err);
 			}
 			else{
+				console.log("Wrote: " + JSON.stringify(msg));
 				resolve();
 			}
 		});
@@ -419,6 +429,7 @@ function saveConnetoSocket(userId, socket){
 	return Promise.resolve().then(
 		()=>{
 			clients[userId] = socket;
+			clients[socket.remoteAddress] = userId;
 			return userId
 		}
 	)
@@ -433,10 +444,12 @@ function saveConnetoSocket(userId, socket){
  * @reject {string} "Invalid user: failing to delete Conneto socket"
  * @todo DB would handle this part 
  */
-function deleteConnetoSocket(userId){		
+function deleteConnetoSocket(socket){		
 	return new Promise((resolve, reject)=>{
-		if(clients[userId]){
-			delete clients[userId];
+		if (clients[socket.remoteAddress]){
+			let userId = clients[socket.remoteAddress];
+			delete clients[clients[socket.remoteAddress]];
+			delete clients[socket.remoteAddress];
 			resolve(userId);
 		}
 		else{
@@ -456,7 +469,7 @@ function deleteConnetoSocket(userId){
  * @todo DB would handle this part in near future
  */
 function getConnetoSocket(userId){
-	return new Promise((resolve, reject)=>{
+	return new Promise((resolve)=>{
 		//COMMENTED PART IS THE VERSION USING DB, BUT I COULDN'T FOUND THE WAY OF STORING SOCKET OBJECT INTO THE FORM DB CAN ACCEPT
 		//BECAUSE SOCKET OBJECT IS CIRCULAR, AND HAVE METHOD. SO IT MAKES REALLY HARD TO CONVERT IT INTO STRING..
 
@@ -499,7 +512,7 @@ function isValidHeader(header){
 		error.code = 'ERR_INVALID_VALUE'
 		throw error;
 	}
-	else if(!isValidToken(token, user)){
+	else if(!isValidToken(header.token)){
 		let error = new TokenError();
 		error.code = "ERR_INVALID_TOKEN"
 		throw error;
@@ -513,7 +526,7 @@ function isValidHeader(header){
  * @return {boolean} whether the command is valid
  */
 function isValidCommand(command){
-	let validCommands = ['getStatus', 'getHosts', 'getApps', 'addHost', 'startGame', 'networkTest']
+	let validCommands = ['getStatus', 'getHosts', 'getApps', 'addHost', 'startGame', 'networkTest', 'login']
 	return validCommands.includes(command);
 }
 

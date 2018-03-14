@@ -111,8 +111,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on
-
     socket.on('disconnecting', function () {
         console.log('disconnecting ');
         let rooms=Object.keys(socket.rooms).slice(1);

@@ -1,7 +1,7 @@
 /**
  * @file api backend router for handling process related to Conneto
  * @author SSH
- * @description router name& method changed: POST /api/moonlight/checkstatus => GET /api/users/conneto/checkstatus
+ * @description router name& method changed: POST /api/moonlight/checkstatus => GET /api/users/conneto/status
  *  										 POST /api/moonlight/gethosts => GET /api/users/conneto/hosts
  * 											 POST /api/moonlight/addhost => POST /api/users/conneto/hosts
  * 											 POST /api/moonlight/getapps => GET /api/users/conneto/apps
@@ -81,7 +81,7 @@ function getDatainAuthHeader(req){
 router.get('/status', (req, res)=>{
 	
 	let userId = req.baseUrl.split('/')[2];
-	sendMsgToCentralServer(res, {
+	sendMsgToCentralServer({
 		header: {
 			type: 'Request',
 			token: "",
@@ -93,8 +93,8 @@ router.get('/status', (req, res)=>{
 			userId
 		}
 	});
-	if(!httpResponses.status[userId]){
-		httpResponses.status[userId] = [];
+	if(!httpResponses.getStatus[userId]){
+		httpResponses.getStatus[userId] = [];
 	}
 	httpResponses.getStatus[userId].push(res);
 })
@@ -111,7 +111,7 @@ router.get('/status', (req, res)=>{
 router.route('/hosts')
 	.get((req, res) => {
 		let userId = req.baseUrl.split('/')[2];
-		sendMsgToCentralServer(res, {
+		sendMsgToCentralServer({
 			header:{
 				type: 'Request',
 				token: "",
@@ -138,7 +138,7 @@ router.route('/hosts')
 				source: 'WEB',
 				dest: 'CONNETO'
 			},
-			data: {
+			body: {
 				userId,
 				hostIpaddress: req.body.hostIpaddress,
 				pairingNum: req.body.pairingNum
@@ -218,6 +218,8 @@ router.route('/apps')
 function sendMsgToCentralServer(msg){
 	return new Promise((resolve, reject)=>{
 		socketForCentralServer.write(JSON.stringify(msg), resolve)
+	}).catch(err=>{
+		console.log(msg);
 	})
 }
 
@@ -231,60 +233,51 @@ function commandHandler(data){ //handler for data from central server
 	data = JSON.parse(data);
 	console.log("IN CommandHandler: " + JSON.stringify(data));
 	console.log("Receiver msg: " + data.header.command);
-	switch(data.header.command){
-
-		case "checkStatus":
-			processsResponseQueue(httpResponses.status[data.body.userId], data.body);
-			break;
-		case "getHostsResult":
-			processsResponseQueue(httpResponses.getHosts[data.body.userId], data.body);
-			break;
-		case "addHostResult":
-			processsResponseQueue(httpResponses.addHost[data.body.userId], data.body);
-			break;
-		case "getAppsResult":
-			processsResponseQueue(httpResponses.getApps[data.body.userId], data.body);
-			break;
-		case "startGameResult":
-			processsResponseQueue(httpResponses.startGame[data.body.userId], data.body);
-			break;
-		case "networkTest":
-			let msg = {};
-			axios.post('/api/speedtest').then((res)=>{
-				msg ={
-					header: {
-						type: 'Response',
-						token:"",
-						command: 'networkTest',
-						source: 'WEB',
-						dest: 'CONNETO',
-						statusCode: 200
-					},
-					body: {
-						ip: res.data.data.client.ip,
-						latency: res.data.server.ping,
-						download: body.data.speeds.download,
-						userId: data.body.userId
+	if(data.header.type === 'Response'){
+		if(httpResponses[data.header.command]){
+			processsResponseQueue(httpResponses[data.header.command][data.body.userId], data.body, data.header.statusCode);
+		}
+	}
+	else if(data.header.type === 'Request'){
+		switch(data.header.command){
+			case "networkTest":
+				let msg = {};
+				axios.post('/api/speedtest').then((res)=>{
+					msg ={
+						header: {
+							type: 'Response',
+							token:"",
+							command: 'networkTest',
+							source: 'WEB',
+							dest: 'CONNETO',
+							statusCode: 200
+						},
+						body: {
+							ip: res.data.data.client.ip,
+							latency: res.data.server.ping,
+							download: body.data.speeds.download,
+							userId: data.body.userId
+						}
+					}	
+				}).catch((error)=>{
+					msg = {
+						header: {
+							type: 'Response',
+							token: "",
+							command: 'networkTest',
+							source: 'WEB',
+							dest: 'CONNETO',
+							statusCode: 400
+						}
 					}
-				}	
-			}).catch((error)=>{
-				msg = {
-					header: {
-						type: 'Response',
-						token: "",
-						command: 'networkTest',
-						source: 'WEB',
-						dest: 'CONNETO',
-						statusCode: 400
-					}
-				}
-			}).then(()=>{
-				socketForCentralServer.write(JSON.stringify(msg))
-			})
-			break;
-
-		default:
-			console.log("Unvalid Command: " + data.command);
+				}).then(()=>{
+					socketForCentralServer.write(JSON.stringify(msg))
+				})
+				break;
+	
+			default:
+				console.log("Unvalid Command: " + data.command);
+		}
 	}
 }
 
@@ -297,7 +290,10 @@ function commandHandler(data){ //handler for data from central server
  * @promise
  * @resolve {Object[]}- responseQueue after processing
  */
-function processsResponseQueue(responseQueue, data){
+function processsResponseQueue(responseQueue, data, status){
+	if(!status){
+		status = 200;
+	}
 	return sendResponseAsync(responseQueue, data)
 	.then((arr)=>{
 		//emptying the queue
@@ -315,7 +311,7 @@ function processsResponseQueue(responseQueue, data){
 	function sendResponseAsync(responseQueue, data){
 		return Promise.all(responseQueue.map((res)=>{
 			return new Promise((resolve)=>{
-				resolve(res.json(data));	
+				resolve(res.status(status).json(data));	
 			})
 		}))
 	}

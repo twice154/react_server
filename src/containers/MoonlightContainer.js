@@ -51,7 +51,6 @@ class MoonlightContainer extends Component {
             }
         )
     }
-
     
     getHosts(userId){
         if(!this.state.isMoonlightOnline){
@@ -61,11 +60,11 @@ class MoonlightContainer extends Component {
             ()=>{
                 if(this.props.hostList.get('status')=== "GET_SUCCESS"){
                     this.setState(update(this.state,{
-                        hostList: {set: this.props.hostList.get('data')}
+                        hostList: {$set: this.props.hostList.get('data')}
                     }))
                     return this.state.hostList;
                 }
-                return Promise.reject();    
+                return Promise.reject();
             }    
         )
     }
@@ -115,8 +114,9 @@ class MoonlightContainer extends Component {
                            startGame={this.startGame}
                            hostList={this.state.hostList}
                            getAuthStatus={this.getAuthStatus}
-                           isMoonlightOnline={this.state.isMoonlightOnline}
-                           currentUser={this.state.currentUser}           
+                           isMoonlightOnline={this.props.moonlightStatus}
+                           currentUser={this.state.currentUser}
+                           newHostStatus={this.props.newHost.get('status')}           
                 />
             </div>
         );

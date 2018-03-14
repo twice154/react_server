@@ -11,7 +11,8 @@ class Moonlight extends React.Component {
 			selectedHost: "", //id of selected host
 			newHost:{
 				ip:"",
-				inProgress:false
+				inProgress:false,
+				pairingNum:""
 			},
 			streamSettings:{
 				frameRate:"60",
@@ -31,8 +32,12 @@ class Moonlight extends React.Component {
 
 		window.$("#res").on('change', this.handleChange);
 		window.$("#fps").on('change', this.handleChange);
-		this.props.getAuthStatus().then(()=>{
+		this.props.getAuthStatus()
+		.then(()=>{
 			return this.props.getMoonlightStatus(this.props.currentUser)
+		})
+		.then(()=>{
+			return this.props.getHosts(this.props.currentUser);
 		})
 		.catch((err)=>{
 			console.log(err);
@@ -73,11 +78,13 @@ class Moonlight extends React.Component {
 
 	addHost(e){
 		if(e.charCode===13){
+			let randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
 			this.setState(update(this.state, {
-				newHost: {$set: {ip:"", inProgress:true}}
+				newHost: {
+					$set: {ip:"", inProgress:true, pairingNum: randomNumber}
+				}
 			}))
 
-			let randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
 			this.props.addHost(e.target.value, this.props.currentUser, randomNumber).then(
 				()=>{
 					this.setState(update(this.state, {
@@ -106,7 +113,7 @@ class Moonlight extends React.Component {
 	}
 
 	render(){
-		let canAddnewHost = this.state.isMoonlightOnline && !this.state.newHost.inProgress;
+		let canAddnewHost = this.props.isMoonlightOnline==='ONLINE' && !this.state.newHost.inProgress;
 		window.$(document).ready(function() {
  			window.$('select').material_select();
 		});
@@ -172,7 +179,7 @@ class Moonlight extends React.Component {
 
 		return (
 			<div>
-				{this.props.isMoonlightOnline? <div className="col s12">Moonlight-chrome is online</div>: <div>Moonlight-chrome is offline</div>}
+				{this.props.isMoonlightOnline==='ONLINE'? <div className="col s12">Moonlight-chrome is online</div>: <div>Moonlight-chrome is offline</div>}
 				{settingView}
 
 				{this.state.mode?
@@ -192,8 +199,8 @@ class Moonlight extends React.Component {
 		                    </div>
 							: undefined
 		               	}
-		               	{this.state.newHost.inProgress?
-		               		<span>{"Please enter the number " + this.props.getIn(['newHost','pairingNum']) + " on the GFE dialog on the computer."}</span>
+		               	{(this.state.newHost.inProgress)?
+		               		<span>{"Please enter the number " + this.state.newHost.pairingNum + " on the GFE dialog on the computer."}</span>
 							: undefined
 						}
 
