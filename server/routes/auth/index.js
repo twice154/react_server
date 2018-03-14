@@ -13,5 +13,8 @@ const controller = require('./auth.controller')
 router.post('/*',controller.postAuth)
 router.delete('/', controller.deleteAuth);
 
+router.use('/', authMiddleware)
+router.get('/',controller.getAuth)
+
 
 module.exports = router

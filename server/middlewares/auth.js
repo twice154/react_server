@@ -12,12 +12,12 @@ const authMiddleware = (req, res, next) => {
 		//
     const tempToken = req.headers['x-access-token']||req.query.token
     const token = req.cookies.token
-
-    if(!token && !tempToken){
-		return res.status(403).json({
-			success: false,
-			message: 'not logged in'
-		})
+		
+		if(!token && !tempToken){
+			return res.status(403).json({
+				success: false,
+				message: 'not logged in'
+			})
     }
 
     const p = new Promise(

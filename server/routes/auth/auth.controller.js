@@ -75,6 +75,48 @@ exports.deleteAuth = (req, res) => {
 
 
 
+/**
+ *  @brief  로그인 확인 라우터 \n
+ *  @param	req.cookies
+ * 		@property	{token}	token	- 
+ * 
+ *  @return	No Return \n
+ */
+exports.getAuth = (req, res) => {
+	const info = req.decoded
+	//
+	// Promise Chains
+	//
+	const onError = (error) => {
+		res.status(error.status).json({
+			success: error.success,
+	    	message: error.message
+		})
+	}
+	const onRespond = (user) =>{
+		return new Promise((resolve, reject)=>{
+			if(user == undefined || user.userId == undefined)	
+				reject({
+					success: false,
+					status: 400,
+					message: "The field was able to modify"
+				})
+			else
+				res.json({
+					success: true,
+					data:{userId: user.userId}
+				})
+		})
+	}
+
+	User.findOneByUserid(info)
+	.then(user => onRespond(user))
+	.catch(onError)
+}
+
+
+
+
 
 /**
  *  @brief
