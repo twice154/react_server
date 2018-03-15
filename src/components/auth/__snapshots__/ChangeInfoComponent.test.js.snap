@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`snapshot, event test snapshot test 1`] = `
+<div>
+  <input
+    onChange={[Function]}
+    value="g1"
+  />
+  <button
+    onClick={[Function]}
+  >
+    완료
+  </button>
+   
+</div>
+`;

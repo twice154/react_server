@@ -13,7 +13,6 @@ class RegisterComponent extends React.Component {
 			passwordCheck:"",
 			pwdCheck:false,
 			name:'',
-			nickname:'',
 			birth:'',
 			gender:'',
 			email:'',
@@ -25,6 +24,7 @@ class RegisterComponent extends React.Component {
         this.checkPwd=this.checkPwd.bind(this);
 		this.verify=this.verify.bind(this)
 		this.autoHypenPhone=this.autoHypenPhone.bind(this)
+		this.handleVerifyEmail=this.handleVerifyEmail.bind(this)
 	}
 	componentWillMount(){
 	
@@ -35,24 +35,26 @@ class RegisterComponent extends React.Component {
 			userId:this.state.userId,
             password:this.state.password,
 			name:this.state.name,
-			nickname:this.state.nickname,
 			birth:this.state.birth,
 			gender:this.state.gender,
 			email:this.state.email,
 			phone:this.state.phone
 		};
+		console.log(1)
 		if(!this.props.idCheck){ //alert창 이쁘게 띄울 수 있는지..
-		
+			console.log('ghihih')
 			return alert('id를 확인하세요')
 		}else if(!this.state.pwdVerified||!this.state.pwdCheck){
+			console.log('jkjkj')
 			return alert('비밀번호를 확인하세요')
 		}else if(!this.props.emailCheck){
 			return alert('이메일을 확인하세요')
 		}else if(!this.props.phoneCheck){
 			return alert('폰 번호를 확인하세요')
 		}
-		for(var p in msg){ 
-			if(msg.p===''){
+		for(var p in msg){
+			if(msg[p]===''){
+				
 				return alert(p,"가 비어있습니다.")
 			}
 		}
@@ -124,7 +126,16 @@ class RegisterComponent extends React.Component {
 		  return this.setState({phone:tmp});
 		}
 	  }
-	  /** 폰 중복을 확인하는 함수. */
+	  handleVerifyEmail(){
+		  var email=this.state.email
+		var reg=/^[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*\.[a-zA-Z]{2,3}$/i;
+				 
+        if(!reg.test(email)){
+            alert('올바른 이메일을 입력하세요!')
+            return 0;
+        }
+        this.props.checkEmail(email)
+    }
 	
 	render(){
 		
@@ -184,15 +195,6 @@ class RegisterComponent extends React.Component {
 						value={this.state.name}/>
                		</div>
 					<div className="input-field col s12 ">
-						<label>닉네임</label>
-						<input
-						name="nickname"
-						type="text"
-						className="validate"
-						onChange={this.handleChange}
-						value={this.state.nickname}/>
-               		</div>
-					<div className="input-field col s12 ">
 						<label>생년월일</label>
 						<input
 						name="birth"
@@ -222,7 +224,7 @@ class RegisterComponent extends React.Component {
                		</div>
 					<div className="input-field col s12 ">
 					<label></label>
-						<button onClick={()=>{this.props.checkEmail(this.state.email)}}>이메일체크</button>
+						<button onClick={this.handleVerifyEmail}>이메일체크</button>
 					
                		</div>
 					<div className="input-field col s12 ">

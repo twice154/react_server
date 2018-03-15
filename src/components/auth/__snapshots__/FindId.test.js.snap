@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`findId test renders without crashing 1`] = `
+exports[`findId test snapshot 1`] = `
 <div>
   <div
     className="card-content"
@@ -19,7 +19,7 @@ exports[`findId test renders without crashing 1`] = `
           name="name"
           onChange={[Function]}
           type="text"
-          value=""
+          value="g1"
         />
       </div>
       <div
@@ -34,7 +34,7 @@ exports[`findId test renders without crashing 1`] = `
           onChange={[Function]}
           onKeyPress={[Function]}
           type="text"
-          value=""
+          value="jwc2094@naver.com"
         />
       </div>
       <a

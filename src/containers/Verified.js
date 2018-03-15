@@ -6,14 +6,36 @@
  */
 import React from 'react';
 import {Link} from 'react-router-dom'
+import {verify,logoutRequest} from '../modules/authentication'
+import {connect}from 'react-redux'
 
-const Verified = () => {
-    return (
-        <div>
+//test를 위한 export 선언!
+
+export class Verified extends React.Component {
+     constructor(props) {
+         super(props);
+         this.state = {  }
+     }
+     componentWillMount(){
+         this.props.verify(this.props.match.params.token,this.props.currentUser).then(this.props.logoutRequest())
+     }
+     render() { 
+         return (  <div>
             인증되었습니다! 다시 로그인해주세요 
             <p><Link to ='/login'>로그인하기</Link></p>
-        </div>
-    )
+        </div>  )
+     }
+ }
+const mapStateToProps = (state)=>{
+    return{
+        currentUser:state.authentication.getIn(['status,currentUser'])
+    }
 }
- 
-export default Verified;
+const mapDispatchToProps = (dispatch)=>{
+    return{
+ verify:()=>{return dispatch(verify())},
+ logoutRequest:()=>dispatch(logoutRequest())
+}
+}
+
+export default connect(undefined,mapDispatchToProps)(Verified)

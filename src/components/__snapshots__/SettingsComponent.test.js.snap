@@ -1,0 +1,113 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`settingsComponent test snapShot 1`] = `
+<div>
+  <div
+    className="container auth"
+  >
+    <div
+      className="card"
+    >
+      <div
+        className="header blue white-text center"
+      >
+        <div
+          className="card-content"
+        >
+          개인정보
+        </div>
+      </div>
+      <div
+        className="card-content"
+      >
+        <div
+          className="row"
+        >
+          <div
+            onClick={[Function]}
+            style={
+              Object {
+                "cursor": "pointer",
+              }
+            }
+          >
+            <div
+              className="input-field col s6"
+            >
+              닉네임:
+            </div>
+            <div
+              className="input-field col s6"
+            >
+              <div>
+                g1
+              </div>
+            </div>
+          </div>
+          <div
+            onClick={[Function]}
+            style={
+              Object {
+                "cursor": "pointer",
+              }
+            }
+          >
+            <div
+              className="input-field col s12"
+            >
+              비밀번호 수정
+            </div>
+          </div>
+          <div
+            onClick={[Function]}
+            style={
+              Object {
+                "cursor": "pointer",
+              }
+            }
+          >
+            <div
+              className="input-field col s6"
+            >
+              이메일:
+            </div>
+            <div
+              className="input-field col s6"
+            >
+              <div>
+                jwc2094@naver.com
+              </div>
+            </div>
+          </div>
+          <div
+            onClick={[Function]}
+            style={
+              Object {
+                "cursor": "pointer",
+              }
+            }
+          >
+            <div
+              className="input-field col s6"
+            >
+              휴대폰:
+            </div>
+            <div
+              className="input-field col s6"
+            >
+              <div>
+                000-0000-0000
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={[Function]}
+      >
+        탈퇴하기
+      </button>
+    </div>
+  </div>
+</div>
+`;

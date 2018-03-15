@@ -8,11 +8,11 @@ import io from 'socket.io-client';
 import { connect } from 'react-redux';
 import { getStatusRequest } from '../modules/authentication';
 import update from 'immutability-helper';
-import { Chatting } from '../components';
+import { Chatting } from './Chatting';
 
 var socket = {};
 
-class ChattingContainer extends Component {
+export class ChattingContainer extends Component {
     constructor(props) {
         super(props);
         this.state = { users: [], messages: [], text: '', room: '', currentUser: "" };
@@ -41,6 +41,7 @@ class ChattingContainer extends Component {
             room: data.room,
             currentUser: this.props.status.get('currentUser')
         });
+        console.log('hihi')
     }
 /** 서버랑 연결하여 이벤트를 송신한다.
  * @description
@@ -49,7 +50,7 @@ class ChattingContainer extends Component {
  *  'user:join' - 새로운 유저가 접속했을때 등록하는 이벤트 , 송신 후 onUserJoin실행.
  *  'user:left' - 유저가 나갔을때 등록하는 이벤트 ,송신 후 ounUserLeft실행.
  */
-    connectToIoServer() {
+ connectToIoServer() {
         return Promise.resolve().then(() => {
             console.log("CONNECTIng to SERVER");
             socket = io.connect("http://localhost:3000", { 'forceNew': true });
@@ -97,7 +98,7 @@ class ChattingContainer extends Component {
     }
 /**
  * 메시지를 받아온다.
- * @param {string} msg 
+ * @param {object} msg {user:작성자,text:채팅내용}
  * 서버에서 메시지를 송출하면 실시간으로 받아온다.
  * 이때 브라우저의 채팅 목록도 실시간으로 업데이트 된다.
  */
@@ -109,7 +110,7 @@ class ChattingContainer extends Component {
     }
 /**
  * 다른 사용자가 채팅방에 입장하면 알려준다.
- * @param {object} data 
+ * @param {object} data {userId:입장한 유저 아이디}
  */
     onUserJoin(data) {
         console.log('new user has joined');

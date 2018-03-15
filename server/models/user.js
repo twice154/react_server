@@ -53,20 +53,20 @@ User.create = (info) =>{
 		if(!info.userId) return "userId"
 		else if(!info.password) return "password"
 		else if(!info.name) return "name"
-		else if(!info.nickname) return "nickname"
 		else if(!info.birth) return "birth"
 		else if(!info.email) return "email"
 		else if(!info.phone) return "phone"
 		//else if(!info.verified) return "verified"
 		//else if(!info.admin) return "admin"
-		//else if(!info.gender) return "gender"
+		else if(!info.gender) return "gender"
 		else {console.log("done"); return ""}
 		}
     info.password = crypto.createHmac('sha1',config.secret)
 			.update(info.password)
 			.digest('base64')
     info.verified = false
-    info.admin = false
+	info.admin = false
+	info.nickname = info.userId
     
     return new Promise((res,reject)=>{
 		console.log( nonSatisfied(info))
@@ -83,7 +83,7 @@ User.create = (info) =>{
 				"', phone='" 	+ info.phone + 
 				"', verified='"	+ info.verified +
 				"', admin='"	+ info.admin +
-				//"', gender='" + info.gender +
+				"', gender='" + info.gender +
 				"'")
 			res(info)
 	//  		.catch(onError)
@@ -132,10 +132,11 @@ User.update = (user, info) =>{
 		"', birth='" 	+ newDat.birth +
 		"', email='" 	+ newDat.email +
 		"', phone='" 	+ newDat.phone + 
+		"', gender='" 	+ newDat.gender + 
 		"', verified='"	+ newDat.verified +
 		//"', gender='" + info.gender +
-		"'")
-	.catch((err)=>reject(err))
+		"' WHERE userId='" + newDat.userId + "'")
+	.catch((err)=>console.log(err))
 	res(newDat)
     })
 }
@@ -174,9 +175,43 @@ User.del = (info) => {
  *    @todo		에러핸들러 작성
  */
 User.findOneByUserid = (info) => {
+		var TempDat={}
+		return new Promise( (res,reject)=>{
+			User.db.query("SELECT * FROM User WHERE userId='" + info.userId + "'")
+			.then( (results) =>{
+				if( results.length === 0 ){
+					console.log('Not found!')
+					res(TempDat)
+				} else{
+					console.log('found!')
+					TempDat = Object.assign({},results[0])
+					res(TempDat);
+				}
+			})
+		.catch((err)=>console.log(err))
+		})
+
+}
+
+
+
+
+/**
+ *  @brief  SELECT 쿼리 실행, phone으d로 유저를 검색
+ *  @param	{Object}	info
+ * 	  @property	{String}	phone	- 정보를 찾을 유저의 ID, 쿼리의 where문에 사용한다.
+ *
+ *  @return Promise
+ * 	  @resolve	{Object} 	- 유저 정보를 찾았을 때 실행, 찾은 User정보 객체를 다음 Promise로 넘겨준다.
+ *    			{Object} 	- 유저 정보를 찾지 못했을 때 실행, 빈 객체 { }를 다음 Promise로 넘겨준다.
+ *    @reject	{String} 	- SELECT 쿼리 실행 중 오류가 발생했을 때 실행, 오류 메세지를 출력한다.
+ * 
+ *    @todo		에러핸들러 작성
+ */
+User.findOneByUserPhone = (info) => {
     var TempDat={}
     return new Promise( (res,reject)=>{
-	User.db.query("SELECT * FROM User WHERE userId='" + info.userId + "'")
+	User.db.query("SELECT * FROM User WHERE phone='" + info.phone + "'")
 	.then( (results) =>{
 	    if( results.length === 0 ){
 		console.log('Not found!')
@@ -208,21 +243,51 @@ User.findOneByUserid = (info) => {
 User.findOneByUseremail = (info) => {
     var TempDat={}
     return new Promise( (res,reject)=>{
-	User.db.query("SELECT * FROM USER WHERE email='" + info.email + "'")
-	.then( (results)=>{
-	    if( results.length === 0 ){
-		console.log('Not found!')
-		res(TempDat)
-	    } else{
-		console.log('found')
-		TempDat = Object.assign({},results[0])
-		res(TempDat);
-	    }
-	})
-	.catch((err)=>reject(err))
+		User.db.query("SELECT * FROM USER WHERE email='" + info.email + "'")
+		.then( (results)=>{
+			if( results.length === 0 ){
+				console.log('Not found!')
+				res(TempDat)
+			} else{
+				console.log('found')
+				TempDat = Object.assign({},results[0])
+				res(TempDat);
+			}
+		})
+		.catch((err)=>reject(err))
     })
 }			
 
+
+/**
+ *  @brief  SELECT 쿼리 실행, nickname으로 유저를 검색
+ *  @param	JSON info
+ * 	  @property	{String}	nickname	- 정보를 찾을 유저의 nickname, 쿼리의 where문에 사용한다.
+ *
+ *  @return Promise
+ * 	  @resolve	{Object}	- 유저 정보를 찾았을 때 실행, 찾은 User정보 객체를 다음 Promise로 넘겨준다.
+ *    			{Object}	- 유저 정보를 찾지 못했을 때 실행, 빈 객체 { }를 다음 Promise로 넘겨준다.
+ *    @reject	{String}	- SELECT 쿼리 실행 중 오류가 발생했을 때 실행, 오류 메세지를 출력한다.
+ * 
+ *    @todo		에러핸들러 작성
+ */
+User.findOneByUsernickname = (info) => {
+    var TempDat={}
+    return new Promise( (res,reject)=>{
+		User.db.query("SELECT * FROM USER WHERE nickname='" + info.nickname + "'")
+		.then( (results)=>{
+			if( results.length === 0 ){
+				console.log('Not found!')
+				res(TempDat)
+			} else{
+				console.log('found')
+				TempDat = Object.assign({},results[0])
+				res(TempDat);
+			}
+		})
+		.catch((err)=>reject(err))
+    })
+}			
 /**
  *  @brief  유저가 입력한 패스워드를 검증하는 함수. info.password를 DB에 저장할 때와 같은 알고리즘으로 해쉬하여 DB정보와 비교
  * 

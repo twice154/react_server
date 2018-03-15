@@ -16,6 +16,8 @@ const NEWREGIST_LOADING = 'REGIST/NEWREGIST_LOADING'
 const NEWREGIST_SUCCESS = 'REGIST/NEWREGIST_SUCCESS'
 const NEWREGIST_FAILURE = 'REGIST/NEWREGIST_FAILURE'
 
+const QUIT = 'REGIST/QUIT'
+
 
 //이메일이 유효한지
 const EMAIL='REGIST/EMAIL';
@@ -34,6 +36,13 @@ const PHONE ='REGIST/PHONE'
 const PHONE_LOADING ='REGIST/PHONE_LOADING'
 const PHONE_SUCCESS ='REGIST/PHONE_SUCCESS'
 const PHONE_FAILURE ='REGIST/PHONE_FAILURE'
+
+//닉네임이 유효한지.
+const NICKNAME ='REGIST/NICKNAME'
+const NICKNAME_LOADING ='REGIST/NICKNAME_LOADING'
+const NICKNAME_SUCCESS ='REGIST/NICKNAME_SUCCESS'
+const NICKNAME_FAILURE ='REGIST/NICKNAME_FAILURE'
+
 
 /**
  * regist: 등록에 성공,실패여부
@@ -54,60 +63,102 @@ const initialState ={
         check:false
     },
     phone:{status:'init',
+        check:false},
+    nickname:{status:'init',
         check:false}
 }
 
 /**
  * db에 등록한다.
- * @param {object} msg {userId, password, name, nickname, birth, gender, email, phone,}
+ * @param {object} msg {userId, password, name, birth, gender, email, phone,}
+ * nickname은 제외한다. --register가 너무 복잡한것 같아서.
+ * 이메일 중복도 앞으로 제외할 예정
+ * TODO: phone 인증 모듈 설치.
+ * 
+ * //userid 중복은 check에 있으니 수정할 것.
  */
 function registerApiRequest(msg){
-    console.log(msg)
-    return axios.post('/api/account/signup', msg)
+    return axios.post('/api/users', msg)
             .then((res)=>Promise.resolve())
-            .catch(err=>Promise.reject())
+            .catch(err=> Promise.reject(err.response.data.message))
 }
 /**
  * 개인정보 수정에 사용. 새롭게 정보를 등록한다.
- * @param {object} msg {property이름: string} ex)nickname,phone,password,email
+ * @param {object} msg {property이름: string} ex)phone,password,email
+ * @param {'string'} id - currentuser id
  */
-function newRegisterApiRequest(msg){
-    console.log(msg)
-   return axios.put('/api/account/userInfo',msg)
+function newRegisterApiRequest(msg,id){
+   return axios.put(`/api/users/${id}/${Object.keys(msg)[0]}`,msg)
             .then(()=>Promise.resolve())
-            .catch(err=>Promise.reject())
+            .catch(err=>Promise.reject(err.response.data.message))
+}
+/**
+ * 탈퇴하는 함수.
+ * @param {string} id -아이디
+ */
+export function quit(id){
+    return (dispatch)=>{
+       return axios.delete(`/api/users/${id}`)
+            .then(dispatch({type:QUIT}))
+            .catch((err)=>Promise.reject(err.response.data.message))
+    }
 }
 /**
  * 이메일이 사용 가능한지 여부를 확인한다.
  * @param {string} email 
  */
 function emailApiRequest(email){
-        return axios.post('/api/account/emailcheck',{email})
-        .then((res)=>Promise.resolve())
-        .catch(err=>Promise.reject())
-      
+        return axios.get(`/api/check/duplication/email/${email}`)
+        .then((res)=>{
+            if(res.data.success){
+                return Promise.resolve()
+            }else{
+                return Promise.reject()
+            }
+        },err=>Promise.reject(err.response.data.message))
     }
 /**
  * 폰 번호가 사용 가능한지 여부를 확인한다.
  * @param {string} phone
  */
 function phoneApiRequest(phone){
-    console.log(1)
-    return axios.post('/api/account/phonecheck',{phone})
-    .then((res)=>Promise.resolve())
-    .catch(err=>Promise.reject())
-    
+    return axios.get(`/api/check/duplication/phone/${phone}`)
+    .then((res)=>{
+        if(res.data.success){
+            return Promise.resolve()
+        }else{
+            return Promise.reject()
+        }
+    },err=>Promise.reject(err.response.data.message))
 }
 /**
  * 아이디 사용 가능 여부를 확인한다.
  * @param {string} userId 
  */
 function idApiRequest(userId){
-    return axios.post('/api/account/userIdcheck',{userId})
-    .then((res)=>Promise.resolve())
-    .catch(err=>Promise.reject())
-       
-    }
+    return axios.get(`/api/check/duplication/userId/${userId}`)
+    .then((res)=>{
+        if(res.data.success){
+            return Promise.resolve()
+        }else{
+            return Promise.reject()
+        }
+    },err=>Promise.reject(err.response.data.message))
+}
+/**
+ * 닉네임 사용 가능 여부를 확인한다.
+ * @param {string} userId 
+ */
+function nicknameApiRequest(nickname){
+    return axios.get(`/api/check/duplication/nickname/${nickname}`)
+    .then((res)=>{
+        if(res.data.success){
+            return Promise.resolve()
+        }else{
+            return Promise.reject()
+        }
+    },err=>Promise.reject(err.response.data.message))
+}
 
 
 
@@ -115,9 +166,9 @@ export const registerRequest = (msg)=>({
     type: REGISTER,
     payload: registerApiRequest(msg)
 })
-export const newRegister = (msg)=>({
+export const newRegister = (msg,id)=>({
     type: NEWREGIST,
-    payload: newRegisterApiRequest(msg)
+    payload: newRegisterApiRequest(msg,id)
 })
 
 
@@ -134,6 +185,11 @@ export const phoneRequest = (phone)=>({
     type: PHONE,
     payload: phoneApiRequest(phone)
 })
+export const nicknameRequest = (phone)=>({
+    type: NICKNAME,
+    payload: nicknameApiRequest(phone)
+})
+
 
 export default handleActions({
 [REGISTER_LOADING]: (state, action)=>{
@@ -191,6 +247,9 @@ export default handleActions({
 
 [PHONE_FAILURE]: (state, action)=>{
     return { ...state, phone:{check:false,status:'폰 번호를 이미 사용중입니다.'}};
+},
+[QUIT]:(state,action)=>{
+    return{...state}
 }
 },initialState)
 

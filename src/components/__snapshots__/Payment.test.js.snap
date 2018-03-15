@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Payment test snapshot test 1`] = `
+<div>
+  <form>
+    <input
+      defaultValue="pay"
+      onClick={[Function]}
+      type="BUTTON"
+    />
+  </form>
+</div>
+`;

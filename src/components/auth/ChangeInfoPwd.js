@@ -2,9 +2,11 @@ import React, {Component} from 'react';
 class ChangeInfoPwd extends Component {
     constructor(props) {
         super(props);
-        this.state = { password:'',passwordCheck:'', pwdVerifyPhrase:'',pwdCheckPhrase:'' }
+        this.state = { password:'',passwordCheck:'', pwdVerifyPhrase:'비밀번호는 8자이상 최소 한개 이상의 특수문자가 있어야합니다.',pwdCheckPhrase:'' }
         this.handleSend=this.handleSend.bind(this)
         this.handleChange=this.handleChange.bind(this)
+        this.checkPwd=this.checkPwd.bind(this)
+        this.verify=this.verify.bind(this)
     }
     checkPwd(){
 		if(this.state.password !==this.state.passwordCheck || !this.state.password || !this.state.passwordCheck)
@@ -25,7 +27,10 @@ class ChangeInfoPwd extends Component {
         } 
     }
     handleChange(e){
-        this.setState({password:e.target.value})
+        var pwd ={}
+        pwd[e.target.name]=e.target.value
+
+        this.setState(pwd)
     }
     handleSend(){
         var msg ={}

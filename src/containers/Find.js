@@ -10,7 +10,7 @@ import {connect} from 'react-redux';
 import {Link} from 'react-router-dom'
 import {loginRequest,findId,findPwd} from '../modules/authentication';
 
-class Find extends React.Component {
+export class Find extends React.Component {
     constructor(props) {
         super(props);
         this.state = { select:true, gottenId:''} //true ='id' false='pwd'
@@ -35,19 +35,19 @@ class Find extends React.Component {
     sendEmail(key,email){
         if(this.state.select){//id찾기면
             console.log('1',key,email)
-            this.props.findId(key,email).then(()=>{
+          return this.props.findId(key,email).then(()=>{
                 this.setState({gottenId:this.props.gottenId})
-            }
-                
-            )
-            .catch(()=>{alert('이름과 이메일이 틀립니다.')})
+            })
+            .catch(()=>{
+                console.log(1)
+                alert('이름과 이메일이 틀립니다.')})
             
         }else{//비밀번호찾기면
-            this.props.findPwd(key,email).then(()=>{
-               alert('이메일에 비밀번호 변경 링크가 전송되었습니다.')
+           return this.props.findPwd(key,email).then(()=>{
+               alert(this.props.message)
                this.props.history.push('/login')
             })
-            .catch(()=>{alert('아이디와 이메일이 틀립니다.')})
+            .catch(()=>{alert(this.props.message)})
         }
 
     }
@@ -81,7 +81,8 @@ class Find extends React.Component {
 const mapStateToProps = (state) => {
 	return {
         status: state.authentication.getIn(['login','status']),
-        gottenId: state.authentication.getIn(['findId','gottenId'])
+        gottenId: state.authentication.getIn(['findId','gottenId']),
+        message: state.authentication.getIn(['findPwd','message'])
 	};
 };
 

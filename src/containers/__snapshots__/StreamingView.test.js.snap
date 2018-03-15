@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Streaming veiw test snapshot test 1`] = `
+<div>
+  <StreamingPlayerContainer
+    streamName="a"
+  />
+  <Connect(ChattingContainer)
+    room="a"
+  />
+</div>
+`;

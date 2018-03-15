@@ -7,10 +7,10 @@
 import React from 'react';
 import {LoginComponent} from '../components/auth';
 import {connect } from 'react-redux';
-import {loginRequest,cleanCurrentUser} from '../modules/authentication';
+import {loginRequest} from '../modules/authentication';
 //import {browserHistory} from 'react-router';
 
-class Login extends React.Component{
+export class Login extends React.Component{
 	constructor(props){
 		super(props);
 		this.handleLogin = this.handleLogin.bind(this);
@@ -41,8 +41,7 @@ class Login extends React.Component{
 					this.props.history.push('/');
 					return 0;
 				} else{
-					let $toastContent = window.$('<span style="color: $FFB4BA">Incorrect username or password</span>');
-					window.Materialize.toast($toastContent, 2000);
+					window.Materialize.toast('incorrect userid or password', 2000);
 					return false;
 				}
 			}
@@ -70,9 +69,7 @@ const mapDispatchToProps = (dispatch) => {
 		loginRequest: (id, pw)=>{
 			return dispatch(loginRequest(id,pw));
 		},
-		cleanCurrentUser:()=>{
-			return dispatch(cleanCurrentUser());
-		}
+
 	};
 };
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
+import {Dropdown, Button,NavItem} from 'react-materialize'
 
 class Header extends React.Component {
 	render(){
@@ -10,16 +11,21 @@ class Header extends React.Component {
 				</Link>
 			</li>
 		);
-
+/**로그인 버튼 */
 		const logoutButton = (
 			<li>
 				<a onClick={this.props.onLogout}><i className="material-icons">lock_open</i></a>
 			</li>
 		);
+/**개인정보 수정,방송국 */
 		const editPersonalInfo = (
-			<li>
-				<Link to='/settings'>내 정보 </Link>
-			</li>
+			<Dropdown trigger={
+				<Button>{this.props.currentUser}(화살표)!</Button>
+			  }>
+			  <li><Link to='/settings'> 정보수정 </Link></li>
+			  <li><Link to='/broadcast/setting'>방송국</Link></li>
+				
+			</Dropdown>
 		)
 
 		return (
@@ -38,6 +44,18 @@ class Header extends React.Component {
 								{this.props.isLoggedIn? logoutButton : loginButton}
 							</ul>
 						</div>
+					</div>
+				</nav>
+				<nav>
+					<div className="nav-wrapper blue darken-1">
+						<ul>
+							<li><Link to="/streamingList">전체</Link></li>
+							<li><Link to="/moonlight">팔로우</Link></li>
+							<li><Link to="/moonlight">스토리보드</Link></li>
+							<li><Link to="/moonlight">클립</Link></li>
+							<li><Link to="/moonlight">소통</Link></li>
+							<li><Link to="/moonlight">커뮤니티</Link></li>
+						</ul>
 					</div>
 				</nav>
 			</div>

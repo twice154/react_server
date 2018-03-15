@@ -9,7 +9,7 @@ import {connect} from 'react-redux'
 import {SettingsComponent} from '../components'
 import {getStatusRequest,getAllInfo} from '../modules/authentication'
 
-class Settings extends Component {
+export class Settings extends Component {
     constructor(props) {
         super(props);
         this.state = {  }
@@ -42,15 +42,11 @@ push(param){
     }
 }
 quit(){
-    var confirm = confirm('탈퇴하시겠습니까?')
-    if(confirm){
-        return  console.log('hi')
-        // this.props.quit().then(()=>{
-        //     alert('탈퇴하였습니다.')
-        //     this.props.history.push('/')
-        
+   
+    var confirmed = window.confirm('탈퇴하시겠습니까?')
+    if(confirmed){
+        this.props.history.push('/pwdcheck/quit')
     }
-    
 }
     render() { 
         return ( 
@@ -79,6 +75,7 @@ const mapDispatchtoProps = (dispatch) => {
 		getAllInfo:()=>{
             return dispatch(getAllInfo())
         }
+       
 	};
 }
 

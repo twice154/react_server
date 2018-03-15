@@ -20,15 +20,8 @@ class LoginComponent extends React.Component {
 		let userId = this.state.userId;
 		let pw = this.state.password;
 		console.log(userId)
-		this.props.onLogin(userId, pw).then(
-			(success) => {
-				if(!success){
-					this.setState({
-						password: ''
-					})
-				}
-			}
-		).catch(err=>{
+		this.props.onLogin(userId, pw)
+		.catch(err=>{
 			console.log(err);
 		})
 	}
