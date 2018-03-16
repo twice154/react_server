@@ -7,7 +7,7 @@
 import React, { Component } from 'react';
 import {VerifyComponent} from '../components/auth'
 import {connect} from 'react-redux'
-import {reSendEmail,cleanCurrentUser} from '../modules/authentication'
+import {reSendEmail} from '../modules/authentication'
 import {emailRequest} from '../modules/register'
 //test를 위한 export선언.
 export class Verify extends Component {
@@ -18,11 +18,11 @@ export class Verify extends Component {
         this.checkEmail=this.checkEmail.bind(this)
     }
 
-    componentDidMount(){
+    componentWillMount(){
             console.log(3)
             this.setState({user:this.props.user})
             console.log(this.props.user)
-					this.props.cleanCurrentUser()
+					// this.props.cleanCurrentUser()
     }
     /**
      * 이메일로 증명 링크를 보낸다.
@@ -73,9 +73,9 @@ const mapDispatchToProps = (dispatch) => {
 		},emailRequest:(email)=>{
             return dispatch(emailRequest(email))
         },
-        cleanCurrentUser:()=>{
-            return dispatch(cleanCurrentUser())
-        }
+        // cleanCurrentUser:()=>{
+        //     return dispatch(cleanCurrentUser())
+        // }
 	};
 };
 

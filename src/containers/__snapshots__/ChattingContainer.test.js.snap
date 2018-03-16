@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChattingContainer test snapshot test snapshot 1`] = `
+<div>
+  <Chatting
+    connectToServer={[Function]}
+    currentUser="g1"
+    disconnect={[Function]}
+    getStatus={[Function]}
+    joinRoom={[Function]}
+    leaveRoom={[Function]}
+    messages={Array []}
+    onMessageSubmit={[Function]}
+    room="1"
+    userId="g1"
+    users={
+      Array [
+        "g1",
+        "g2",
+        "g3",
+      ]
+    }
+  />
+</div>
+`;

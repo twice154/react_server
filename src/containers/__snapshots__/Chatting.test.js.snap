@@ -1,0 +1,168 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`messageForm test snapshot test 로그인 됏을때 1`] = `
+<Chatting
+  connectToServer={[Function]}
+  currentUser="지원"
+  getStatus={[Function]}
+  joinRoom={[Function]}
+  messages={
+    Array [
+      Object {
+        "text": "hig1",
+        "user": "g1",
+      },
+      Object {
+        "text": "hig2",
+        "user": "g2",
+      },
+      Object {
+        "text": "hig3",
+        "user": "g3",
+      },
+    ]
+  }
+  onMessageSubmit={[Function]}
+  users={
+    Array [
+      "g1",
+      "g2",
+      "g3",
+    ]
+  }
+>
+  <div>
+    <Component
+      users={
+        Array [
+          "g1",
+          "g2",
+          "g3",
+        ]
+      }
+    >
+      <div
+        className="users"
+      >
+        <h3>
+          Online Users
+        </h3>
+        <ul>
+          <li
+            key="0"
+          >
+            g1
+          </li>
+          <li
+            key="1"
+          >
+            g2
+          </li>
+          <li
+            key="2"
+          >
+            g3
+          </li>
+        </ul>
+      </div>
+    </Component>
+    <MessageList
+      messages={
+        Array [
+          Object {
+            "text": "hig1",
+            "user": "g1",
+          },
+          Object {
+            "text": "hig2",
+            "user": "g2",
+          },
+          Object {
+            "text": "hig3",
+            "user": "g3",
+          },
+        ]
+      }
+    >
+      <div
+        className="messages"
+      >
+        <h2>
+          Conversation : 
+        </h2>
+        <Component
+          key="0"
+          text="hig1"
+          user="g1"
+        >
+          <div
+            className="message"
+          >
+            <strong>
+              g1
+               :
+            </strong>
+            <span>
+              hig1
+            </span>
+          </div>
+        </Component>
+        <Component
+          key="1"
+          text="hig2"
+          user="g2"
+        >
+          <div
+            className="message"
+          >
+            <strong>
+              g2
+               :
+            </strong>
+            <span>
+              hig2
+            </span>
+          </div>
+        </Component>
+        <Component
+          key="2"
+          text="hig3"
+          user="g3"
+        >
+          <div
+            className="message"
+          >
+            <strong>
+              g3
+               :
+            </strong>
+            <span>
+              hig3
+            </span>
+          </div>
+        </Component>
+      </div>
+    </MessageList>
+    <MessageForm
+      onMessageSubmit={[Function]}
+      user="지원"
+    >
+      <div
+        className="message_form"
+      >
+        <h3>
+          Write new Message
+        </h3>
+        <form
+          onSubmit={[Function]}
+        >
+          <input
+            onChange={[Function]}
+            value=""
+          />
+        </form>
+      </div>
+    </MessageForm>
+  </div>
+</Chatting>
+`;

@@ -101,6 +101,7 @@ exports.userIdcheck = (req, respond) => {
     var urlParameter = url.parse(req.url).pathname.split('/')
     const info = {userId: urlParameter[3]}
     const isEmpty = ( user ) =>{
+        console.log(user)
         return new Promise( (res, reject) => {
             if(!user || !user.userId)
                 respond.json({success:true})
@@ -122,7 +123,6 @@ exports.userIdcheck = (req, respond) => {
     .then(user => isEmpty(user))
     .catch(onError)
 }
-  
 
 /**
  *  @brief  닉네임 중복 체크에 사용할 라우터
@@ -134,6 +134,7 @@ exports.userIdcheck = (req, respond) => {
 exports.nicknamecheck = (req, respond) => {
     var urlParameter = url.parse(req.url).pathname.split('/')
     const info = {userId: urlParameter[3]}
+    console.log(info)
     const isEmpty = ( user ) =>{
         return new Promise( (res, reject) => {
             if(!user || !user.userId)

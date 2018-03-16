@@ -3,7 +3,7 @@ import promiseMiddleware from 'redux-promise-middleware';
 import thunk from 'redux-thunk'
 import MockAdapter from 'axios-mock-adapter'
 import axios from 'axios'
-import { registerRequest,newRegister,emailRequest,idRequest,phoneRequest } from './register';
+import { registerRequest,newRegister,emailRequest,idRequest,phoneRequest,nicknameRequest } from './register';
 import reducers from './register'
 
 
@@ -29,6 +29,8 @@ describe('register test', () => {
         status:'init',
         check:false
     },
+    nickname:{status:'init',
+    check:false}
 }
     describe('actioncreator test',()=>{
         var mock = new MockAdapter(axios);
@@ -39,69 +41,88 @@ describe('register test', () => {
             store.clearActions()
         });
           it('registerRequest should regist data at server', () => {
-              mock.onPost('/api/account/signup').reply(200)
+              mock.onPost('/api/users').reply(200)
               const expectedActions = [{"type": 'REGIST/REGISTER_LOADING'}, {"type": "REGIST/REGISTER_SUCCESS"}]
 
             return store.dispatch(registerRequest()).then(()=>{
                 expect(store.getActions()).toEqual(expectedActions)
-            })
+            }).catch(err=>console.log(err))
             
         })
         it('registerRequest should not regist data at server', () => {
-            mock.onPost('/api/account/signup').networkError()
-            const expectedActions = [{"type": 'REGIST/REGISTER_LOADING'}, {"error": true, "type": "REGIST/REGISTER_FAILURE"}]
+            mock.onPost('/api/users').reply(400,{message:'fail'})
+            const expectedActions = [{"type": 'REGIST/REGISTER_LOADING'}, {"error": true, 'payload':'fail', "type": "REGIST/REGISTER_FAILURE"}]
 
-          return store.dispatch(registerRequest()).catch(()=>{
+          return store.dispatch(registerRequest()).catch((err)=>{
               expect(store.getActions()).toEqual(expectedActions)
+              expect(err).toBe('fail')
           })
           
       })
         it('newRegister should put data to server', () => {
-            mock.onPut('/api/account/userInfo',{id:''}).reply(200)
+            mock.onPut('/api/users/g1/email',{email:'g1@naver.com'}).reply(200)
             const expectedActions = [{"type": 'REGIST/NEWREGIST_LOADING'}, {"type": "REGIST/NEWREGIST_SUCCESS"}]
 
-          return store.dispatch(newRegister({id:''})).then(()=>{
+          return store.dispatch(newRegister({email:'g1@naver.com'},'g1')).then(()=>{
               expect(store.getActions()).toEqual(expectedActions)
-          })
+          }).catch(err=>console.log(err,'1'))
           
 
         })
         it('newRegister should not put data to server', () => {
-            mock.onPut('/api/account/userInfo',{id:''}).networkError()
-            const expectedActions = [{"type": 'REGIST/NEWREGIST_LOADING'}, { "error": true,"type": "REGIST/NEWREGIST_FAILURE"}]
+            mock.onPut('/api/users/g1/email',{email:'g1@naver.com'}).reply(400,{message:'fail'})
+            const expectedActions = [{"type": 'REGIST/NEWREGIST_LOADING'}, { "error": true, 'payload':'fail', "type": "REGIST/NEWREGIST_FAILURE"}]
 
-          return store.dispatch(newRegister({id:''})).catch(()=>{
+          return store.dispatch(newRegister({email:'g1@naver.com'},'g1')).catch((err)=>{
               expect(store.getActions()).toEqual(expectedActions)
+              expect(err).toBe('fail')
           })
           
 
         })
         it('idRequest check id from server', async () => {
-            mock.onPost('/api/account/userIdcheck',{userId:'g1'}).reply(200)
-            const expectedActions = [{"type": 'REGIST/ID_LOADING'}, {"type": "REGIST/ID_SUCCESS"},{"type": "REGIST/ID_LOADING"}, {"error": true, "type": "REGIST/ID_FAILURE"}]
+            mock.onGet('/api/check/duplication/userId/g1').replyOnce(200,{success:true})
+                 .onGet('/api/check/duplication/userId/g1').replyOnce(400,{message:'fail'})
+            const expectedActions = [{"type": 'REGIST/ID_LOADING'}, {"type": "REGIST/ID_SUCCESS"},{"type": "REGIST/ID_LOADING"}, {"error": true, 'payload':'fail', "type": "REGIST/ID_FAILURE"}]
 
-          await store.dispatch(idRequest('g1'))
-          return store.dispatch(idRequest('')).catch(()=>{
+          await store.dispatch(idRequest('g1')).catch(err=>console.log(err))
+          return store.dispatch(idRequest('g1')).catch((err)=>{
             expect(store.getActions()).toEqual(expectedActions)
+            expect(err).toBe('fail')
         })
         })
         it('emailRequest check email from server', async() => {
-            mock.onPost('/api/account/emailcheck',{email:'gq'}).reply(200)
-            const expectedActions = [{"type": 'REGIST/EMAIL_LOADING'}, {"type": "REGIST/EMAIL_SUCCESS"},{"type": "REGIST/EMAIL_LOADING"}, {"error": true, "type": "REGIST/EMAIL_FAILURE"}]
+            mock.onGet('/api/check/duplication/email/g1@naver.com').replyOnce(200,{success:true})
+                .onGet('/api/check/duplication/email/g1@naver.com').replyOnce(400,{message:'fail'})
+            const expectedActions = [{"type": 'REGIST/EMAIL_LOADING'}, {"type": "REGIST/EMAIL_SUCCESS"},{"type": "REGIST/EMAIL_LOADING"}, {"error": true, 'payload':'fail', "type": "REGIST/EMAIL_FAILURE"}]
 
-           await store.dispatch(emailRequest('gq'))
-           await store.dispatch(emailRequest('')).catch(()=>{
+           await store.dispatch(emailRequest('g1@naver.com')).catch(err=>console.log(err))
+           await store.dispatch(emailRequest('g1@naver.com')).catch((err)=>{
             expect(store.getActions()).toEqual(expectedActions)
+            expect(err).toBe('fail')
         })
         })
         
         it('phoneRequest should check phone number from server', async() => {
-            mock.onPost('/api/account/phonecheck',{phone:'000'}).reply(200)
-            const expectedActions = [{"type": 'REGIST/PHONE_LOADING'}, {"type": "REGIST/PHONE_SUCCESS"},{"type": "REGIST/PHONE_LOADING"}, {"error": true, "type": "REGIST/PHONE_FAILURE"}]
+            mock.onGet('/api/check/duplication/phone/000-0000-0000').replyOnce(200,{success:true})
+                .onGet('/api/check/duplication/phone/000-0000-0000').replyOnce(400,{message:'fail'})
+            const expectedActions = [{"type": 'REGIST/PHONE_LOADING'}, {"type": "REGIST/PHONE_SUCCESS"},{"type": "REGIST/PHONE_LOADING"}, {"error": true, 'payload':'fail', "type": "REGIST/PHONE_FAILURE"}]
 
-           await store.dispatch(phoneRequest('000'))
-           await store.dispatch(phoneRequest('')).catch(()=>{
+           await store.dispatch(phoneRequest('000-0000-0000')).catch(err=>console.log(err))
+           await store.dispatch(phoneRequest('000-0000-0000')).catch((err)=>{
             expect(store.getActions()).toEqual(expectedActions)
+            expect(err).toBe('fail')
+        })
+        })
+        it('nicknameREquest should check nickname at server', async() => {
+            mock.onGet('/api/check/duplication/nickname/g1').replyOnce(200,{success:true})
+                .onGet('/api/check/duplication/nickname/g1').replyOnce(400,{message:'fail'})
+            const expectedActions = [{"type": 'REGIST/NICKNAME_LOADING'}, {"type": "REGIST/NICKNAME_SUCCESS"},{"type": "REGIST/NICKNAME_LOADING"}, {"error": true, 'payload':'fail', "type": "REGIST/NICKNAME_FAILURE"}]
+
+           await store.dispatch(nicknameRequest('g1')).catch(err=>console.log(err))
+           await store.dispatch(nicknameRequest('g1')).catch((err)=>{
+            expect(store.getActions()).toEqual(expectedActions)
+            expect(err).toBe('fail')
         })
         })
 

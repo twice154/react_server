@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChangeInfo test snapshot test typeName==password 1`] = `
+<div>
+  새로운 
+  password
+  을 입력하세요.
+  <div
+    className="card container"
+  >
+    <ChangeInfoPwd
+      submit={[Function]}
+    />
+  </div>
+</div>
+`;
+
+exports[`ChangeInfo test snapshot test typeName==phone 1`] = `
+<div>
+  새로운 
+  email
+  을 입력하세요.
+  <div
+    className="card container"
+  >
+    <ChangeInfoComponent
+      submit={[Function]}
+      typeName="email"
+      value="g1"
+    />
+  </div>
+</div>
+`;

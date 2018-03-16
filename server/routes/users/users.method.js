@@ -205,6 +205,56 @@ exports.sendmail = (info) => {
 		})
 	})
 }
+exports.groupCheck = (user, groupUrl) => {
+	return new Promise((res, reject)=>{
+		var data = {}
+		var temp = {}
+		switch(groupUrl){
+			case 'modification':
+				temp = {userId: user.userId,
+						email:	user.email,
+						phone:	user.phone,
+						name:	user.name,
+						nickname:	user.nickname,
+						birth:	user.birth,
+						gender:	user.gender}
+				data = Object.assign(data,temp)
+				break;
+		}
+		res(data)
+	})
+}
+exports.userIdCheck = (info, idUrl) => {
+	console.log('userid check')
+	return new Promise( (res, reject) =>{
+	
+		if (info.userId == undefined){
+			reject({
+				success: false,
+				status: 400,
+				message: "userId was undefined"
+			})
+		}
+		else if( idUrl == undefined ){
+			reject({
+				success: false,
+				status: 400,
+				message: "need userId in parameter"
+			})
+		}
+		else if( info.userId != idUrl){
+			reject({
+				success: false,
+				status: 400,
+				message: "user id was not matched"
+			})
+		}
+		else{
+			res(info)
+		}
+
+	})
+}
 
 
 

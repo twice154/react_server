@@ -24,7 +24,8 @@ const secret = require('../../config').secret
 const secret2 = "ChocoPi"
 const tempTokenize = require('./users.method').tempTokenize
 const fieldCheck = require('./users.method').fieldCheck
-
+const userIdCheck = require('./users.method').userIdCheck
+const groupCheck = require('./users.method').groupCheck
 
 
 
@@ -202,30 +203,30 @@ exports.putUsers = (req, res) => {
  *  @return	No Return
  */
 exports.getUsers = (req, res) => {
+	const info = {}
+	const group = req.query.group
+	const urlParameter = url.parse(req.url).pathname.split('/')
+	info.userId = req.decoded.userId
+
+	
 	const onError = (error) => {
-		res.status(409).json({
+		res.status(error.status).json({
+			success: error.success,
 			message: error.message
 		})
 	}
-	const onRespond = (user) => {
-		res.json({
-			userId: user.userId,
-			email: user.email,
-			phone: user.phone,
-			name: user.name,
-			nickname: user.nickname,
-			birth: user.birth
-		})
+
+	const onRespond = (msg) => {
+		res.json({success: true, data: msg})
 	}
 	
 	//
 	//  Promise Chain
 	//
-	var info = req.body
-	info.userId = req.decoded.userId
-	
-	User.findOneByUserid(info)	//토큰에서 검출한 ID를 이용하여 유저 탐색
-	.then( user => onRespond(user) )
+	userIdCheck(info, urlParameter[1])
+	.then(info => User.findOneByUserid(info))
+	.then( user => groupCheck(user, group))
+	.then( msg => onRespond(msg) )
 	.catch(onError)
     
 }

@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FindPwd test snapshot 1`] = `
+<div>
+  <div
+    className="card-content"
+  >
+    <div
+      className="row"
+    >
+      <div
+        className="input-field col s12 username"
+      >
+        <label>
+          ID
+        </label>
+        <input
+          className="validate"
+          name="id"
+          onChange={[Function]}
+          type="text"
+          value="g1"
+        />
+      </div>
+      <div
+        className="input-field col s12"
+      >
+        <label>
+          email
+        </label>
+        <input
+          className="validate"
+          name="email"
+          onChange={[Function]}
+          onKeyPress={[Function]}
+          type="text"
+          value="jwc2094@naver.com"
+        />
+      </div>
+      <a
+        className="waves-effect waves-light btn"
+        onClick={[Function]}
+      >
+        SUBMIT
+      </a>
+    </div>
+  </div>
+</div>
+`;

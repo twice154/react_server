@@ -7,8 +7,8 @@
 import React from 'react';
 import {BrowserRouter, Route, Switch} from 'react-router-dom';
 import {HeaderContainer, Login,Find, Verify, Verified, Register, StreamingListContainer,
-        StreamingView,SpeedTestContainer, MoonlightContainer,Settings, ChangeInfo, PwdCheck} from './containers';
-import {PwdChange} from './containers/auth'
+        StreamingView,SpeedTestContainer, MoonlightContainer,Settings, ChangeInfo, PwdCheck, Broadcasting} from './containers';
+
 import {Payment} from './components';
 import {Provider} from 'react-redux';
 import store from './store';
@@ -37,7 +37,7 @@ const App = ()=>(
         <Switch>
             <Route path="/" exact component={StreamingListContainer}/>
             <Route path='/verify' component={Verify}/>
-            <Route path='/verified' component={Verified}/>
+            <Route path='/verified/:token' component={Verified}/>
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />
             <Route path='/find' component={Find}/>
@@ -48,7 +48,8 @@ const App = ()=>(
             <Route path='/settings' exact component={Settings}/>
             <Route path='/settings/:typename' component={ChangeInfo}/>
             <Route path='/pwdcheck/:typename' component={PwdCheck}/>
-            <Route paht='/pwdchange' component={PwdChange}/>
+            <Route path='/broadcast' component={Broadcasting}/>
+            {/* <Route path='/newpassword/:token' component={}/> */}
         </Switch> 
     </div>
 )

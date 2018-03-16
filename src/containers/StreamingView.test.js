@@ -1,12 +1,14 @@
 import React from 'react';
 import { shallow} from 'enzyme';
 import StreamingView from './StreamingView'
-import {MemoryRouter} from 'react-router-dom'
 
 
 /**
- * streamingView가 match를 포함하고 있기 때문에..
+ * streamingView의 하위 컴포넌트가 store를 포함하고 있기 때문에 mount사용 불가.
  */
-it('renders without crashing', () => {
-  shallow(<MemoryRouter><StreamingView /></MemoryRouter>);
-});
+describe('Streaming veiw test',()=>{
+var wrapper =  shallow(<StreamingView match={{params:{streamname:'a'}}}/>);
+  it('snapshot test',()=>{
+    expect(wrapper).toMatchSnapshot()
+  })
+})

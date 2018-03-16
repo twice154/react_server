@@ -23,7 +23,7 @@ const GET_ALLINFO_SUCCESS = "AUTH/GET_ALLINFO_SUCCESS";
 const GET_ALLINFO_FAILURE = "AUTH/GET_ALLINFO_FAILURE";
 
 const LOGOUT = "AUTH/LOGOUT";
-const CLEAN = 'AUTH/CLEAN'
+// const CLEAN = 'AUTH/CLEAN'
 
 const FINDID = 'AUTH/FINDID'
 const FINDID_LOADING = 'AUTH/FINDID_LOADING'
@@ -31,9 +31,9 @@ const FINDID_SUCCESS = 'AUTH/FINDID_SUCCESS'
 const FINDID_FAILURE = 'AUTH/FINDID_FAILURE'
 
 const FINDPWD = 'AUTH/FINDPWD'
-// const FINDPWD_LOADING = 'AUTH/FINDPWD_LOADING'
-// const FINDPWD_SUCCESS = 'AUTH/FINDPWD_SUCCESS'
-// const FINDPWD_FAILURE = 'AUTH/FINDPWD_FAILURE'
+const FINDPWD_LOADING = 'AUTH/FINDPWD_LOADING'
+const FINDPWD_SUCCESS = 'AUTH/FINDPWD_SUCCESS'
+const FINDPWD_FAILURE = 'AUTH/FINDPWD_FAILURE'
 
 const RESENDEMAIL ='AUTH/RESENDEMAIL'
 
@@ -42,6 +42,7 @@ const PWDVERIFIED_LOADING = 'AUTH/PWDVERIFIED_LOADING'
 const PWDVERIFIED_SUCCESS = 'AUTH/PWDVERIFIED_SUCCESS'
 const PWDVERIFIED_FAILURE = 'AUTH/PWDVERIFIED_FAILURE'
 
+const VERIFY ='AUTH/VERIFY'
 /** 
  * login: 로그인 성공,실패 상태
  * status :상태를 받아옴, 로그인됬는지, 유효한지, 현재 유저는 누구인지.
@@ -59,6 +60,9 @@ const initialState = Map({
     findId: Map({
         gottenId:''
     }),
+    findPwd: Map({
+        message:''   
+    }),
     allInfo: Map({}),
     pwdVerified:false
 
@@ -72,63 +76,91 @@ const initialState = Map({
  * @var {object} res.data :{verified: boolean} -이메일 인증이 되었는지
  */
 function loginApiRequest(userId, password){
-    return axios.post('/api/account/signin', {userId, password})
+    return axios.post('/api/auth', {userId, password})
             .then((res)=> {
+                if(res.data.success){
                 return Promise.resolve(
-                {userId,verified:res.data.verified})})
-            .catch((err)=> Promise.reject())
-}
+                {userId,verified:res.data.data.verified})}
+                else{
+                    return Promise.reject(res.data.message)
+                }
+            },(err)=>{
+                return Promise.reject(err.response.data.message)}
+            )
+           
+            }
+           
 
 /** 
  * 로그인 된 상태를 얻어온다.
  * @return {object} res.data.info :{userId : string} - 로그인 되어있으면 userId를 받아온다.
  */
 function getStatusApiRequest(){
-    return axios.get('/api/account/getinfo')
-            .then((res)=>(Promise.resolve(res.data.info.userId)))
-            .catch(err=>(Promise.reject()))
+    return axios.get('/api/auth')
+            .then((res)=>(Promise.resolve(res.data.data.userId)))
+            .catch(err=>(Promise.reject(err.response.data.message)))
 }
 /**db에 담긴 모든 데이터를 받아온다
  * @param {res.data.info} {object}- 로그인 된 유저의 모든 db정보를 받아온다. pwd제외.
  */
-function getAllInfoRequest(){
-    console.log('ㅇㅣㄹ')
-       return axios.get('/api/account/userInfo')
+function getAllInfoRequest(userId){
+       return axios.get(`/api/users/rltjqdl1138?group=modification`)
             .then((res)=>{
-                console.log(res.data)
                 return Promise.resolve(res.data)})
-            .catch(err=>(Promise.reject()))
+            .catch(err=>Promise.reject(err.response.data.message))
 }
 /**
- * 아이디 찾기.
+ * 아이디 찾기. userId를 받아온다.
  * @param {*} name 
  * @param {*} email 
  */
-function findIdRequest(name,email){//todo: dispatch를 안했는데도 실행이 됨.... 2.24
-   return axios.post('/api/account/findId',{name,email})
-            .then((res)=>Promise.resolve(res.data.userId))
-            .catch(()=>Promise.reject())
+function findIdRequest(name,email){
+    var nameEnc = btoa(name)
+    var emailEnc = btoa(email)
+   return axios.get(`/api/recovery/userid?name=${nameEnc}&email=${emailEnc}`)
+            .then((res)=>{
+                if(res.data.success)
+                   { return Promise.resolve(res.data.data.userId)}
+                else {console.log(res)
+                    return Promise.reject(res.data.message)}
+            },(err)=>Promise.reject(err.response.data.message))
+            
     
      
 }
 
-/** 비밀번호 찾기. ->메일로 링크 쏴주기 ->비밀번호 바꾸는 창으로 감 */
-export function findPwd(id,email){
-    return axios.post('/api/account/findPwd',{id,email})
-            .then(()=>Promise.resolve())
-            .catch(()=>Promise.reject())
-
-
+/** 비밀번호 찾기. ->메일로 링크 쏴주기 ->비밀번호 바꾸는 창으로 감 
+ * @param {string} id
+ * @param {string} email
+ */
+function findPwdRequest(userId,email){
+        return axios.put(`/api/recovery/password/${userId}/`,{userId,email})
+                .then((res)=>{
+                    if(res.data.success){
+                        return Promise.resolve(res.data.message)
+                    }else{
+                        return Promise.reject(res.data.message)
+                    }
+                },(err)=>Promise.reject(err.response.data.message))
+                
+     
     }
       
  
 /** 현재 비밀번호를 확인하는 함수
- * 
+ * @param {string} pwd - password
  */
 function pwdVerifyRequest(pwd){
-   return axios.post('/api/account/verified',{password:pwd})
-            .then((res)=>Promise.resolve())
-            .catch((err)=>Promise.reject())
+    var enc = btoa(pwd)
+   return axios.get(`/api/check/verification/password?${enc}`)
+            .then((res)=>{
+                if(res.data.success){
+                    return  Promise.resolve()
+                }else{
+                    return Promise.reject(res.data.message)
+                }
+               
+            }, (err)=>Promise.reject(err.response.data.message))
 }
      
  
@@ -140,21 +172,36 @@ function pwdVerifyRequest(pwd){
  */
 export function reSendEmail(email,userId) {
     return (dispatch)=>{
-        return axios.post('/api/account/resend',{email,userId})
-            .then(dispatch({type: RESENDEMAIL})
-            );
+        return axios.put(`/api/recovery/email/${userId}`,{email,userId})
+            .then(()=>{console.log('hi'); dispatch({type: RESENDEMAIL})}
+            )
+            .catch((err)=>{
+                console.log(err.response.data.message)
+                return Promise.reject(err.response.data.message)})
     };
 }
 /** 로그아웃*/
 export function logoutRequest() {
     return (dispatch) => {
-        return axios.post('/api/account/logout')
-            .then(dispatch({type: LOGOUT}));
+        return axios.delete('/api/auth')
+            .then(dispatch({type: LOGOUT}))
+            .catch(err=>Promise.reject(err));
     };
 }
-export function cleanCurrentUser(){
-    return (dispatch)=>Promise.resolve(dispatch({type: CLEAN}))
+// /**verify로 갈때는 로그인이 되어있으면 안되기 때문에. */
+// export function cleanCurrentUser(){
+//     return (dispatch)=>Promise.resolve(dispatch({type: CLEAN}))
+// }
+/**
+ * 이메일 인증 메소드.
+ * @param {string} token -인증 되었다는 토큰
+ * @param {string} userId -현재 로그인 되어있던 유저.
+ */
+export function verify(token,userId){
+    return (dispatch)=>axios.put(`/api/user/${userId}/verification?token=${token}`).then(dispatch({type:VERIFY}))
+                            .catch(err=>Promise.reject(err.response.data.message))
 }
+
 
 export const loginRequest = (userId, password)=>({
     type: LOGIN,
@@ -176,6 +223,11 @@ export const findId = (name,email)=>({
     payload: findIdRequest(name,email)
 })
 
+export const findPwd = (userId,email)=>({
+    type: FINDPWD,
+    payload: findPwdRequest(userId,email)
+})
+
 export const pwdVerify = (pwd)=>({
     type: PWDVERIFIED,
     payload: pwdVerifyRequest(pwd)
@@ -185,7 +237,6 @@ export const pwdVerify = (pwd)=>({
 
 export default handleActions({
     [LOGIN_LOADING]: (state, action)=>{
-        console.log(state)
         return state.setIn(['login', 'status'], 'WAITING'); 
     },
 
@@ -229,9 +280,9 @@ export default handleActions({
     [RESENDEMAIL]: (state,action)=>{
         return state
     },
-    [CLEAN]: (state,action)=>{
-        return state.setIn(['status','currentUser'],'')
-    },
+    // [CLEAN]: (state,action)=>{
+    //     return state.setIn(['status','currentUser'],'')
+    // },
     [FINDID_LOADING]:(state,action)=>{
         return state.setIn(['findId','gottenId'],'')
     },
@@ -241,8 +292,14 @@ export default handleActions({
     [FINDID_FAILURE]: (state,action)=>{
         return state.setIn(['findId','gottenId'],'')
     },
-    [FINDPWD]:(state,action)=>{
+    [FINDPWD_LOADING]:(state,action)=>{
         return state
+    },
+    [FINDPWD_SUCCESS]:(state,action)=>{
+        return state.setIn(['findPwd','message'],action.payload)
+    },
+    [FINDPWD_FAILURE]:(state,action)=>{
+        return state.setIn(['findPwd','message'],action.payload)
     },
     [PWDVERIFIED_LOADING]:(state,action)=>{
         return state.set('pwdVerified', false)
@@ -252,6 +309,9 @@ export default handleActions({
     },
     [PWDVERIFIED_FAILURE]:(state,action)=>{
         return state.set('pwdVerified', false)
+    },
+    [VERIFY]:(state,action)=>{
+        return state
     }
 
 }, initialState)

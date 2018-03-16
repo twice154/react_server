@@ -11,7 +11,7 @@ import {connect} from 'react-redux';
 import {logoutRequest, getStatusRequest} from '../modules/authentication';
 
 
-class HeaderContainer extends React.Component{
+export class HeaderContainer extends React.Component{
 
 	constructor(props){
 		super(props);
@@ -24,7 +24,7 @@ class HeaderContainer extends React.Component{
 		this.props.logoutRequest().then(
 			()=> {
 				window.Materialize.toast('Good Bye!', 2000);
-
+				this.props.history.push('/')
 			}
 		)
 	}
@@ -32,12 +32,7 @@ class HeaderContainer extends React.Component{
 
 
 	componentDidMount(){
-		
-		this.props.getStatusRequest().then(
-			()=> {
-				
-			}
-		)
+		this.props.getStatusRequest()
 		.catch((err)=>{
 			console.log('not logined');
 		})
@@ -58,7 +53,6 @@ class HeaderContainer extends React.Component{
 				{isAuth ? undefined: <Header isLoggedIn={this.props.status.get('isLoggedIn')}
 												onLogout={this.handleLogout}
 												currentUser={currentUser}/>}
-				{currentUser}
 			</div>
 		);
 	}

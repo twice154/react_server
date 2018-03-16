@@ -13,8 +13,10 @@ import Verified from './Verified'
 import Settings from './Settings'
 import ChangeInfo from './ChangeInfo'
 import PwdCheck from './PwdCheck'
+import Chatting from './Chatting';
+import Broadcasting from './Broadcasting'
 //import asyncRoute from 'lib/asyncRoute';
 
-export {HeaderContainer,Login, Find, Verify, Verified,  StreamingView, Register, StreamingPlayerContainer, SpeedTestContainer,
-     StreamingListContainer, MoonlightContainer, ChattingContainer, Settings, ChangeInfo, PwdCheck};
+export {Broadcasting, HeaderContainer,Login, Find, Verify, Verified,  StreamingView, Register, StreamingPlayerContainer, SpeedTestContainer,
+     StreamingListContainer,Chatting, MoonlightContainer, ChattingContainer, Settings, ChangeInfo, PwdCheck};
 //export const Login = asyncRoute(() =>import("containers/Login"))																

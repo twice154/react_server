@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SpeedTest test snapshot test client가 없을때 1`] = `
+<div>
+  init
+  <form>
+    <input
+      defaultValue="networkTest"
+      onClick={[Function]}
+      type="BUTTON"
+    />
+  </form>
+</div>
+`;
+
+exports[`SpeedTest test snapshot test client가 있을때 1`] = `
+<div>
+  init
+  <form>
+    <input
+      defaultValue="networkTest"
+      onClick={[Function]}
+      type="BUTTON"
+    />
+  </form>
+  <ul>
+    <li>
+      ip: 
+      125.0.0.1
+    </li>
+    <li>
+      download: 
+      100
+    </li>
+    <li>
+      upload: 
+      100
+    </li>
+    <li>
+      ping: 
+      10
+    </li>
+  </ul>
+</div>
+`;

@@ -6,9 +6,9 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {RegisterComponent} from '../components/auth'
-import {idRequest,emailRequest,registerRequest} from '../modules/register';//todo
+import {idRequest,emailRequest,registerRequest, phoneRequest} from '../modules/register';//todo
 
-class Register extends React.Component {
+export class Register extends React.Component {
 
 	constructor(props){
 		super(props);
@@ -40,7 +40,9 @@ class Register extends React.Component {
 			() => {
 				console.log(this.props.status)
 				if(this.props.status === "SUCCESS"){
+					console.log('hihi')
 					window.Materialize.toast("SUCCESS! Please log in", 2000);
+					console.log('2')
 					this.props.history.push('/login');
 					return true;
 				}
@@ -58,13 +60,13 @@ class Register extends React.Component {
 		 * @var emailState - 사용가능한아이디입니다 / 아이디가 이미 사용중입니다.
 	 * 
 	 */
-	checkId(id){
+	async checkId(id){
 		console.log(id)
 		if(id===''){
 			this.setState({idState:'아이디를입력해주세요', idCheck:this.props.idCheck})
 			return 0;
 		}
-		this.props.idRequest(id).then(()=>{
+		await this.props.idRequest(id).then(()=>{
 			this.setState({idState:this.props.idState, idCheck:this.props.idCheck})
 		}).catch(()=>{
 			this.setState({idState:this.props.idState, idCheck:this.props.idCheck})
@@ -77,36 +79,35 @@ class Register extends React.Component {
 		 * @param {*} email 
 		 * @var emailState - 사용가능한이메일입니다 / 이메일이 이미 사용중입니다.
 		 */
-	checkEmail(email){
+	async checkEmail(email){
 		console.log(email)
 		if(email===''){
 			this.setState({emailState:'이메일을입력해주세요', emailCheck:this.props.emailCheck})
 			return 0;
 		}
-		this.props.emailRequest(email).then(()=>{
+		await this.props.emailRequest(email).then(()=>{
 			console.log('Elkdnfk')
 			this.setState({emailState:this.props.emailState, emailCheck:this.props.emailCheck})
 		}).catch(()=>{
+			console.log('hihihi')
 			this.setState({emailState:this.props.emailState, emailCheck:this.props.emailCheck})
 		})
 	
 	}
-	checkPhone(phone){
-			console.log(this.state.phone)
-			if(check.length<12){
+	async checkPhone(phone){
+			console.log(phone)
+			if(phone.length<12){
 				alert('정확한 길이의 번호를 입력하세요')
 				return 0;
 			}
-			this.props.checkPhone(this.state.phone).then(()=>{
+		await this.props.phoneRequest(phone).then(()=>{
 				this.setState({phoneCheck:this.props.phoneCheck})
 			})
-	
-
 	}
 	render(){
 		return (
 			<div>
-				< RegisterComponent onRegister={this.handleRegister} checkId={this.checkId} checkEmail={this.checkEmail}
+				< RegisterComponent onRegister={this.handleRegister} checkId={this.checkId} checkEmail={this.checkEmail} checkPhone={this.checkPhone}
 									emailStatus={this.state.emailState} idStatus={this.state.idState} idCheck={this.state.idCheck}
 									emailCheck={this.state.emailCheck} phoneCheck={this.state.phoneCheck}/>
 			</div>
@@ -134,6 +135,9 @@ const mapDispatchtoProps = (dispatch) => {
 		},
 		emailRequest: (email)=>{
 			return dispatch(emailRequest(email))
+		},
+		phoneRequest: (phone)=>{
+			return dispatch(phoneRequest(phone))
 		}
 	};
 };

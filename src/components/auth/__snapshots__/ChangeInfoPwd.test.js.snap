@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChangeInfoPwd test snapshot 1`] = `
+<div
+  className="card container"
+>
+  <div
+    className="input-field col s12"
+  >
+    <label>
+      Password 
+    </label>
+    <i>
+      안전한 비밀번호입니다.
+    </i>
+    <input
+      className="validate"
+      name="password"
+      onChange={[Function]}
+      onKeyUp={[Function]}
+      type="password"
+      value="54375437!"
+    />
+  </div>
+  <div
+    className="input-field col s12"
+  >
+    <label>
+      Passsword check
+    </label>
+    <i>
+      비밀번호가 같습니다.
+    </i>
+    <input
+      className="validate"
+      name="passwordCheck"
+      onChange={[Function]}
+      onKeyUp={[Function]}
+      type="password"
+      value="54375437!"
+    />
+  </div>
+  <button
+    onClick={[Function]}
+  >
+    완료
+  </button>
+</div>
+`;

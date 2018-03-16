@@ -1,0 +1,202 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RegisterComponent Test snapShot test 1`] = `
+<div
+  className="container auth"
+>
+  <Link
+    className="logo"
+    replace={false}
+    to="/"
+  >
+    5437
+  </Link>
+  <div
+    className="card"
+  >
+    <div
+      className="header blue white-text center"
+    >
+      <div
+        className="card-content"
+      >
+        REGISTER
+      </div>
+    </div>
+    <div>
+      <div
+        className="card-content"
+      >
+        <div
+          className="row"
+        >
+          <div
+            className="input-field col s12 username"
+          >
+            <label>
+              Id
+            </label>
+            <i>
+              hdifhih
+            </i>
+            <input
+              className="validate"
+              name="userId"
+              onBlur={[Function]}
+              onChange={[Function]}
+              type="text"
+              value="g1"
+            />
+          </div>
+          <div
+            className="input-field col s12"
+          >
+            <label>
+              Password 
+            </label>
+            <i>
+              안전한 비밀번호입니다.
+            </i>
+            <input
+              className="validate"
+              name="password"
+              onChange={[Function]}
+              onKeyUp={[Function]}
+              type="password"
+              value="54375437!"
+            />
+          </div>
+          <div
+            className="input-field col s12"
+          >
+            <label>
+              Passsword check
+            </label>
+            <i>
+              비밀번호가 같습니다.
+            </i>
+            <input
+              className="validate"
+              name="passwordCheck"
+              onChange={[Function]}
+              onKeyUp={[Function]}
+              type="password"
+              value="54375437!"
+            />
+          </div>
+          <div
+            className="input-field col s12 "
+          >
+            <label>
+              이름
+            </label>
+            <input
+              className="validate"
+              name="name"
+              onChange={[Function]}
+              type="text"
+              value="g1"
+            />
+          </div>
+          <div
+            className="input-field col s12 "
+          >
+            <label>
+              생년월일
+            </label>
+            <input
+              className="validate"
+              name="birth"
+              onChange={[Function]}
+              type="text"
+              value="950613"
+            />
+          </div>
+          <div
+            className="input-field col s12 "
+          >
+            <select
+              name="gender"
+              onChange={[Function]}
+              value="F"
+            >
+              <option
+                disabled={true}
+                value=""
+              >
+                성별
+              </option>
+              <option
+                value="M"
+              >
+                남자
+              </option>
+              <option
+                value="F"
+              >
+                여자
+              </option>
+            </select>
+          </div>
+          <div
+            className="input-field col s12 "
+          >
+            <label>
+              이메일
+            </label>
+            <i />
+            <input
+              className="validate"
+              name="email"
+              onChange={[Function]}
+              type="text"
+              value="jwc2094@naver.com"
+            />
+          </div>
+          <div
+            className="input-field col s12 "
+          >
+            <label />
+            <button
+              onClick={[Function]}
+            >
+              이메일체크
+            </button>
+          </div>
+          <div
+            className="input-field col s12 "
+          >
+            <label>
+              휴대폰
+            </label>
+            <input
+              className="validate"
+              maxLength="13"
+              name="phone"
+              onChange={[Function]}
+              type="text"
+              value="000-0000-0000"
+            />
+          </div>
+          <div
+            className="input-field col s12 "
+          >
+            <label />
+            <button
+              onClick={[Function]}
+            >
+              폰번호체크
+            </button>
+          </div>
+          <a
+            className="waves-effect waves-light btn"
+            onClick={[Function]}
+          >
+            CREATE
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
