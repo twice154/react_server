@@ -33,6 +33,7 @@ var clients = {}; //TODO: Change this part to using db later
 var serverForConneto = net.createServer();  //For Many Conneto clients 
 var serverForWebServer = net.createServer();  //For only one Web server
 var socketForWebServer;
+var pairedClients = {};
 
 let connetoSocketHandler = {
 	
@@ -147,6 +148,29 @@ let connetoSocketHandler = {
 		}
 
 		if(message.header.dest === 'WEB'){
+			let hostIpaddress = message.body.hostIpaddress;
+			var userId = message.body.userId;
+			if(message.header.command === 'addHost'&& message.header.statusCode === 200){
+				if(pairedClients[hostIpaddress]){
+					pairedClients[hostIpaddress]['connetable'].push(userId);
+				}
+				else{
+					pairedClients[hostIpaddress] = {connetable: [userId], unconnetable:[], waiting: []};
+				}
+			}
+			if(message.header.command === 'getClients'){
+				if(!pairedClients[hostIpaddress]['waiting'].includes(userId)){
+					throw new Error('we need a new Error type');
+				}
+				var index = pairedClients[hostIpaddress]['waiting'].indexOf(userId);
+				delete pairedClients[hostIpaddress]['waiting'][index];
+				if(message.header.statusCode === 200){
+					pairedClients[hostIpaddress]['connetable'].push(userId);
+				}
+				else if(message.header.statusCode == 400){
+					pairedClients[hostIpaddress]['unconnetable'].push(userId);
+				}
+			}
 			exports.sendMsg(socketForWebServer, message);			
 		}
 		else if(message.header.dest === 'DB'){
@@ -298,29 +322,67 @@ let webServerSocketHandler = {
 		}
 		var userId = message.body.userId;
 		console.log(userId);
+
 		
 		exports.getConnetoSocket(message.body.userId).then((socketForConneto) => {
 			if (!socketForConneto) {
 				console.log("Conneto of " + userId + " is offline");
-				if(message.header.command === "getStatus"){
-					return exports.sendMsg(socketForWebServer, {
-						header: {
-							type: 'Response',
-							token: '',
-							command: 'getStatus',
-							source:'CONNETO',
-							dest: 'WEB',
-							statusCode: 400	
-						},
-						body:{
-							userId
+				switch(message.header.command){
+					case 'getStatus':
+						return exports.sendMsg(socketForWebServer, {
+							header: {
+								type: 'Response',
+								token: '',
+								command: 'getStatus',
+								source: 'CONNETO',
+								dest: 'WEB',
+								statusCode: 400
+							},
+							body: {
+								userId
+							}
+						})
+					case 'getClients':
+						var hostIpaddress = message.body.hostIpaddress;
+						var msg = {
+							header: {
+								type: 'Response',
+								token: '',
+								command: 'getClients',
+								source: 'CONNETO',
+								dest: 'WEB'
+							},
+							body: {
+								userId,
+								hostIpaddress: message.body.hostIpaddress
+							}
 						}
-					})
+						if (!pairedClients[message.body.hostIpaddress]) {
+							msg.header.statusCode = 400;
+						}
+						else {
+							var totalClients = pairedClients[hostIpaddress]['connetable'].concat(pairedClients[hostIpaddress]['unconnetable']);
+							
+							pairedClients[hostIpaddress]['connetable'] = [], pairedClients[hostIpaddress]['unconnetable']=[],
+							pairedClients[hostIpaddress]['waiting'] = [];
+							pairedClients[hostIpaddress]['waiting'] = totalClients.filter(function (clientId) {
+								var socketForUser = getConnetoSocket(clientId);
+								if(!socketForUser){
+									pairedClients[hostIpaddress]['unconnetable'].push(clientId);
+									return false;
+								}
+								exports.sendMsg(socketForUser, msg);
+								return true;
+							});
+						}
+					break;
+
+					default:
+						return exports.sendMsg(socketForWebServer, {
+							error: 1,
+							status: false
+						});	
 				}
-				return exports.sendMsg(socketForWebServer, {
-					error: 1, 
-					status: false
-				});
 			}
 			if (message.header.dest === 'CONNETO') {
 				
@@ -358,6 +420,7 @@ serverForWebServer.on('connection', webServerSocketHandler.connection);
 serverForWebServer.on('error', function(err){
 	console.log('error on portForWebServer: ' + err);
 });
+
 
 
 /**

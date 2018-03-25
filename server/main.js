@@ -11,10 +11,13 @@ import api from './routes';
 import fs from 'fs';
 import http from 'http';
 import socket_io from 'socket.io';
+import net from 'net';
 
 const app = express();
 const port = 3000;
 const devPort = 4000;
+const portForCentralServer = 4002;
+var connectRegularly;
 
 const dbServer = orientDB({
     host: 'localhost',
@@ -31,6 +34,7 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use('/api', api);
+app.io = io;
 
 var resourceDirectory = "";
 if(process.env.NODE_ENV === 'development'){
@@ -54,6 +58,39 @@ app.use(function (err, req, res, next) {
 server.listen(port, () => {
     console.log('Express is listening on port', port);
 });
+
+/**
+ * @description function used for connect to central server, it uses tcp
+ * and register event handlers when connected. Also, if error occured or connection is closed, it tries connecting to it repeatedly with some time interval (3000ms default) 
+ * @param {number} interval- time interval it retries connection in, unit is ms
+ */
+function connectToCentralServer(interval) {
+    let socketForCentralServer = net.connect(portForCentralServer, "localhost", function () {
+        console.log("Connection to Central Server Success!!");
+        app.socketForCentralServer = socketForCentralServer;
+        if (connectRegularly) {
+            clearInterval(connectRegularly);
+            connectRegularly = null;
+        }
+        
+
+        socketForCentralServer.on('close', function () {
+            console.log('Connection to Central Server closed');
+            if (!connectRegularly) {
+                connectRegularly = setInterval(connectToCentralServer, interval);
+            }
+        });
+        socketForCentralServer.on('data', commandHandler);
+    });
+    socketForCentralServer.on('error', function (err) {
+        //console.log('err occured while connecting');
+        if (!connectRegularly) {
+            connectRegularly = setInterval(connectToCentralServer, interval);
+        }
+    });
+}
+connectToCentralServer(3000);
+
 /*if (process.env.NODE_ENV == 'development') {
     console.log('Server is running on development mode');
     const config = require('../webpack.dev.config');

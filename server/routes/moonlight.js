@@ -1,12 +1,14 @@
 /**
  * @file api backend router for handling process related to Conneto
  * @author SSH
- * @description router name& method changed: POST /api/moonlight/checkstatus => GET /api/users/conneto/status
- *  										 POST /api/moonlight/gethosts => GET /api/users/conneto/hosts
- * 											 POST /api/moonlight/addhost => POST /api/users/conneto/hosts
- * 											 POST /api/moonlight/getapps => GET /api/users/conneto/apps
- * 											 POST /api/moonlight/startgame => POST /api/users/conneto/apps
- * 											 	
+ * @description router name& method changed: POST /api/moonlight/checkstatus => GET /api/{userId}/conneto/status
+ *  										 POST /api/moonlight/gethosts => GET /api/{userId}/conneto/hosts
+ * 											 POST /api/moonlight/addhost => POST /api/{userId}/conneto/hosts
+ * 											 POST /api/moonlight/getapps => GET /api/{userId}/conneto/apps
+ * 											 POST /api/moonlight/startgame => POST /api/{userId}/conneto/apps
+ * 				new router: 				 GET /api/{userId}/conneto/connetables: returns list of users satisfying 2 conditions:
+ * 																				1. the user's conneto is online & paired with bj's G.E
+ * 																				2. the user is currently watching the bj's streaming  
  */
 
 import express from 'express';
@@ -14,40 +16,14 @@ import net from 'net';
 import axios from 'axios';
 
 const router = express.Router();
-var httpResponses = {getStatus:{}, getHosts: {}, getApps: {}, addHost: {}, startGame:{}};
-var portForCentralServer = 4002;
-var socketForCentralServer;
-var connectRegularly;
-
-/**
- * @description function used for connect to central server, it uses tcp
- * and register event handlers when connected. Also, if error occured or connection is closed, it tries connecting to it repeatedly with some time interval (3000ms default) 
- * @param {number} interval- time interval it retries connection in, unit is ms
- */
-function connectToCentralServer(interval){
-	socketForCentralServer = net.connect(portForCentralServer, "localhost", function(){
-		console.log("Connection to Central Server Success!!");
-		if(connectRegularly){
-			clearInterval(connectRegularly);
-			connectRegularly = null;
-		}
-		
-		socketForCentralServer.on('close', function(){
-			console.log('Connection to Central Server closed');
-			if(!connectRegularly){
-				connectRegularly = setInterval(connectToCentralServer, interval);
-			}
-		});
-		socketForCentralServer.on('data', commandHandler);
-	});
-	socketForCentralServer.on('error', function(err){
-		//console.log('err occured while connecting');
-		if(!connectRegularly) {
-			connectRegularly = setInterval(connectToCentralServer, interval);
-		}
-	});		
-}
-connectToCentralServer(3000);
+var httpResponses = {
+	getStatus:{}, 
+	getHosts: {}, 
+	getApps: {}, 
+	addHost: {}, 
+	startGame:{},
+	getClients: {}
+};
 
 /**
  * @description this function takes Request object and get Authorization field of header
@@ -174,7 +150,7 @@ router.route('/apps')
 			},
 			data: {
 				userId,
-				hostId: req.body.hostId
+				hostId
 			}
 		});
 		if (!httpResponses.getApps[userId]) {
@@ -205,6 +181,35 @@ router.route('/apps')
 		httpResponses.startGame[userId].push(res);
 	})
 
+router.get('/connetables', (req, res)=>{
+	let userId = req.baseUrl.split('/')[2];
+	let hostIpaddress = getDatainAuthHeader(req).hostIpaddress;
+	req.app.io.in(userId).clients((err, clients)=>{
+		if(err){
+			return res.status(400).json(err);
+		}
+		let userList = clients.map(function(socketId){
+			if (req.app.io.of('/').connected[socketId]) {
+				console.log("getUserIDBySocketId: " + req.app.io.of('/').connected[socketId].userId);
+				return req.app.io.of('/').connected[socketId].userId
+			}
+		});
+		sendMsgToCentralServer({
+			header:{
+				type: 'Request',
+				token:'',
+				command:'getClients',
+				source: 'WEB',
+				dest:'CONNETO'
+			},
+			body:{
+				userId,
+				hostIpaddress
+			}
+		})
+	})
+})
+
 /** 
  * @description this function used to send message to the central server
  * @param {Object} msg- object you want to send to the central server.
@@ -217,9 +222,9 @@ router.route('/apps')
  */
 function sendMsgToCentralServer(msg){
 	return new Promise((resolve, reject)=>{
-		socketForCentralServer.write(JSON.stringify(msg), resolve)
+		app.socketForCentralServer.write(JSON.stringify(msg), resolve)
 	}).catch(err=>{
-		console.log(msg);
+		reject(err);
 	})
 }
 
@@ -271,7 +276,7 @@ function commandHandler(data){ //handler for data from central server
 						}
 					}
 				}).then(()=>{
-					socketForCentralServer.write(JSON.stringify(msg))
+					sendMsgToCentralServer(JSON.stringify(msg));
 				})
 				break;
 	
