@@ -5,9 +5,9 @@
  */
 
 import React, { Component } from 'react';
-import StreamingList from '../components/StreamingList';
+import StreamingList from '../../components/StreamingList';
 import { connect } from 'react-redux';
-import {getStreamsRequest} from '../modules/stream';
+import {getStreamsRequest} from '../../modules/stream';
 import {List} from 'immutable'
 
 

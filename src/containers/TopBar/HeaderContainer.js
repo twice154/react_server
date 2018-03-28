@@ -6,16 +6,17 @@
 
 
 import React from 'react';
-import {Header} from '../components';
+import {Header} from '../../components';
 import {connect} from 'react-redux';
-import {logoutRequest, getStatusRequest} from '../modules/authentication';
-
+import {logoutRequest, getStatusRequest, loginRequest} from '../../modules/authentication';
 
 export class HeaderContainer extends React.Component{
 
 	constructor(props){
 		super(props);
+		this.state={modal:false, dropdownOpen:false}
 		this.handleLogout = this.handleLogout.bind(this);
+		this.dropdownToggle=this.dropdownToggle.bind(this)
 	}
 	/**
 	 * 리덕스로 로그아웃 해달라고 요청을 보내는 함수
@@ -23,20 +24,22 @@ export class HeaderContainer extends React.Component{
 	handleLogout(){
 		this.props.logoutRequest().then(
 			()=> {
-				window.Materialize.toast('Good Bye!', 2000);
 				this.props.history.push('/')
 			}
 		)
 	}
-
-
-
-	componentDidMount(){
+	componentWillMount(){
 		this.props.getStatusRequest()
 		.catch((err)=>{
 			console.log('not logined');
 		})
 	}
+	dropdownToggle(){
+		this.setState({
+			dropdownOpen: !this.state.dropdownOpen
+		})
+	}
+
 	/**
 	 * 로그인, 회원가입의 경우 헤드 컴포넌트가 보이지 않는다 --> TODO: pwd도 적용을 해주던지, 이미지 작업해야됨
 	 */
@@ -50,9 +53,13 @@ export class HeaderContainer extends React.Component{
 
 		return(
 			<div>
-				{isAuth ? undefined: <Header isLoggedIn={this.props.status.get('isLoggedIn')}
+				{isAuth ? undefined: <Header 	isLoggedIn={this.props.status.get('isLoggedIn')}
 												onLogout={this.handleLogout}
-												currentUser={currentUser}/>}
+												currentUser={currentUser}
+												onLogin={this.props.onLogin}
+												toggle={this.dropdownToggle}
+												dropdownOpen={this.state.dropdownOpen}/>}
+			{/* <Register/> */}
 			</div>
 		);
 	}
@@ -60,7 +67,9 @@ export class HeaderContainer extends React.Component{
 
 const mapStateToProps = (state) =>{
 	return{
-		status: state.authentication.get('status')
+		status: state.authentication.get('status'),
+		login: state.authentication.getIn(['login','status']),
+		verified: state.authentication.getIn(['status','verified'])
 	};
 };
 
@@ -71,6 +80,9 @@ const mapDispatchtoProps = (dispatch) => {
 		},
 		logoutRequest: ()=> {
 			return dispatch(logoutRequest());
+		},
+		loginRequest: (id, pw)=>{
+			return dispatch(loginRequest(id,pw));
 		}
 	};
 }

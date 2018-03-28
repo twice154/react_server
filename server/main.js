@@ -12,7 +12,8 @@ import fs from 'fs';
 import http from 'http';
 import socket_io from 'socket.io';
 
-const app = express();
+const appToClient = express();
+const appToDonation = express();
 const port = 3000;
 const devPort = 4000;
 
@@ -20,44 +21,70 @@ const config = require('./config')
 const dbServer = orientDB(config.dbServerConfig);
 
 const db = dbServer.use(config.UserDBConfig);
-const server = http.Server(app);
-const io = socket_io(server);
+const serverToClient = http.Server(appToClient);
+const serverToDonation = http.Server(appToDonation);
+const ioToclient = socket_io(serverToClient);
+const ioToDonation = socket_io(serverToDonation);
 
-app.use(morgan('dev'));
-app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}))
-app.use('/api', api);
+appToClient.use(morgan('dev'));
+appToClient.use(cookieParser());
+appToClient.use(bodyParser.json());
+appToClient.use(bodyParser.urlencoded({extended: false}))
+appToClient.use('/api', api);
 
 
 var resourceDirectory = "";
-if(process.env.NODE_ENV === 'development'){
+if(process.env.NODE_ENV === 'development'){ 
     resourceDirectory = path.resolve(__dirname, './../public');
 }
 else{
     resourceDirectory = path.resolve(__dirname, './../build');
 }
 
-app.use('/', express.static(resourceDirectory));
-app.get('*', (req, res) => {
+appToClient.use('/', express.static(resourceDirectory));
+
+appToClient.get('*', (req, res) => {
     res.sendFile(resourceDirectory + '/index.html');
 });
-app.use(function (err, req, res, next) {
+appToClient.use(function (err, req, res, next) {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });
-
-
-
-server.listen(port, () => {
+serverToClient.listen(port, () => {
     console.log('Express is listening on port', port);
 });
 
+
+//donation, reacto server 
+appToDonation.get('/donation',(req,res)=>{
+    res.sendFile(resourceDirectory +'/donation.html')
+})
+appToDonation.get('/',(req,res)=>{
+
+})
+serverToDonation.listen(3001,()=>{
+    console.log('donation server is listening on port')
+})
 ///////////////////////////////
 ///socket.io 설정 부분/////////
 
-io.on('connection', (socket) => {
-    console.log("socket is connected");
+/**
+ * socket for donation&Reacto
+ */
+ioToDonation.on('connection',(socket)=>{
+    exports.socketToDonation=socket
+console.log("socketToDonation is connected")
+    
+})
+
+
+
+
+/**
+ * socket for client
+ */
+ioToclient.on('connection', (socket) => {
+    console.log("socketToclient is connected");
     socket.userId = "";
     socket.on('user:join', (data) => {
         joinRoom(socket, data).then((socket)=>{
@@ -83,7 +110,7 @@ io.on('connection', (socket) => {
             .then((socket)=>(getCountsOfUserInRoom(data.userId, data.room)))
             .then(counts=>{
                 if(counts == 0){
-                    io.to(data.room).emit('user:left', {userId: data.userId});
+                    ioToclient.to(data.room).emit('user:left', {userId: data.userId});
                 }
             })
     });
@@ -93,7 +120,7 @@ io.on('connection', (socket) => {
         getUsersInRoom(data.room).then(result=>{
             console.log(JSON.stringify(result));
         });
-        io.to(data.room).emit("send:message", data.msg);
+        ioToclient.to(data.room).emit("send:message", data.msg);
     });
 
     socket.on('disconnecting', function () {
@@ -104,7 +131,7 @@ io.on('connection', (socket) => {
             getCountsOfUserInRoom(userId, room).then(counts=>{
                 if(counts == 0){
                     console.log("room: " + room);
-                    return io.to(room).emit('user:left', {userId})
+                    return ioToclient.to(room).emit('user:left', {userId})
                     /*getUsersInRoom(room).then(result=>{
                         consol
                     })*/
@@ -151,9 +178,9 @@ function updateSocketInfo(socket, data){
 }
 
 function getUserIdBySocketId(socketId){
-    if(io.of('/').connected[socketId]){
-        console.log("getUserIDBySocketId: " + io.of('/').connected[socketId].userId);
-        return io.of('/').connected[socketId].userId
+    if(ioToclient.of('/').connected[socketId]){
+        console.log("getUserIDBySocketId: " + ioToclient.of('/').connected[socketId].userId);
+        return ioToclient.of('/').connected[socketId].userId
     }
     //throw new Error("fuck");
 }
@@ -170,7 +197,7 @@ function broadcastToRoom(socket, room, event, data){
 function getCountsOfUserInRoom(userId, room){
     return new Promise((resolve, reject)=>{
         if(userId=="") return resolve(-1);
-        io.in(room).clients((error, clients)=>{
+        ioToclient.in(room).clients((error, clients)=>{
         if(error){
             throw new Error("");
         }
@@ -189,7 +216,7 @@ function socketIoErrHandler(err){
 
 function getUsersInRoom(room){
     return new Promise((resolve, reject)=>{
-        io.in(room).clients((error, clients)=>{
+        ioToclient.in(room).clients((error, clients)=>{
             if(error) return reject(error);
             console.log(JSON.stringify(clients));
             resolve(clients.map((element, index)=>{

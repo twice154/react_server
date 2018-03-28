@@ -4,8 +4,10 @@ exports[`HeaderContainer test snapshot test logined, there is currentUser 1`] = 
 <div>
   <Header
     currentUser="g1"
+    dropdownOpen={false}
     isLoggedIn={false}
     onLogout={[Function]}
+    toggle={[Function]}
   />
 </div>
 `;
@@ -14,8 +16,10 @@ exports[`HeaderContainer test snapshot test no currentUser 1`] = `
 <div>
   <Header
     currentUser=""
+    dropdownOpen={false}
     isLoggedIn={false}
     onLogout={[Function]}
+    toggle={[Function]}
   />
 </div>
 `;

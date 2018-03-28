@@ -54,16 +54,11 @@ const initialState ={
     regist:{
         status: 'INIT'
     },
-    id:{
-        status:'init',
-        check:false
-    },
-    email:{
-        status:'init',
-        check:false
-    },
-    phone:{status:'init',
-        check:false},
+    idCheck:false
+    ,
+    emailCheck:false
+    ,
+    phoneCheck:false,
     nickname:{status:'init',
         check:false}
 }
@@ -78,6 +73,7 @@ const initialState ={
  * //userid 중복은 check에 있으니 수정할 것.
  */
 function registerApiRequest(msg){
+    console.log(msg)
     return axios.post('/api/users', msg)
             .then((res)=>Promise.resolve())
             .catch(err=> Promise.reject(err.response.data.message))
@@ -216,37 +212,37 @@ export default handleActions({
     return {...state,};
 },
 [ID_LOADING]: (state, action)=>{
-    return {...state, id:{...state.id, status:'loading'}};
+    return {...state};
 },
 
 [ID_SUCCESS]: (state, action)=>{
-    return {...state, id:{check:true,status:'아이디를 사용할 수 있습니다.'}};
+    return {...state, idCheck:true};
 },
 
 [ID_FAILURE]: (state, action)=>{
-    return {...state, id:{check:false,status:'아이디가 이미 사용중입니다.'}};
+    return {...state, idCheck:false};
 },
 [EMAIL_LOADING]: (state, action)=>{
-    return {...state, email:{...state.email,status:'loading'}};
+    return {...state};
 },
 
 [EMAIL_SUCCESS]: (state, action)=>{
-    return {...state,email:{check:true,status:'이메일을 사용할 수 있습니다.'}};
+    return {...state,emailCheck:true};
 },
 
 [EMAIL_FAILURE]: (state, action)=>{
-    return { ...state,email:{check:false,status:'이메일이 이미 사용중입니다.'}};
+    return { ...state,emailCheck:false};
 },
 [PHONE_LOADING]: (state, action)=>{
-    return {...state, phone:{...state.phone,status:'loading'}};
+    return {...state};
 },
 
 [PHONE_SUCCESS]: (state, action)=>{
-    return {...state, phone:{check:true,status:'폰 번호를 사용할 수 있습니다.'}};
+    return {...state, phoneCheck:true};
 },
 
 [PHONE_FAILURE]: (state, action)=>{
-    return { ...state, phone:{check:false,status:'폰 번호를 이미 사용중입니다.'}};
+    return { ...state, phoneCheck:false};
 },
 [QUIT]:(state,action)=>{
     return{...state}

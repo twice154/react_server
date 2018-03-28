@@ -6,9 +6,10 @@
 import React, { Component } from 'react';
 import io from 'socket.io-client';
 import { connect } from 'react-redux';
-import { getStatusRequest } from '../modules/authentication';
+import { getStatusRequest } from '../../modules/authentication';
 import update from 'immutability-helper';
 import { Chatting } from './Chatting';
+import Donation from './Donation'
 
 var socket = {};
 
@@ -164,7 +165,7 @@ export class ChattingContainer extends Component {
 
     render() {
         return (
-            <div>
+            <div style={{border:'black solid 2px',height:'100%',width:'300px'}}>
                 <Chatting room={this.props.room}
                     users={this.state.users}
                     messages={this.state.messages}
@@ -176,7 +177,8 @@ export class ChattingContainer extends Component {
                     leaveRoom={this.leaveRoom}
                     getStatus={this.getStatus}
                     connected={this.state.connected}
-                    userId={this.state.currentUser} />
+                    userId={this.state.currentUser} 
+                    donationToggle={this.props.donationToggle}/>
             </div>
         );
     }

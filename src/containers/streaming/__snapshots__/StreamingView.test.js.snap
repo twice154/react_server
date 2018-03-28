@@ -8,5 +8,8 @@ exports[`Streaming veiw test snapshot test 1`] = `
   <Connect(ChattingContainer)
     room="a"
   />
+  <Connect(Donation)
+    streamName="a"
+  />
 </div>
 `;

@@ -115,8 +115,9 @@ function getAllInfoRequest(){
  * @param {*} email 
  */
 function findIdRequest(name,email){
-    var nameEnc = btoa(name)
-    var emailEnc = btoa(email)
+    //TODO 한글은 btoa사용 불가. 수정요망
+    var nameEnc = window.btoa(name)
+    var emailEnc = window.btoa(email)
    return axios.get(`/api/recovery/userid?name=${nameEnc}&email=${emailEnc}`)
             .then((res)=>{
                 if(res.data.success)

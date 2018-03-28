@@ -1,0 +1,286 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Find test snapshot test id찾기일때 1`] = `
+<Modal
+  autoFocus={true}
+  backdrop={true}
+  backdropTransition={
+    Object {
+      "mountOnEnter": true,
+      "timeout": 150,
+    }
+  }
+  centered={false}
+  fade={true}
+  isOpen={false}
+  keyboard={true}
+  modalTransition={
+    Object {
+      "timeout": 300,
+    }
+  }
+  onClosed={[Function]}
+  onOpened={[Function]}
+  role="dialog"
+  style={
+    Object {
+      "marginTop": "100px",
+      "width": "350px",
+    }
+  }
+  zIndex={1050}
+>
+  <div
+    className="d-flex flex-row"
+    style={
+      Object {
+        "paddingLeft": "50px",
+        "paddingTop": "40px",
+      }
+    }
+  >
+    <i
+      onClick={[Function]}
+      style={
+        Object {
+          "cursor": "pointer",
+        }
+      }
+    >
+      아이디찾기
+    </i>
+    /
+    <i
+      onClick={[Function]}
+      style={
+        Object {
+          "cursor": "pointer",
+        }
+      }
+    >
+      비밀번호찾기
+    </i>
+  </div>
+  <ModalBody
+    style={
+      Object {
+        "paddingLeft": "30px",
+        "paddingTop": "0",
+      }
+    }
+    tag="div"
+  >
+    <FindId
+      sendEmail={[Function]}
+    />
+  </ModalBody>
+  <ModalFooter
+    tag="div"
+  >
+    <div
+      className="card-content"
+    >
+      <div
+        className="right d-flex "
+      >
+        <div
+          className="text-secondary"
+          onClick={[Function]}
+        >
+          로그인하기
+        </div>
+      </div>
+    </div>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`Find test snapshot test 비밀번호 찾기일때 1`] = `
+<Modal
+  autoFocus={true}
+  backdrop={true}
+  backdropTransition={
+    Object {
+      "mountOnEnter": true,
+      "timeout": 150,
+    }
+  }
+  centered={false}
+  fade={true}
+  isOpen={false}
+  keyboard={true}
+  modalTransition={
+    Object {
+      "timeout": 300,
+    }
+  }
+  onClosed={[Function]}
+  onOpened={[Function]}
+  role="dialog"
+  style={
+    Object {
+      "marginTop": "100px",
+      "width": "350px",
+    }
+  }
+  zIndex={1050}
+>
+  <div
+    className="d-flex flex-row"
+    style={
+      Object {
+        "paddingLeft": "50px",
+        "paddingTop": "40px",
+      }
+    }
+  >
+    <i
+      onClick={[Function]}
+      style={
+        Object {
+          "cursor": "pointer",
+        }
+      }
+    >
+      아이디찾기
+    </i>
+    /
+    <i
+      onClick={[Function]}
+      style={
+        Object {
+          "cursor": "pointer",
+        }
+      }
+    >
+      비밀번호찾기
+    </i>
+  </div>
+  <ModalBody
+    style={
+      Object {
+        "paddingLeft": "30px",
+        "paddingTop": "0",
+      }
+    }
+    tag="div"
+  >
+    <FindPwd
+      sendEmail={[Function]}
+    />
+  </ModalBody>
+  <ModalFooter
+    tag="div"
+  >
+    <div
+      className="card-content"
+    >
+      <div
+        className="right d-flex "
+      >
+        <div
+          className="text-secondary"
+          onClick={[Function]}
+        >
+          로그인하기
+        </div>
+      </div>
+    </div>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`Find test snapshot test 아이디를 찾아서 아이디가 나타나면 1`] = `
+<Modal
+  autoFocus={true}
+  backdrop={true}
+  backdropTransition={
+    Object {
+      "mountOnEnter": true,
+      "timeout": 150,
+    }
+  }
+  centered={false}
+  fade={true}
+  isOpen={false}
+  keyboard={true}
+  modalTransition={
+    Object {
+      "timeout": 300,
+    }
+  }
+  onClosed={[Function]}
+  onOpened={[Function]}
+  role="dialog"
+  style={
+    Object {
+      "marginTop": "100px",
+      "width": "350px",
+    }
+  }
+  zIndex={1050}
+>
+  <div
+    className="d-flex flex-row"
+    style={
+      Object {
+        "paddingLeft": "50px",
+        "paddingTop": "40px",
+      }
+    }
+  >
+    <i
+      onClick={[Function]}
+      style={
+        Object {
+          "cursor": "pointer",
+        }
+      }
+    >
+      아이디찾기
+    </i>
+    /
+    <i
+      onClick={[Function]}
+      style={
+        Object {
+          "cursor": "pointer",
+        }
+      }
+    >
+      비밀번호찾기
+    </i>
+  </div>
+  <ModalBody
+    style={
+      Object {
+        "paddingLeft": "30px",
+        "paddingTop": "0",
+      }
+    }
+    tag="div"
+  >
+    <div>
+      g1
+    </div>
+  </ModalBody>
+  <ModalFooter
+    tag="div"
+  >
+    <div
+      className="card-content"
+    >
+      <div
+        className="right d-flex "
+      >
+        <div
+          className="text-secondary"
+          onClick={[Function]}
+        >
+          로그인하기
+        </div>
+      </div>
+    </div>
+  </ModalFooter>
+</Modal>
+`;

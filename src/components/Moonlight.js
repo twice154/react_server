@@ -2,6 +2,9 @@
  * connecto 컴포넌트
  * @author G1
  * @logs // 18.2.25
+ * 
+ * 
+ * broadcast에 편입 예정
  */
 
 import React from 'react';
@@ -76,11 +79,11 @@ class Moonlight extends React.Component {
 		}
 		this.props.startGame(this.state.selectedHost, this.props.currentUser, e.target.id, option)
 			.then((result)=>{
-				let $toastContent = window.$('<span style="color: $FFB4BA">Game will be started soon</span>');
-				return window.Materialize.toast($toastContent, 2000);				
+				// let $toastContent = window.$('<span style="color: $FFB4BA">Game will be started soon</span>');
+				// return window.Materialize.toast($toastContent, 2000);				
 			})
 			.catch(()=>{
-				return window.Materialize.toast('Failed to start the game', 2000);				
+				// return window.Materialize.toast('Failed to start the game', 2000);				
 			}) 
 	}
 /**
@@ -100,11 +103,11 @@ class Moonlight extends React.Component {
 						newHost: {inProgress: {$set: false}}
 					}))
 					console.log("ADDED SUCCESSFULLY!");
-					window.Materialize.toast("Added Successfullly", 2000);
+					// window.Materialize.toast("Added Successfullly", 2000);
 				}
 			).catch(()=>{
 				console.log('Failed to add new host');
-				window.Materialize.toast('Failed to add new host', 2000);
+				// window.Materialize.toast('Failed to add new host', 2000);
 			})
 		}
 	}
@@ -124,7 +127,7 @@ class Moonlight extends React.Component {
 	render(){
 		let canAddnewHost = this.state.isMoonlightOnline && !this.state.newHost.inProgress;
 		window.$(document).ready(function() {
- 			window.$('select').material_select();
+ 			// window.$('select').material_select();
 		});
 
 		const settingView = (

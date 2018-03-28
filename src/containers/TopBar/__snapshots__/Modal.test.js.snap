@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Modal test function test selectType test with snapshot type == find 1`] = `
+<div>
+  <Find
+    changeType={[Function]}
+    toggle={[Function]}
+  />
+</div>
+`;
+
+exports[`Modal test function test selectType test with snapshot type == login 1`] = `
+<div>
+  <LoginComponent
+    changeType={[Function]}
+    onLogin={[Function]}
+    toggle={[Function]}
+  />
+</div>
+`;
+
+exports[`Modal test function test selectType test with snapshot type == register 1`] = `
+<div>
+  <RegisterComponent
+    changeType={[Function]}
+    onRegister={[Function]}
+    toggle={[Function]}
+  />
+</div>
+`;

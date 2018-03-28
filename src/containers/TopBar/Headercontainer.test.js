@@ -15,8 +15,7 @@ describe('HeaderContainer test',()=>{
         it('handleLogout test',async()=>{
             wrapper.setProps({logoutRequest:()=>Promise.resolve()})
             await wrapper.instance().handleLogout()
-            expect(global.Materialize.toast).toHaveBeenCalledTimes(1)
-            expect(history.push).toHaveBeenCalledTimes(1)
+            expect(history.push.mock.calls[0][0]).toBe('/')
         })
     })
     describe('snapshot test',()=>{

@@ -17,20 +17,13 @@ describe('register test', () => {
     regist:{
         status: 'INIT'
     },
-    id:{
-        status:'init',
-        check:false
-    },
-    email:{
-        status:'init',
-        check:false
-    },
-    phone:{
-        status:'init',
-        check:false
-    },
+    idCheck:false
+    ,
+    emailCheck:false
+    ,
+    phoneCheck:false,
     nickname:{status:'init',
-    check:false}
+        check:false}
 }
     describe('actioncreator test',()=>{
         var mock = new MockAdapter(axios);
@@ -144,21 +137,21 @@ describe('register test', () => {
       
         })
         it('should work at id check',()=>{
-            expect(reducers(undefined,{type:['REGIST/ID_LOADING']})).toEqual({...initialState,id:{...initialState.id, status:'loading'}})
-            expect(reducers(undefined,{type:['REGIST/ID_SUCCESS']})).toEqual({...initialState,id:{check:true,status:'아이디를 사용할 수 있습니다.'}})
-            expect(reducers(undefined,{type:['REGIST/ID_FAILURE']})).toEqual({...initialState, id:{check:false,status:'아이디가 이미 사용중입니다.'}})
+            expect(reducers(undefined,{type:['REGIST/ID_LOADING']})).toEqual({...initialState})
+            expect(reducers(undefined,{type:['REGIST/ID_SUCCESS']})).toEqual({...initialState,idCheck:true})
+            expect(reducers(undefined,{type:['REGIST/ID_FAILURE']})).toEqual({...initialState, idCheck:false})
       
         })
         it('should work at email check',()=>{
-            expect(reducers(undefined,{type:['REGIST/EMAIL_LOADING']})).toEqual({...initialState, email:{...initialState.email,status:'loading'}})
-            expect(reducers(undefined,{type:['REGIST/EMAIL_SUCCESS']})).toEqual({...initialState,email:{check:true,status:'이메일을 사용할 수 있습니다.'}})
-            expect(reducers(undefined,{type:['REGIST/EMAIL_FAILURE']})).toEqual({...initialState,email:{check:false,status:'이메일이 이미 사용중입니다.'}})
+            expect(reducers(undefined,{type:['REGIST/EMAIL_LOADING']})).toEqual({...initialState})
+            expect(reducers(undefined,{type:['REGIST/EMAIL_SUCCESS']})).toEqual({...initialState,emailCheck:true})
+            expect(reducers(undefined,{type:['REGIST/EMAIL_FAILURE']})).toEqual({...initialState,emailCheck:false})
       
         })
         it('should work at phone check',()=>{
-            expect(reducers(undefined,{type:['REGIST/PHONE_LOADING']})).toEqual({...initialState, phone:{...initialState.email,status:'loading'}})
-            expect(reducers(undefined,{type:['REGIST/PHONE_SUCCESS']})).toEqual({...initialState,phone:{check:true,status:'폰 번호를 사용할 수 있습니다.'}})
-            expect(reducers(undefined,{type:['REGIST/PHONE_FAILURE']})).toEqual({...initialState,phone:{check:false,status:'폰 번호를 이미 사용중입니다.'}})
+            expect(reducers(undefined,{type:['REGIST/PHONE_LOADING']})).toEqual({...initialState})
+            expect(reducers(undefined,{type:['REGIST/PHONE_SUCCESS']})).toEqual({...initialState,phoneCheck:true})
+            expect(reducers(undefined,{type:['REGIST/PHONE_FAILURE']})).toEqual({...initialState,phoneCheck:false})
       
         })
         

@@ -5,10 +5,9 @@
  */
 
 import React from 'react';
-import {FindId,FindPwd} from '../components/auth'
-import {connect} from 'react-redux';
-import {Link} from 'react-router-dom'
-import {loginRequest,findId,findPwd} from '../modules/authentication';
+import {FindId,FindPwd} from '../../components/auth'
+import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+
 
 export class Find extends React.Component {
     constructor(props) {
@@ -53,48 +52,30 @@ export class Find extends React.Component {
     }
     render() {
         return (
-            <div>
-                <div className = 'container'>
-            <div className = 'card'>
-            <div className="header blue white-text center">
-                            <div className="card-content">
+            <Modal isOpen={this.props.modal} toggle={this.props.toggle} className={this.props.className}style={{marginTop:'100px',width:'350px'}}>
+			<div style={{paddingTop:"40px",paddingLeft:"50px"}} className="d-flex flex-row">
+
                             <i onClick={()=>{this.handleSelect(true)}} style={{cursor:'pointer'}}>아이디찾기</i>
                             /
                             <i onClick={()=>{this.handleSelect(false)}} style={{cursor:'pointer'}}>비밀번호찾기</i>
-                            </div>
-            </div>
+			</div>
+			<ModalBody style={{paddingTop:"0",paddingLeft:"30px"}}>
             {this.state.gottenId===''? (this.state.select? <FindId    sendEmail={this.sendEmail}/>:
             <FindPwd  sendEmail={this.sendEmail}/> ): <div>
                 {this.state.gottenId}
-                <Link to ='/login'>로그인하러 가기</Link>
             </div>}
-            
-            
-           
-            </div> 
-            </div>
-        </div>
-      
+			</ModalBody>
+			<ModalFooter>
+			<div className="card-content">
+				<div className="right d-flex " >
+                	<div className="text-secondary" onClick={()=>{this.props.changeType('login')}}>로그인하기</div>	
+				</div>
+			</div>
+			</ModalFooter>
+			
+			</Modal>
         )
     }
 }
-const mapStateToProps = (state) => {
-	return {
-        status: state.authentication.getIn(['login','status']),
-        gottenId: state.authentication.getIn(['findId','gottenId']),
-        message: state.authentication.getIn(['findPwd','message'])
-	};
-};
 
-const mapDispatchToProps = (dispatch) => {
-	return {
-		loginRequest: (id, pw)=>{
-            return dispatch(loginRequest(id,pw))},
-        findId:(name,email)=>{
-            return dispatch(findId(name,email))},
-        findPwd:(id,email)=> dispatch(findPwd(id,email))
-        
-		}
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Find);
+export default Find

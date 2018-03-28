@@ -1,11 +1,12 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 class RegisterComponent extends React.Component {
 	constructor(props){
 		super(props);
 		this.state = {
 			userId:"",
+			idStatus:'',
             password:"",
             pwdVerifyPhrase:'비밀번호는 8자이상 최소 한개 이상의 특수문자가 있어야합니다.',
             pwdVerified:false,
@@ -16,20 +17,33 @@ class RegisterComponent extends React.Component {
 			birth:'',
 			gender:'',
 			email:'',
-			phone:''
+			phone:'',
+			idState:'',
+			emailStatus:'',
+			phoneStatus:''
 			
 		};
 		this.handleChange = this.handleChange.bind(this);
 		this.handleRegister = this.handleRegister.bind(this);
+		this.handleKeyPress = this.handleKeyPress.bind(this)
         this.checkPwd=this.checkPwd.bind(this);
 		this.verify=this.verify.bind(this)
 		this.autoHypenPhone=this.autoHypenPhone.bind(this)
 		this.handleVerifyEmail=this.handleVerifyEmail.bind(this)
+		this.handleVerifyPhone=this.handleVerifyPhone.bind(this)
+		this.handleVerifyId=this.handleVerifyId.bind(this)
+
 	}
 	componentWillMount(){
 	
 	}
-
+	handleKeyPress(e){
+		if(e.charCode===13){
+			
+		    this.handleRegister();
+		
+        }
+    }
 	handleRegister(){
 		var msg = {
 			userId:this.state.userId,
@@ -58,7 +72,8 @@ class RegisterComponent extends React.Component {
 				return alert(p,"가 비어있습니다.")
 			}
 		}
-		this.props.onRegister(msg)
+		setTimeout(()=>{this.props.onRegister(msg)},100)
+		
 			
 		
 	}
@@ -126,130 +141,156 @@ class RegisterComponent extends React.Component {
 		  return this.setState({phone:tmp});
 		}
 	  }
-	  handleVerifyEmail(){
+	  async handleVerifyEmail(){
+		  console.log('1')
 		  var email=this.state.email
 		var reg=/^[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*\.[a-zA-Z]{2,3}$/i;
 				 
         if(!reg.test(email)){
-            alert('올바른 이메일을 입력하세요!')
+			console.log('here')
+            this.setState({emailStatus:'올바른 이메일을 입력하세요!'})
             return 0;
         }
-        this.props.checkEmail(email)
-    }
+        await this.props.checkEmail(email).then(()=>{
+			console.log('hihih')
+			this.setState({emailStatus:'사용할 수 있는 이메일입니다.'})
+		})
+		.catch(()=>{
+			console.log('4')
+			this.setState({emailStatus:'이미 이메일을 사용중입니다.'})
+		})
+	}
+	handleVerifyPhone(){
+		if(this.state.phone.length<12) {console.log('hihiikjk');return this.setState({phoneStatus:'올바른 길이의 번호를 입력하세요'})}
+		this.props.checkPhone(this.state.phone).then(()=>{
+			this.setState({phoneStatus:'사용할 수 있는 번호입니다.'})
+		},()=>{
+			console.log('hihi')
+			this.setState({phoneStatus:'이미 번호가 존재합니다.'})
+		})
+		
+	}
+	handleVerifyId(){
+		 this.props.checkId(this.state.userId).then(()=>{
+					this.setState({idStatus:'아이디를 사용할 수 있습니다.'})
+				},()=>{
+					this.setState({idStatus:'아이디가 이미 사용중 입니다.'})
+				})
+				
+	}
 	
 	render(){
 		
             
 
 		return (
-			<div className="container auth">
-				<Link className="logo" to="/">5437</Link>
-				<div className="card">
-					<div className="header blue white-text center">
-						<div className="card-content">REGISTER</div>
-					</div>
-					<div>
-                 <div className="card-content">
-                <div className="row">
-                <div className="input-field col s12 username">
-                    <label>Id</label>
-					<i>{this.props.idStatus}</i>
-                    <input
+			<Modal isOpen={this.props.modal} toggle={this.props.toggle} className={this.props.className}style={{marginTop:'50px',width:'450px'}}>
+			<div style={{paddingTop:"40px",paddingLeft:"50px"}} className="d-flex flex-row">
+			<h2 >Splendy</h2>
+			<h3 style={{margin:0,paddingLeft:'10px',paddingTop:'5px'}}>회원가입</h3>
+			</div>
+			<ModalBody style={{paddingTop:"0",paddingLeft:"30px"}}>
+			<div className="form-group">
+				<label htmlFor="userId" className="col-form-label">Id</label>
+				<i style={{color:'blue', marginLeft:'10px'}}>{this.state.idStatus}</i>
+				<input
                     name="userId"
                     type="text"
-                    className="validate"
+                    className="form-control"
                     onChange={this.handleChange}
                     value={this.state.userId}
-                    onBlur={(e)=>{this.props.checkId(e.target.value)}}/>
-                </div>
-                <div className="input-field col s12">
-                    <label>Password </label>
-                    <i>{this.state.pwdVerifyPhrase}</i>
+                    onBlur={this.handleVerifyId}/>
+			</div>
+			<div className="form-group">
+                    <label htmlFor="password" className="col-form-label">Password </label>
+                    <i style={{color:'blue', marginLeft:'10px'}}>{this.state.pwdVerifyPhrase}</i>
                     <input
                     name="password"
                     type="password"
-                    className="validate"
+                    className="form-control"
                     onChange={this.handleChange}
                     value={this.state.password}
                     onKeyUp={this.verify}/>
-                    </div>
+            </div>
 
-					<div className="input-field col s12" >
-                        <label>Passsword check</label>
-                        <i>{this.state.pwdCheckPhrase}</i>
+			<div className="form-group" >
+                        <label htmlFor="passwordCheck" className="col-form-label">Passsword check</label>
+                        <i style={{color:'blue', marginLeft:'10px'}}>{this.state.pwdCheckPhrase}</i>
                         <input
                         name="passwordCheck"
                         type="password"
-                        className="validate"
+                        className="form-control"
                         onChange={this.handleChange}
                         value={this.state.passwordCheck}
                         onKeyUp={this.checkPwd}/>
                		</div> 
-					<div className="input-field col s12 ">
-						<label>이름</label>
-						<input
-						name="name"
-						type="text"
-						className="validate"
-						onChange={this.handleChange}
-						value={this.state.name}/>
-               		</div>
-					<div className="input-field col s12 ">
-						<label>생년월일</label>
-						<input
-						name="birth"
-						type="text"
-						className="validate"
-						onChange={this.handleChange}
-						value={this.state.birth}/>
-               		</div>
-					<div className="input-field col s12 ">
-					{/* materialize가 안됨. */}
-						<select name='gender' value={this.state.gender} onChange={this.handleChange}>
-						<option value="" disabled>성별</option>
-						<option value="M">남자</option>
-						<option value="F">여자</option>
-						</select>
-               		</div>
-					<div className="input-field col s12 ">
-						<label>이메일</label>
-						<i>{this.props.emailStatus}</i>
-						<input
-						name="email"
-						type="text"
-						className="validate"
-						onChange={this.handleChange}
-						value={this.state.email}
-						/>
-               		</div>
-					<div className="input-field col s12 ">
-					<label></label>
-						<button onClick={this.handleVerifyEmail}>이메일체크</button>
-					
-               		</div>
-					<div className="input-field col s12 ">
-						<label>휴대폰</label>
-						<input
-						name="phone"
-						type="text"
-						className="validate"
-						onChange={this.autoHypenPhone}
-						value={this.state.phone} maxLength='13'/>
-						</div>
-               		
-					   <div className="input-field col s12 ">
-					   <label></label>
-						<button onClick={()=>{this.props.checkPhone(this.state.phone)}}>폰번호체크</button>
-					
-               		</div>
-                    <a className="waves-effect waves-light btn" onClick={this.handleRegister}>CREATE</a>
-                	
-                </div>
-            </div>
-	
+			<div className='form-group'>
+			<div className="row" >
+				<div className='col'>
+					<label htmlFor="name" className="col-form-label">이름</label>
+					<input
+					name="name"
+					type="text"
+					className="form-control"
+					onChange={this.handleChange}
+					value={this.state.name}/>
+				</div>
+				<div className='col'>
+					<label htmlFor="birth" className="col-form-label">생년월일</label>
+					<input
+					name="birth"
+					type="text"
+					className="form-control"
+					onChange={this.handleChange}
+					value={this.state.birth}/>
+				</div>
+			</div>	
+			</div>
+		
+			<div className="form-group" >
+				<select name='gender' value={this.state.gender} onChange={this.handleChange} className="custom-select">
+				<option value="" disabled>성별</option>
+				<option value="M">남자</option>
+				<option value="F">여자</option>
+				</select>
+			</div>
+			<div className="form-group" >
+				<label htmlFor="email" className="col-form-label">이메일</label>
+				<i style={{color:'blue', marginLeft:'10px'}}>{this.state.emailStatus}</i>
+				<input
+				name="email"
+				type="text"
+				className="form-control"
+				onChange={this.handleChange}
+				value={this.state.email}
+				onBlur={this.handleVerifyEmail}
+				/>
+			</div>
+			<div className="form-group" >
+				<label htmlFor="phone" className="col-form-label">휴대폰</label>
+				<i style={{color:'blue', marginLeft:'10px'}}>{this.state.phoneStatus}</i>
+				<input
+				name="phone"
+				type="text"
+				className="form-control"
+				onChange={this.autoHypenPhone}
+				value={this.state.phone} maxLength='13'
+				onBlur={this.handleVerifyPhone}
+				onKeyPress={this.handleKeyPress}/>
+				</div>
+			</ModalBody>
+			<ModalFooter>
+			<div className="card-content">
+				<div className="right " >
+					<button className="text-secondary" onClick={this.handleRegister} style={{cursor:'pointer'}}>CREATE</button>	
+				</div>
+				<div className='left'>
+				<div className="text-secondary" onClick={()=>{this.props.changeType('login')}}>로그인하기</div>	
 				</div>
 			</div>
-            </div>
+			</ModalFooter>
+			
+			</Modal>
 		);
 	}
 }

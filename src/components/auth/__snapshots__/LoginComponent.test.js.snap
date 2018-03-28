@@ -1,95 +1,150 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`LoginComponent test snapshot test 1`] = `
-<div
-  className="container auth"
+<Modal
+  autoFocus={true}
+  backdrop={true}
+  backdropTransition={
+    Object {
+      "mountOnEnter": true,
+      "timeout": 150,
+    }
+  }
+  centered={false}
+  fade={true}
+  isOpen={false}
+  keyboard={true}
+  modalTransition={
+    Object {
+      "timeout": 300,
+    }
+  }
+  onClosed={[Function]}
+  onOpened={[Function]}
+  role="dialog"
+  style={
+    Object {
+      "marginTop": "100px",
+      "width": "350px",
+    }
+  }
+  zIndex={1050}
 >
-  <Link
-    className="logo"
-    replace={false}
-    to="/"
-  >
-    5437
-  </Link>
   <div
-    className="card"
+    className="d-flex flex-row"
+    style={
+      Object {
+        "paddingLeft": "50px",
+        "paddingTop": "40px",
+      }
+    }
+  >
+    <h2>
+      Splendy
+    </h2>
+    <h3
+      style={
+        Object {
+          "margin": 0,
+          "paddingLeft": "10px",
+          "paddingTop": "5px",
+        }
+      }
+    >
+      로그인
+    </h3>
+  </div>
+  <ModalBody
+    style={
+      Object {
+        "paddingLeft": "30px",
+        "paddingTop": "0",
+      }
+    }
+    tag="div"
   >
     <div
-      className="header blue white-text center"
+      className="card-body"
+      style={
+        Object {
+          "paddingBottom": "0",
+        }
+      }
     >
-      <div
-        className="card-content"
+      <h5
+        className="card-title"
       >
-        Login
-      </div>
+        Id
+      </h5>
+      <input
+        className="validate"
+        name="userId"
+        onChange={[Function]}
+        type="text"
+        value="g2"
+      />
     </div>
     <div
-      className="card-content"
+      className="card-body"
+      style={
+        Object {
+          "paddingBottom": "0",
+        }
+      }
     >
-      <div
-        className="row"
+      <h5
+        className="card-title"
       >
-        <div
-          className="input-field col s12 username"
-        >
-          <label>
-            Id
-          </label>
-          <input
-            className="validate"
-            name="userId"
-            onChange={[Function]}
-            type="text"
-            value="g2"
-          />
-        </div>
-        <div
-          className="input-field col s12"
-        >
-          <label>
-            Password
-          </label>
-          <input
-            className="validate"
-            name="password"
-            onChange={[Function]}
-            onKeyPress={[Function]}
-            type="password"
-            value="...."
-          />
-        </div>
+        Password
+      </h5>
+      <input
+        className="validate"
+        name="password"
+        onChange={[Function]}
+        onKeyPress={[Function]}
+        type="password"
+        value="...."
+      />
+    </div>
+    <div
+      className="card-body"
+    >
+      <button
+        className="btn btn-danger"
+      >
         <a
           className="waves-effect waves-light btn"
           onClick={[Function]}
         >
           SUBMIT
         </a>
-      </div>
+      </button>
     </div>
+  </ModalBody>
+  <ModalFooter
+    tag="div"
+  >
     <div
-      className="footer"
+      className="card-content"
     >
       <div
-        className="card-content"
+        className="right d-flex "
       >
         <div
-          className="right"
+          className="text-secondary"
+          onClick={[Function]}
         >
-          <a
-            href="/register"
-          >
-            Create an account
-          </a>
-          /
-          <Link
-            replace={false}
-            to="/find"
-          >
-            아이디 비밀번호찾기
-          </Link>
+          Create an account
+        </div>
+        /
+        <div
+          className="text-secondary"
+          onClick={[Function]}
+        >
+          아이디 비밀번호찾기
         </div>
       </div>
     </div>
-  </div>
-</div>
+  </ModalFooter>
+</Modal>
 `;
