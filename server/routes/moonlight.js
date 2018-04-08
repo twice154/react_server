@@ -206,7 +206,11 @@ router.get('/connetables', (req, res)=>{
 				userId,
 				hostIpaddress
 			}
-		})
+		});
+		if(!httpResponses.getClients[userId]){
+			httpResponses.getClients[userId] = [];
+		}
+		httpResponses.getClients[userId].push(res);
 	})
 })
 

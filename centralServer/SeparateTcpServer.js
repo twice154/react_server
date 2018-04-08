@@ -34,14 +34,15 @@ var serverForConneto = net.createServer();  //For Many Conneto clients
 var serverForWebServer = net.createServer();  //For only one Web server
 var socketForWebServer;
 var pairedClients = {};
+var pairedHosts = {};
 
 let connetoSocketHandler = {
 	
 	/**
 	 * @callback
  	 * @description establish settings & register event handlers for socket when Conneto is connected
- 	 * @param {Socket} socketForConneto- socket used for communicating with Conneto client 
- 	 * @param {Socket} sokcetForWebServer- socket used for communicati
+ 	 * @param {Socket} socketForConneto- socket used for communicaton with Conneto client 
+ 	 * @param {Socket} sokcetForWebServer- socket used for communication with Web server
  	 */
 	connection: (socketForConneto, socketForWebServer)=>{
 		console.log('Server has a new Conneto client connection: ' + socketForConneto.remotePort);
@@ -151,25 +152,7 @@ let connetoSocketHandler = {
 			let hostIpaddress = message.body.hostIpaddress;
 			var userId = message.body.userId;
 			if(message.header.command === 'addHost'&& message.header.statusCode === 200){
-				if(pairedClients[hostIpaddress]){
-					pairedClients[hostIpaddress]['connetable'].push(userId);
-				}
-				else{
-					pairedClients[hostIpaddress] = {connetable: [userId], unconnetable:[], waiting: []};
-				}
-			}
-			if(message.header.command === 'getClients'){
-				if(!pairedClients[hostIpaddress]['waiting'].includes(userId)){
-					throw new Error('we need a new Error type');
-				}
-				var index = pairedClients[hostIpaddress]['waiting'].indexOf(userId);
-				delete pairedClients[hostIpaddress]['waiting'][index];
-				if(message.header.statusCode === 200){
-					pairedClients[hostIpaddress]['connetable'].push(userId);
-				}
-				else if(message.header.statusCode == 400){
-					pairedClients[hostIpaddress]['unconnetable'].push(userId);
-				}
+				addConnetableClient(hostIpaddress, userId);
 			}
 			exports.sendMsg(socketForWebServer, message);			
 		}
@@ -189,7 +172,14 @@ let connetoSocketHandler = {
 				}
 				exports.isRegisteredUser(message.body.userId, message.body.userPW)
 				.then((userId) => {
+
+					updatePairedHostsInfo(userId, message.body.hostList);
+
+					for(var host in message.body.hostList){
+						addConnetableClient(host.hostIpaddress, userId);
+					}
 					msg.header.statusCode = 200;
+					
 					/**
 					 * @callback
 					 * @description when successfully logined, send approval message to Conneto socket
@@ -203,6 +193,7 @@ let connetoSocketHandler = {
 							exports.saveConnetoSocket(userId, socketForConneto);
 						}
 					})
+					
 				}).catch((error) => {
 					msg.header.statusCode = 400;
 					msg.body.error = error;
@@ -342,6 +333,7 @@ let webServerSocketHandler = {
 								userId
 							}
 						})
+
 					case 'getClients':
 						var hostIpaddress = message.body.hostIpaddress;
 						var msg = {
@@ -354,33 +346,31 @@ let webServerSocketHandler = {
 							},
 							body: {
 								userId,
-								hostIpaddress: message.body.hostIpaddress
+								hostIpaddress
 							}
 						}
-						if (!pairedClients[message.body.hostIpaddress]) {
+						if(!pairedClients[hostIpaddress] || pairedClients[hostIpaddress].length === 0){
 							msg.header.statusCode = 400;
 						}
-						else {
-							var totalClients = pairedClients[hostIpaddress]['connetable'].concat(pairedClients[hostIpaddress]['unconnetable']);
-							
-							pairedClients[hostIpaddress]['connetable'] = [], pairedClients[hostIpaddress]['unconnetable']=[],
-							pairedClients[hostIpaddress]['waiting'] = [];
-							pairedClients[hostIpaddress]['waiting'] = totalClients.filter(function (clientId) {
-								var socketForUser = getConnetoSocket(clientId);
-								if(!socketForUser){
-									pairedClients[hostIpaddress]['unconnetable'].push(clientId);
-									return false;
-								}
-								exports.sendMsg(socketForUser, msg);
-								return true;
+						else{
+							msg.header.statusCode = 200;
+							msg.body.connetableClients = pairedClients[hostIpaddress].filter(function(clientId){
+								return clients[clientId] && pairedHosts[clientId][hostIpaddress].paired && pairedHosts[clientId][hostIpaddress].online;
 							});
 						}
-					break;
+						exports.sendMsg(socketForWebServer, msg);
+						break;
 
 					default:
+						var error = new InvalidFormatError('Invalid command');
 						return exports.sendMsg(socketForWebServer, {
-							error: 1,
-							status: false
+							header: {
+								command:message.header.command,
+								statusCode: 400
+							},
+							body: {
+								error
+							}	
 						});	
 				}
 			}
@@ -421,7 +411,47 @@ serverForWebServer.on('error', function(err){
 	console.log('error on portForWebServer: ' + err);
 });
 
+/**
+ * @author SSH
+ * @description used for storing newly paired clients of the host
+ * @param {string} hostIpaddress - ip address of the host you want to update info of 
+ * @param {string} clientId - userId of the client newly paired to the host
+ */
+function addConnetableClient(hostIpaddress, clientId){
+	if (pairedClients[hostIpaddress]) {
+		if(!pairedClients[hostIpaddress].includes(clientId)){
+			pairedClients[hostIpaddress].push(clientId);
+		}
+	}
+	else {
+		pairedClients[hostIpaddress] = [clientId];
+	}
+}
 
+/**
+ * @author SSH
+ * @description used for updating info of the client's paired hosts
+ * @param {string} clientId - userId of the client 
+ * @param {Object} hosts - array of the hosts connected 
+ */
+function updatePairedHostsInfo(clientId, hosts){
+	if (!pairedHosts[clientId]) {
+		pairedHosts[clientId] = [];
+	}
+
+	pairedHosts[clientId].filter(function(pairedHost){
+		for(var index in hosts){
+			if(hosts[index].hostIpaddress === pairedHost.hostIpaddress)
+				return true;
+		}
+		if(pairedClients[hosts[index].hostIpaddress].includes(clientId)){
+			var index2 = pairedClients[hosts[index].hostIpaddress].indexOf(clientId);
+			delete pairedClients[hosts[index].hostIpaddress][index2];
+		}
+		return false;
+	})
+	pairedHosts[clientId] = hosts;
+}
 
 /**
  * @author SSH
