@@ -210,6 +210,7 @@ router.get('/connetables', (req, res)=>{
 		if(!httpResponses.getClients[userId]){
 			httpResponses.getClients[userId] = [];
 		}
+		res.usersOnChatting = userList;
 		httpResponses.getClients[userId].push(res);
 	})
 })
@@ -244,7 +245,7 @@ function commandHandler(data){ //handler for data from central server
 	console.log("Receiver msg: " + data.header.command);
 	if(data.header.type === 'Response'){
 		if(httpResponses[data.header.command]){
-			processsResponseQueue(httpResponses[data.header.command][data.body.userId], data.body, data.header.statusCode);
+			processsResponseQueue(httpResponses[data.header.command][data.body.userId], data, data.header.statusCode);
 		}
 	}
 	else if(data.header.type === 'Request'){
@@ -319,8 +320,11 @@ function processsResponseQueue(responseQueue, data, status){
 	 */
 	function sendResponseAsync(responseQueue, data){
 		return Promise.all(responseQueue.map((res)=>{
+			if(data.header.command === "getClients"){
+				data.body.connetableClients = getOverlap(data.body.connetableClients, res.usersOnChatting);
+			}
 			return new Promise((resolve)=>{
-				resolve(res.status(status).json(data));	
+				resolve(res.status(status).json(data.body));	
 			})
 		}))
 	}
@@ -338,6 +342,12 @@ function arrayBufferToString(buffer){
         throw new Error("this string seems to contain (still encoded) multibytes");
     }
     return str;
+}
+
+function getOverlap(array1, array2){
+	return array1.filter(function(element){
+		return array2.includes(element);
+	})
 }
 
 export default router;
