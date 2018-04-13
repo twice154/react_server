@@ -12,6 +12,7 @@ import fs from 'fs';
 import http from 'http';
 import socket_io from 'socket.io';
 import net from 'net';
+import {processResponseQueue} from '../lib/AsyncRes';
 
 const app = express();
 const port = 3000;
@@ -35,6 +36,15 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use('/api', api);
 app.io = io;
+var httpResponses = {
+    getStatus: {},
+    getHosts: {},
+    getApps: {},
+    addHost: {},
+    startGame: {},
+    getClients: {}
+};
+app.httpResponses = httpResponses;
 
 var resourceDirectory = "";
 if(process.env.NODE_ENV === 'development'){
@@ -73,14 +83,16 @@ function connectToCentralServer(interval) {
             connectRegularly = null;
         }
         
-
         socketForCentralServer.on('close', function () {
             console.log('Connection to Central Server closed');
             if (!connectRegularly) {
                 connectRegularly = setInterval(connectToCentralServer, interval);
             }
         });
-        socketForCentralServer.on('data', commandHandler);
+
+        socketForCentralServer.on('data', function(data){
+            commandHandler(data, io);
+        });
     });
     socketForCentralServer.on('error', function (err) {
         //console.log('err occured while connecting');
@@ -90,6 +102,90 @@ function connectToCentralServer(interval) {
     });
 }
 connectToCentralServer(3000);
+
+/**
+ * @description used for handling data from central server
+ * when received data, it sends data using resonse objects in the corresponding queue 
+ * @param {JSON} data- data from central server
+ * @param {Object} io - socket.io object 
+ */
+function commandHandler(data, io) { //handler for data from central server
+    console.log(typeof (data));
+    data = JSON.parse(data);
+    console.log("IN CommandHandler: " + JSON.stringify(data));
+    console.log("Receiver msg: " + data.header.command);
+    if (data.header.type === 'Response') {
+        if (data.header.command === 'getClients') {
+            if(data.header.statusCode === 200){
+                getUsersInRoom(io, data.body.userId).then((userList) => {
+                    let qualifiedUser = getOverlapElements(data.body.connetableClients, userList);
+                    processResponseQueue({
+                        responseQueue: httpResponses['getClients'][data.body.userId],
+                        data: data.body,
+                        status: data.header.statusCode
+                    });
+                })
+            }
+            else if(data.header.statusCode === 400){
+                processResponseQueue({
+                    responseQueue: httpResponses['getClients'][data.body.userId],
+                    data: data.body,
+                    status: data.header.statusCode
+                })
+            }
+        }
+        else {
+            if (httpResponses[data.header.command]) {
+                processResponseQueue({
+                    responseQueue: httpResponses[data.header.command][data.body.userId], 
+                    data: data.body, 
+                    status: data.header.statusCode
+                });
+            }
+        }
+    }
+    else if (data.header.type === 'Request') {
+        switch (data.header.command) {
+            case "networkTest":
+                let msg = {};
+                axios.post('/api/speedtest').then((res) => {
+                    msg = {
+                        header: {
+                            type: 'Response',
+                            token: "",
+                            command: 'networkTest',
+                            source: 'WEB',
+                            dest: 'CONNETO',
+                            statusCode: 200
+                        },
+                        body: {
+                            ip: res.data.data.client.ip,
+                            latency: res.data.server.ping,
+                            download: body.data.speeds.download,
+                            userId: data.body.userId
+                        }
+                    }
+                }).catch((error) => {
+                    msg = {
+                        header: {
+                            type: 'Response',
+                            token: "",
+                            command: 'networkTest',
+                            source: 'WEB',
+                            dest: 'CONNETO',
+                            statusCode: 400
+                        }
+                    }
+                }).then(() => {
+                    sendMsgToCentralServer(JSON.stringify(msg));
+                })
+                break;
+
+            default:
+                console.log("Unvalid Command: " + data.command);
+        }
+    }
+}
 
 /*if (process.env.NODE_ENV == 'development') {
     console.log('Server is running on development mode');
@@ -113,7 +209,7 @@ io.on('connection', (socket) => {
         joinRoom(socket, data).then((socket)=>{
             return updateSocketInfo(socket, data);
         }).then((userId)=>{
-            return initialize(socket, data);
+            return initialize(io, socket, data);
         })
         .then((socket)=>{return getCountsOfUserInRoom(data.userId, data.room)})
         .then((counts)=>{
@@ -140,7 +236,7 @@ io.on('connection', (socket) => {
 
     socket.on('send:message', (data) => {
         console.log("sended message " + JSON.stringify(data));
-        getUsersInRoom(data.room).then(result=>{
+        getUsersInRoom(io, data.room).then(result=>{
             console.log(JSON.stringify(result));
         });
         if(getSocketsInRoom(data.room).includes(socket.id)){
@@ -163,8 +259,8 @@ io.on('connection', (socket) => {
     });
 });
 
-function initialize(socket, data){
-    return getUsersInRoom(data.room).then(
+function initialize(io, socket, data){
+    return getUsersInRoom(io, data.room).then(
         (users) => {
             console.log(JSON.stringify(users));
             socket.emit('init', { users, room: data.room });
@@ -244,7 +340,7 @@ function socketIoErrHandler(err){
     console.log(err)
 }
 
-function getUsersInRoom(room){
+function getUsersInRoom(io, room){
     return new Promise((resolve, reject)=>{
         io.in(room).clients((error, clients)=>{
             if(error) return reject(error);

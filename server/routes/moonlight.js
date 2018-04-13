@@ -14,16 +14,12 @@
 import express from 'express';
 import net from 'net';
 import axios from 'axios';
+import asyncRes from '../../../lib/AsyncRes';
+import { InvalidFormatError } from '../../lib/CustomError';
+
 
 const router = express.Router();
-var httpResponses = {
-	getStatus:{}, 
-	getHosts: {}, 
-	getApps: {}, 
-	addHost: {}, 
-	startGame:{},
-	getClients: {}
-};
+
 
 /**
  * @description this function takes Request object and get Authorization field of header
@@ -56,7 +52,7 @@ function getDatainAuthHeader(req){
  */
 router.get('/status', (req, res)=>{
 	
-	let userId = req.baseUrl.split('/')[2];
+	let userId = getUserIdFromURI(req.baseUrl);
 	sendMsgToCentralServer({
 		header: {
 			type: 'Request',
@@ -69,10 +65,11 @@ router.get('/status', (req, res)=>{
 			userId
 		}
 	});
-	if(!httpResponses.getStatus[userId]){
-		httpResponses.getStatus[userId] = [];
-	}
-	httpResponses.getStatus[userId].push(res);
+	addHttpResponse({
+		command: 'getStatus',
+		httpResponses: req.app.httpResponses,
+		res
+	});
 })
 
 /**
@@ -86,7 +83,7 @@ router.get('/status', (req, res)=>{
  */
 router.route('/hosts')
 	.get((req, res) => {
-		let userId = req.baseUrl.split('/')[2];
+		let userId = getUserIdFromURI(req.baseUrl);
 		sendMsgToCentralServer({
 			header:{
 				type: 'Request',
@@ -99,13 +96,14 @@ router.route('/hosts')
 				userId
 			}
 		});
-		if (!httpResponses.getHosts[userId]) {
-			httpResponses.getHosts[userId] = [];
-		}
-		httpResponses.getHosts[userId].push(res);
+		addHttpResponse({
+			command: 'getHosts',
+			httpResponses: req.app.httpResponses,
+			res
+		});
 	})
 	.post((req, res) => {
-		let userId = req.baseUrl.split('/')[2];
+		let userId = getUserIdFromURI(req.baseUrl);
 		sendMsgToCentralServer({
 			header:{
 				type: 'Request',
@@ -120,10 +118,11 @@ router.route('/hosts')
 				pairingNum: req.body.pairingNum
 			}
 		});
-		if (!httpResponses.addHost[userId]) {
-			httpResponses.addHost[userId] = [];
-		}
-		httpResponses.addHost[userId].push(res);
+		addHttpResponse({
+			command: 'addHost',
+			httpResponses: req.app.httpResponses,
+			res
+		})
 	})
 
 /**
@@ -138,7 +137,7 @@ router.route('/hosts')
  */
 router.route('/apps')
 	.get((req, res) => {
-		let userId = req.baseUrl.split('/')[2];
+		let userId = getUserIdFromURI(req.baseUrl);
 		let hostId = getDatainAuthHeader(req).hostId;
 		sendMsgToCentralServer({
 			header: {
@@ -153,13 +152,14 @@ router.route('/apps')
 				hostId
 			}
 		});
-		if (!httpResponses.getApps[userId]) {
-			httpResponses.getApps[userId] = [];
-		}
-		httpResponses.getApps[userId].push(res);
+		addHttpResponse({
+			command:'getApps',
+			httpResponses: req.app.httpResponses,
+			res
+		})
 	})
 	.post((req, res)=> {
-		let userId = req.baseUrl.split('/')[2];
+		let userId = getUserIdFromURI(req.baseUrl);
 		sendMsgToCentralServer({
 			header: {
 				type: 'Request',
@@ -175,44 +175,35 @@ router.route('/apps')
 				option: req.body.option
 			}
 		});
-		if (!httpResponses.startGame[userId]) {
-			httpResponses.startGame[userId] = [];
-		}
-		httpResponses.startGame[userId].push(res);
+		addHttpResponse({
+			httpResponses,
+			command: 'startGame',
+			userId
+		});
 	})
 
 router.get('/connetables', (req, res)=>{
-	let userId = req.baseUrl.split('/')[2];
+	let userId = getUserIdFromURI(req.baseUrl);
 	let hostIpaddress = getDatainAuthHeader(req).hostIpaddress;
-	req.app.io.in(userId).clients((err, clients)=>{
-		if(err){
-			return res.status(400).json(err);
+	
+	sendMsgToCentralServer({
+		header: {
+			type: 'Request',
+			token: '',
+			command: 'getClients',
+			source: 'WEB',
+			dest: 'CONNETO'
+		},
+		body: {
+			userId,
+			hostIpaddress
 		}
-		let userList = clients.map(function(socketId){
-			if (req.app.io.of('/').connected[socketId]) {
-				console.log("getUserIDBySocketId: " + req.app.io.of('/').connected[socketId].userId);
-				return req.app.io.of('/').connected[socketId].userId
-			}
-		});
-		sendMsgToCentralServer({
-			header:{
-				type: 'Request',
-				token:'',
-				command:'getClients',
-				source: 'WEB',
-				dest:'CONNETO'
-			},
-			body:{
-				userId,
-				hostIpaddress
-			}
-		});
-		if(!httpResponses.getClients[userId]){
-			httpResponses.getClients[userId] = [];
-		}
-		res.usersOnChatting = userList;
-		httpResponses.getClients[userId].push(res);
-	})
+	});
+	addHttpResponse({
+		httpResponses,
+		command: 'getClients',
+		userId
+	});
 })
 
 /** 
@@ -234,103 +225,6 @@ function sendMsgToCentralServer(msg){
 }
 
 /**
- * @description used for handling data from central server
- * when received data, it sends data using resonse objects in the corresponding queue 
- * @param {JSON} data- data from central server 
- */
-function commandHandler(data){ //handler for data from central server
-	console.log(typeof(data));
-	data = JSON.parse(data);
-	console.log("IN CommandHandler: " + JSON.stringify(data));
-	console.log("Receiver msg: " + data.header.command);
-	if(data.header.type === 'Response'){
-		if(httpResponses[data.header.command]){
-			processsResponseQueue(httpResponses[data.header.command][data.body.userId], data, data.header.statusCode);
-		}
-	}
-	else if(data.header.type === 'Request'){
-		switch(data.header.command){
-			case "networkTest":
-				let msg = {};
-				axios.post('/api/speedtest').then((res)=>{
-					msg ={
-						header: {
-							type: 'Response',
-							token:"",
-							command: 'networkTest',
-							source: 'WEB',
-							dest: 'CONNETO',
-							statusCode: 200
-						},
-						body: {
-							ip: res.data.data.client.ip,
-							latency: res.data.server.ping,
-							download: body.data.speeds.download,
-							userId: data.body.userId
-						}
-					}	
-				}).catch((error)=>{
-					msg = {
-						header: {
-							type: 'Response',
-							token: "",
-							command: 'networkTest',
-							source: 'WEB',
-							dest: 'CONNETO',
-							statusCode: 400
-						}
-					}
-				}).then(()=>{
-					sendMsgToCentralServer(JSON.stringify(msg));
-				})
-				break;
-	
-			default:
-				console.log("Unvalid Command: " + data.command);
-		}
-	}
-}
-
-/**
- * @description this function sends data to every Response objects in the responseQueue
- * After sending, emptying the queue
- * @param {Response[]} responseQueue- array that contains Response objects you want to send responses  
- * @param {Object} data- data you want to send
- * @return {Promise} it guarantees sending all responses in the queue & emptying the processed responses from queue
- * @promise
- * @resolve {Object[]}- responseQueue after processing
- */
-function processsResponseQueue(responseQueue, data, status){
-	if(!status){
-		status = 200;
-	}
-	return sendResponseAsync(responseQueue, data)
-	.then((arr)=>{
-		//emptying the queue
-		return responseQueue.splice(0, arr.length)
-	});
-
-	/**
-	 * @description it sends responses parallelly; it means there's no clear sequece among them 
-	 * @param {Response[]} responseQueue- array that contains Response objects you want to send responses
-	 * @param {Object} data- data you want to send
-	 * @return {Promise} it guarantees sending all responses in the queue before resolved
-	 * @promise 
-	 * @resolve no meaning 
-	 */
-	function sendResponseAsync(responseQueue, data){
-		return Promise.all(responseQueue.map((res)=>{
-			if(data.header.command === "getClients"){
-				data.body.connetableClients = getOverlap(data.body.connetableClients, res.usersOnChatting);
-			}
-			return new Promise((resolve)=>{
-				resolve(res.status(status).json(data.body));	
-			})
-		}))
-	}
-}
-
-/**
  * @description this function converts ArryBuffer object to string
  * @param {ArrayBuffer} buffer- ArrayBuffer object you want to convert
  * @return {string} converted string  
@@ -344,10 +238,31 @@ function arrayBufferToString(buffer){
     return str;
 }
 
-function getOverlap(array1, array2){
+/**
+ * @description return an array containing overlapping elements of two array
+ * @param {Object[]} array1 
+ * @param {Object[]} array2
+ * @return {Object[]} includes overlapping elements
+ */
+function getOverlapElements(array1, array2){
 	return array1.filter(function(element){
 		return array2.includes(element);
 	})
+}
+
+
+function addHttpResponse({httpResponses, command, userId}){
+	if(!httpResponses[command]){
+		throw new InvalidFormatError('Invalid command: this command is not in httpResponses');
+	}
+	if(!httpResponses[command][userId]){
+		httpResponses[command][userId] = [];
+	}
+	httpResponses[command][userId].push(res);
+}
+
+function getUserIdFromURI(URI){
+	return URI.split('/')[2];
 }
 
 export default router;

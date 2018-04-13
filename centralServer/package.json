@@ -4,7 +4,10 @@
   "description": "",
   "main": "SeparateTcpServer.js",
   "scripts": {
-    "test": "run-when-changed --watch \"./test/*.js\" --exec \"mocha test\""
+    "test": "run-when-changed --watch \"./test/*.js\" --exec \"mocha test\"",
+    "build": "npx babel ./SeparateTcpServer.js --out-dir ./build --presets=env --ignore ./node_modules",
+    "start": "cross-env NODE_PATH='../' node ./build/SeparateTcpServer.js",
+    "development": "cross-env NODE_PATH='../' nodemon --exec babel-node ./SeparateTcpServer.js --watch ./"
   },
   "author": "gabriel",
   "license": "ISC",
