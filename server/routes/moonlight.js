@@ -160,24 +160,40 @@ router.route('/apps')
 	})
 	.post((req, res)=> {
 		let userId = getUserIdFromURI(req.baseUrl);
-		sendMsgToCentralServer({
-			header: {
-				type: 'Request',
-				token:'',
-				command: 'startGame',
-				source: 'WEB',
-				dest: 'CONNETO'
-			},
-			body: {
-				userId,
-				appId: req.body.appId,
-				hostId: req.body.hostId,
-				option: req.body.option
-			}
-		});
+		if(req.body.command === 'startGame'){
+			sendMsgToCentralServer({
+				header: {
+					type: 'Request',
+					token:'',
+					command: 'startGame',
+					source: 'WEB',
+					dest: 'CONNETO'
+				},
+				body: {
+					userId,
+					appId: req.body.appId,
+					hostId: req.body.hostId,
+					option: req.body.option
+				}
+			});
+		}
+		else if(req.body.command === 'stopGame'){
+			sendMsgToCentralServer({
+				header: {
+					type: 'Response',
+					token: '',
+					command: 'stopGame',
+					source: 'WEB',
+					dest: 'CONNETO'
+				},
+				body: {
+					userId
+				}
+			})	
+		}
 		addHttpResponse({
 			httpResponses,
-			command: 'startGame',
+			command: req.body.command,
 			userId
 		});
 	})

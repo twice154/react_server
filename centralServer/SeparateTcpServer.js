@@ -333,7 +333,7 @@ let webServerSocketHandler = {
 	 * 					       @property {string} data.body.option.frameRate - frameRate of the remote control subscribtion
 	 * 					       @property {string} data.body.option.streamWidth - width of the remote control subscribtion
 	 * 					       @property {string} data.body.option.streamHeight - height of the remote control subscribtion
-	 * 					       @property {string} data.body.option.remote_audio_enabled - whether the sound during remote control will be enabled
+	 * 					       @property {number} data.body.option.remote_audio_enabled - whether the sound during remote control will be enabled
 	 * 					       @property {string} data.body.option.bitrate - bitrate of the remote control subscribtion
 	 */
 	data: (message, socketForWebServer)=>{

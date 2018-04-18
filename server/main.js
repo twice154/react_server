@@ -42,6 +42,7 @@ var httpResponses = {
     getApps: {},
     addHost: {},
     startGame: {},
+    stopGame: {},
     getClients: {}
 };
 app.httpResponses = httpResponses;
