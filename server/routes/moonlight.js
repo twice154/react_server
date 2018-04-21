@@ -14,7 +14,6 @@
 import express from 'express';
 import net from 'net';
 import axios from 'axios';
-import asyncRes from '../../../lib/AsyncRes';
 import { InvalidFormatError } from '../../lib/CustomError';
 
 
@@ -68,7 +67,8 @@ router.get('/status', (req, res)=>{
 	addHttpResponse({
 		command: 'getStatus',
 		httpResponses: req.app.httpResponses,
-		res
+		res,
+		userId
 	});
 })
 
@@ -99,7 +99,8 @@ router.route('/hosts')
 		addHttpResponse({
 			command: 'getHosts',
 			httpResponses: req.app.httpResponses,
-			res
+			res,
+			userId
 		});
 	})
 	.post((req, res) => {
@@ -121,7 +122,8 @@ router.route('/hosts')
 		addHttpResponse({
 			command: 'addHost',
 			httpResponses: req.app.httpResponses,
-			res
+			res,
+			userId
 		})
 	})
 
@@ -155,7 +157,8 @@ router.route('/apps')
 		addHttpResponse({
 			command:'getApps',
 			httpResponses: req.app.httpResponses,
-			res
+			res,
+			userId
 		})
 	})
 	.post((req, res)=> {
@@ -194,7 +197,8 @@ router.route('/apps')
 		addHttpResponse({
 			httpResponses,
 			command: req.body.command,
-			userId
+			userId,
+			res
 		});
 	})
 
@@ -218,7 +222,8 @@ router.get('/connetables', (req, res)=>{
 	addHttpResponse({
 		httpResponses,
 		command: 'getClients',
-		userId
+		userId,
+		res
 	});
 })
 
@@ -267,7 +272,7 @@ function getOverlapElements(array1, array2){
 }
 
 
-function addHttpResponse({httpResponses, command, userId}){
+function addHttpResponse({httpResponses, command, userId, res}){
 	if(!httpResponses[command]){
 		throw new InvalidFormatError('Invalid command: this command is not in httpResponses');
 	}

@@ -37,7 +37,9 @@ let connetoSocketHandler = {
  	 */
 	connection: (socketForConneto, socketForWebServer)=>{
 		console.log('Server has a new Conneto client connection: ' + socketForConneto.remotePort);
-		socketForConneto.on('close', connetoSocketHandler.close);
+		socketForConneto.on('close', ()=>{
+			connetoSocketHandler.close(socketForConneto);
+		});
 		socketForConneto.on('error', connetoSocketHandler.error);
 		socketForConneto.on('data', (data)=>{
 			connetoSocketHandler.data(data, socketForConneto, socketForWebServer);	
@@ -50,7 +52,7 @@ let connetoSocketHandler = {
 	 * @param {Socket} socketForConneto - socket used for communication with Conneto client  
 	 */
 	close: (socketForConneto)=>{
-		console.log('Conneto client connection is closed: ' + socketForConneto.remotePort);
+		console.log('Conneto client connection is closed: ' + socketForConneto.remotePort + " " +socketForConneto.userId);
 		
 		//exports.deleteConnetoSocket(socketForConneto);
 		if(socketForConneto.userId){
@@ -62,12 +64,14 @@ let connetoSocketHandler = {
 			queryClientInfo({
 				action: 'select',
 				clientId: socketForConneto.userId
-			}).pairedHosts.forEach(function(host){
-				queryHostInfo({
-					hostIpaddress: host.hostIpaddress,
-					actionForPairedClients: 'delete',
-					pairedClients: socketForConneto.userId
-				});
+			}).then((clientInfo)=>{
+				clientInfo.pairedHosts.forEach(function(host){
+					queryHostInfo({
+						hostIpaddress: host.hostIpaddress,
+						actionForPairedClients: 'delete',
+						pairedClients: socketForConneto.userId
+					});
+				})
 			})
 		}	
 	},
@@ -180,25 +184,38 @@ let connetoSocketHandler = {
 				}
 				exports.isRegisteredUser(message.body.userId, message.body.userPW)
 				.then((userId) => {
-					
-					if(!queryClientInfo({
+					return queryClientInfo({
 						action: 'select',
 						clientId: message.body.userId
 					})
-					.online){
-						queryClientInfo({
-							action: 'update',
-							clientId: message.body.userId,
-							socket:socketForConneto,
-							pairedHosts: message.body.hostList,
-							online: true
-						});
-						socketForConneto.userId = message.body.userId;
-					}
-					else{
-						throw new Error('Login duplicated, this user is already logined');
-					}
-
+					.then((clientInfo)=>{
+						if(clientInfo.online){
+							console.log('Login duplicated, this user is already logined');
+							var error = new Error('Login duplicated, this user is already logined');
+							error.code = 'ERR_DOUBLE_LOGINED';
+							throw error;
+						}
+					})
+					.catch((error)=>{
+						console.log(error.code)
+						if (error.code === 'ERR_INVALID_USER'){
+							console.log('new registration');
+							return queryClientInfo({
+								action: 'update',
+								clientId: message.body.userId,
+								socket:socketForConneto,
+								pairedHosts: message.body.hostList,
+								online: true
+							})
+							//return;
+						}
+						else{
+							throw error;
+						}
+					})
+				})
+				.then(()=>{
+					socketForConneto.userId = message.body.userId;
 					for(var host in message.body.hostList){
 						if(host.paired){
 							queryHostInfo({
@@ -207,7 +224,7 @@ let connetoSocketHandler = {
 								pairedClients: message.body.userId,
 								online: host.online
 							})
-						}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+						}
 					}
 					msg.header.statusCode = 200;
 					
@@ -221,19 +238,13 @@ let connetoSocketHandler = {
 						}
 						else {
 							console.log(socketForConneto.remotePort);
-							//exports.saveConnetoSocket(userId, socketForConneto);
-							queryClientInfo({
-								action: 'update',
-								clientId: userId,
-								socket: socketForConneto
-							})
 						}
 					})
-					
-				}).catch((error) => {
+				})
+				.catch((error) => {
 					msg.header.statusCode = 400;
 					msg.body.error = error;
-					//console.log(error);
+					console.log(error);
 					/**
 					 * @callback 
 					 * @description when failed to login, send failure message to Conneto socket   
@@ -351,101 +362,103 @@ let webServerSocketHandler = {
 		console.log(userId);
 
 		
-		var socketForConneto = queryClientInfo({
+		queryClientInfo({
 			action: 'select',
 			clientId: message.body.userId
-		}).socket;
-
-		if (!socketForConneto) {
-			console.log("Conneto of " + userId + " is offline");
-			switch(message.header.command){
-				case 'getStatus':
-					return exports.sendMsg(socketForWebServer, {
-						header: {
-							type: 'Response',
-							token: '',
-							command: 'getStatus',
-							source: 'CONNETO',
-							dest: 'WEB',
-							statusCode: 400
-						},
-						body: {
-							userId
-						}
-					})
-
-				default:
-					const error = new UntreatableError('Conneto of the client is offline');
-					return exports.sendMsg(socketForWebServer, {
-						header: {
-							command:message.header.command,
-							statusCode: 400
-						},
-						body: {
-							userId: message.body.userId,
-							error
-						}	
-					});	
+		})
+		.then((clientInfo)=>{
+			var socketForConneto = clientInfo.socket;
+			if (!socketForConneto) {
+				console.log("Conneto of " + userId + " is offline");
+				switch(message.header.command){
+					case 'getStatus':
+						return exports.sendMsg(socketForWebServer, {
+							header: {
+								type: 'Response',
+								token: '',
+								command: 'getStatus',
+								source: 'CONNETO',
+								dest: 'WEB',
+								statusCode: 400
+							},
+							body: {
+								userId
+							}
+						})
+	
+					default:
+						const error = new UntreatableError('Conneto of the client is offline');
+						return exports.sendMsg(socketForWebServer, {
+							header: {
+								command:message.header.command,
+								statusCode: 400
+							},
+							body: {
+								userId: message.body.userId,
+								error
+							}	
+						});	
+				}
 			}
-		}
-
-		else if(message.header.dest === 'CONNETO') {
-			
-			switch (message.header.command) {
+	
+			else if(message.header.dest === 'CONNETO') {
 				
-				case "getStatus":
-					exports.sendMsg(socketForWebServer, {
-						header: {
-							type: 'Response',
-							token: '',
-							command: 'getStatus',
-							source: 'CONNETO',
-							dest: 'WEB',
-							statusCode: 200
-						},
-						body: {
-							userId
-						}	
-					})
-					break;
-				
-				case "getClients":
-					var hostIpaddress = message.body.hostIpaddress;
-					var msg = {
-						header: {
-							type: 'Response',
-							token: '',
-							command: 'getClients',
-							source: 'CONNETO',
-							dest: 'WEB'
-						},
-						body: {
-							userId,
-							hostIpaddress 
+				switch (message.header.command) {
+					
+					case "getStatus":
+						exports.sendMsg(socketForWebServer, {
+							header: {
+								type: 'Response',
+								token: '',
+								command: 'getStatus',
+								source: 'CONNETO',
+								dest: 'WEB',
+								statusCode: 200
+							},
+							body: {
+								userId
+							}	
+						})
+						break;
+					
+					case "getClients":
+						var hostIpaddress = message.body.hostIpaddress;
+						var msg = {
+							header: {
+								type: 'Response',
+								token: '',
+								command: 'getClients',
+								source: 'CONNETO',
+								dest: 'WEB'
+							},
+							body: {
+								userId,
+								hostIpaddress 
+							}
 						}
-					}
-					try{
-						var pairedClients = queryHostInfo({
-							hostIpaddress,
-							action: 'select'
-						}).pairedClients;
-						message.header.statusCode = 200;
-						message.body.connetableClients = pairedClients;
-						exports.sendMsg(socketForConneto, message);
-					}
-					catch(err){
-						message.header.statusCode = 400;
-						message.body.error = err;
-						exports.sendMsg(socketForConneto, message);
-					}
-					break;
-
-				default:
-					console.log(message.header.command);
-					exports.sendMsg(socketForConneto, message)
+						try{
+							var pairedClients = queryHostInfo({
+								hostIpaddress,
+								action: 'select'
+							}).pairedClients;
+							message.header.statusCode = 200;
+							message.body.connetableClients = pairedClients;
+							exports.sendMsg(socketForConneto, message);
+						}
+						catch(err){
+							message.header.statusCode = 400;
+							message.body.error = err;
+							exports.sendMsg(socketForConneto, message);
+						}
+						break;
+	
+					default:
+						console.log(message.header.command);
+						exports.sendMsg(socketForConneto, message)
+				}
 			}
-		}
-	}	
+		})
+	}
 }
 
 serverForWebServer.on('connection', webServerSocketHandler.connection);
@@ -487,39 +500,36 @@ function queryHostInfo({action, hostIpaddress, actionForPairedClients, pairedCli
 }
 
 function queryClientInfo({clientId, socket, action, pairedHosts, online}){
-	switch(action){
-		case 'create':
-			if(clients[clientId].online){
-				throw new Error('this user\'sConneto is alreay online');
-				//we need new Error type!
-			}
-			clients[clientId] = {socket, pairedHosts, online: true}
-			break;
-		
-		case 'update':
-			if(!clients[clientId]){
-				throw new Error('Invalid user, the user doesn\'t exist');
-				//we need new Error type!
-			};
-			if(socket){
-				clients[clientId].socket = socket;
-			};
-			if(pairedHosts){
-				clients[clientId].pairedHosts = pairedHosts;
-			};
-			if(online){
-				clients[clientId].online = online;
-			};
-			break;
+	return new Promise((resolve, reject)=>{
+		switch(action){
 
-		case 'select':
-			if(!clients[clientId]){
-				throw new Error('Invalid user, the user is not exist');
-				//we need new Error type!
-			}
-			return Object.assign({}, clients[clientId]);
-		break;
-	}
+			case 'update':
+				if(!clients[clientId]){
+					clients[clientId] = {};
+				};
+				if(socket){
+					clients[clientId].socket = socket;
+				};
+				if(pairedHosts){
+					clients[clientId].pairedHosts = pairedHosts;
+				};
+				if(online!==undefined){
+					clients[clientId].online = online;
+				}
+				console.log(clients);
+				console.log(clientId + "is " + online);
+				resolve();
+
+			case 'select':
+				if(!clients[clientId]){
+					var error = new Error('Invalid user, the user doesn\'t exist');
+					error.code = 'ERR_INVALID_USER';
+					reject(error);
+					//we need new Error type!
+				}
+				resolve(Object.assign({}, clients[clientId]));
+		}
+	})
 }
 
 /**
