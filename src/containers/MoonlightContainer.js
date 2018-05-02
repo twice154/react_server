@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import {fromJS} from 'immutable';
 
-import { getStatusRequest as getMLStatusRequest, getHostsRequest, getAppsRequest, startGameRequest, addHostRequest } from 'modules/moonlight';
+import { getStatusRequest as getMLStatusRequest, getHostsRequest, getAppsRequest, startGameRequest, addHostRequest, stopGameRequest } from 'modules/moonlight';
 import { getStatusRequest as getAuthStatusRequest } from 'modules/authentication';
 import {Moonlight} from 'components';
 import update from 'immutability-helper';
@@ -21,6 +22,7 @@ class MoonlightContainer extends Component {
         this.addHost = this.addHost.bind(this);
         this.getMoonlightStatus = this.getMoonlightStatus.bind(this);
         this.getAuthStatus = this.getAuthStatus.bind(this);
+        this.stopGame = this.stopGame.bind(this);
     }
 
     getAuthStatus(){
@@ -91,6 +93,10 @@ class MoonlightContainer extends Component {
         )
     }
 
+    stopGame(userId){
+        return this.props.stopGameRequest(userId);
+    }
+
     addHost(hostIp, userId, pairingNum){
         return this.props.addHostRequest(userId, hostIp, pairingNum).then(
             ()=>{
@@ -112,11 +118,13 @@ class MoonlightContainer extends Component {
                            getApps={this.getApps}
                            addHost={this.addHost}
                            startGame={this.startGame}
-                           hostList={this.state.hostList}
+                           stopGame={this.stopGame}
+                           hostList={this.props.hostList.get('data').toJS()}
                            getAuthStatus={this.getAuthStatus}
                            isMoonlightOnline={this.props.moonlightStatus}
                            currentUser={this.state.currentUser}
-                           newHostStatus={this.props.newHost.get('status')}           
+                           newHostStatus={this.props.newHost.get('status')}
+                           currentGame = {this.props.currentGame}           
                 />
             </div>
         );
@@ -130,7 +138,8 @@ const mapStateToProps = (state) => {
         newHost: state.moonlight.get('newHost'),
         startGame: state.moonlight.get('startGame'),
         authStatus: state.authentication.get('status'),
-        moonlightStatus: state.moonlight.get('status')
+        moonlightStatus: state.moonlight.get('status'),
+        currentGame: state.moonlight.get('currentGame')
     };
 };
 
@@ -153,6 +162,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         getMoonlightStatusRequest: (userId)=>{
             return dispatch(getMLStatusRequest(userId))
+        },
+        stopGameRequest: (userId)=>{
+            return dispatch(stopGameRequest(userId));
         }
     };
 };

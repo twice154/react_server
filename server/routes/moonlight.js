@@ -52,17 +52,21 @@ function getDatainAuthHeader(req){
 router.get('/status', (req, res)=>{
 	
 	let userId = getUserIdFromURI(req.baseUrl);
+	//console.log(req.app.socketForCentralServer.write);
 	sendMsgToCentralServer({
-		header: {
-			type: 'Request',
-			token: "",
-			command:'getStatus',
-			source: 'WEB',
-			dest: 'CONNETO',
-		},
-		body: {
-			userId
-		}
+			msg: {
+				header: {
+					type: 'Request',
+					token: "",
+					command:'getStatus',
+					source: 'WEB',
+					dest: 'CONNETO',
+				},
+				body: {
+					userId
+				}
+			},
+			socket: req.app.socketForCentralServer
 	});
 	addHttpResponse({
 		command: 'getStatus',
@@ -85,16 +89,19 @@ router.route('/hosts')
 	.get((req, res) => {
 		let userId = getUserIdFromURI(req.baseUrl);
 		sendMsgToCentralServer({
-			header:{
-				type: 'Request',
-				token: "",
-				command: 'getHosts',
-				source: 'WEB',
-				dest: 'CONNETO'
+			msg: {
+				header:{
+					type: 'Request',
+					token: "",
+					command: 'getHosts',
+					source: 'WEB',
+					dest: 'CONNETO'
+				},
+				body: {
+					userId
+				}
 			},
-			body: {
-				userId
-			}
+			socket: req.app.socketForCentralServer
 		});
 		addHttpResponse({
 			command: 'getHosts',
@@ -106,18 +113,21 @@ router.route('/hosts')
 	.post((req, res) => {
 		let userId = getUserIdFromURI(req.baseUrl);
 		sendMsgToCentralServer({
-			header:{
-				type: 'Request',
-				token: "",
-				command: 'addHost',
-				source: 'WEB',
-				dest: 'CONNETO'
+			msg: {
+				header:{
+					type: 'Request',
+					token: "",
+					command: 'addHost',
+					source: 'WEB',
+					dest: 'CONNETO'
+				},
+				body: {
+					userId,
+					hostIpaddress: req.body.hostIpaddress,
+					pairingNum: req.body.pairingNum
+				}
 			},
-			body: {
-				userId,
-				hostIpaddress: req.body.hostIpaddress,
-				pairingNum: req.body.pairingNum
-			}
+			socket: req.app.socketForCentralServer
 		});
 		addHttpResponse({
 			command: 'addHost',
@@ -142,17 +152,20 @@ router.route('/apps')
 		let userId = getUserIdFromURI(req.baseUrl);
 		let hostId = getDatainAuthHeader(req).hostId;
 		sendMsgToCentralServer({
-			header: {
-				type: 'Request',
-				token:'',
-				command: 'getApps',
-				source: 'WEB',
-				dest: 'CONNETO',
+			msg: {
+				header: {
+					type: 'Request',
+					token:'',
+					command: 'getApps',
+					source: 'WEB',
+					dest: 'CONNETO',
+				},
+				body: {
+					userId,
+					hostId
+				}
 			},
-			data: {
-				userId,
-				hostId
-			}
+			socket: req.app.socketForCentralServer
 		});
 		addHttpResponse({
 			command:'getApps',
@@ -165,37 +178,43 @@ router.route('/apps')
 		let userId = getUserIdFromURI(req.baseUrl);
 		if(req.body.command === 'startGame'){
 			sendMsgToCentralServer({
-				header: {
-					type: 'Request',
-					token:'',
-					command: 'startGame',
-					source: 'WEB',
-					dest: 'CONNETO'
+				msg: {
+					header: {
+						type: 'Request',
+						token:'',
+						command: 'startGame',
+						source: 'WEB',
+						dest: 'CONNETO'
+					},
+					body: {
+						userId,
+						appId: req.body.appId,
+						hostId: req.body.hostId,
+						option: req.body.option
+					}
 				},
-				body: {
-					userId,
-					appId: req.body.appId,
-					hostId: req.body.hostId,
-					option: req.body.option
-				}
+				socket: req.app.socketForCentralServer
 			});
 		}
 		else if(req.body.command === 'stopGame'){
 			sendMsgToCentralServer({
-				header: {
-					type: 'Response',
-					token: '',
-					command: 'stopGame',
-					source: 'WEB',
-					dest: 'CONNETO'
+				msg: {
+					header: {
+						type: 'Response',
+						token: '',
+						command: 'stopGame',
+						source: 'WEB',
+						dest: 'CONNETO'
+					},
+					body: {
+						userId
+					}
 				},
-				body: {
-					userId
-				}
+				socket: req.app.socketForCentralServer
 			})	
 		}
 		addHttpResponse({
-			httpResponses,
+			httpResponses:req.app.httpResponses,
 			command: req.body.command,
 			userId,
 			res
@@ -207,20 +226,23 @@ router.get('/connetables', (req, res)=>{
 	let hostIpaddress = getDatainAuthHeader(req).hostIpaddress;
 	
 	sendMsgToCentralServer({
-		header: {
-			type: 'Request',
-			token: '',
-			command: 'getClients',
-			source: 'WEB',
-			dest: 'CONNETO'
+		msg: {
+			header: {
+				type: 'Request',
+				token: '',
+				command: 'getClients',
+				source: 'WEB',
+				dest: 'CONNETO'
+			},
+			body: {
+				userId,
+				hostIpaddress
+			}
 		},
-		body: {
-			userId,
-			hostIpaddress
-		}
+		socket: req.app.socketForCentralServer
 	});
 	addHttpResponse({
-		httpResponses,
+		httpResponses:req.app.httpResponses,
 		command: 'getClients',
 		userId,
 		res
@@ -237,11 +259,15 @@ router.get('/connetables', (req, res)=>{
  * @promise it resolves after the msg is finally written out, no args
  * @throws {Error} error while writing to socket for Central server  
  */
-function sendMsgToCentralServer(msg){
+function sendMsgToCentralServer({msg, socket}){
 	return new Promise((resolve, reject)=>{
-		app.socketForCentralServer.write(JSON.stringify(msg), resolve)
-	}).catch(err=>{
-		reject(err);
+		//console.log(socket);
+		socket.write(JSON.stringify(msg), (err)=>{
+			if(err){
+				reject(err);
+			}
+			resolve();
+		})
 	})
 }
 
@@ -274,7 +300,7 @@ function getOverlapElements(array1, array2){
 
 function addHttpResponse({httpResponses, command, userId, res}){
 	if(!httpResponses[command]){
-		throw new InvalidFormatError('Invalid command: this command is not in httpResponses');
+		throw new InvalidFormatError(`Invalid command: this command(${command}) is not in httpResponses`);
 	}
 	if(!httpResponses[command][userId]){
 		httpResponses[command][userId] = [];

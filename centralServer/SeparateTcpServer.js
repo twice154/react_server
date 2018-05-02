@@ -36,7 +36,7 @@ let connetoSocketHandler = {
  	 * @param {Socket} sokcetForWebServer- socket used for communication with Web server
  	 */
 	connection: (socketForConneto, socketForWebServer)=>{
-		console.log('Server has a new Conneto client connection: ' + socketForConneto.remotePort);
+		//console.log('Server has a new Conneto client connection: ' + socketForConneto.remotePort);
 		socketForConneto.on('close', ()=>{
 			connetoSocketHandler.close(socketForConneto);
 		});
@@ -52,7 +52,7 @@ let connetoSocketHandler = {
 	 * @param {Socket} socketForConneto - socket used for communication with Conneto client  
 	 */
 	close: (socketForConneto)=>{
-		console.log('Conneto client connection is closed: ' + socketForConneto.remotePort + " " +socketForConneto.userId);
+		//console.log('Conneto client connection is closed: ' + socketForConneto.remotePort + " " +socketForConneto.userId);
 		
 		//exports.deleteConnetoSocket(socketForConneto);
 		if(socketForConneto.userId){
@@ -61,7 +61,7 @@ let connetoSocketHandler = {
 				clientId: socketForConneto.userId,
 				online: false
 			});
-			queryClientInfo({
+			/*queryClientInfo({
 				action: 'select',
 				clientId: socketForConneto.userId
 			}).then((clientInfo)=>{
@@ -72,7 +72,7 @@ let connetoSocketHandler = {
 						pairedClients: socketForConneto.userId
 					});
 				})
-			})
+			})*/
 		}	
 	},
 
@@ -83,7 +83,7 @@ let connetoSocketHandler = {
 	 * @param {Socket} socketForConneto - socket used for communicating with Conneto client
  	 */
 	error: (err, socketForConneto)=>{
-		console.log("err occured in connection with Conneto client: " + socketForConneto.remotePort + err);		
+		//console.log("err occured in connection with Conneto client: " + socketForConneto.remotePort + err);		
 	},
 	
 	/**
@@ -151,6 +151,7 @@ let connetoSocketHandler = {
 	data: (message, socketForConneto, socketForWebServer)=>{
 		try {
 			message = JSON.parse(message);
+			console.log("Received from conneto: " + JSON.stringify(message) + " " + socketForConneto.remotePort);
 			isValidHeader(message.header);
 		}
 		catch (e) {
@@ -164,8 +165,19 @@ let connetoSocketHandler = {
 			let hostIpaddress = message.body.hostIpaddress;
 			var userId = message.body.userId;
 			if(message.header.command === 'addHost'&& message.header.statusCode === 200){
-				addConnetableClient(hostIpaddress, userId);
+				//addConnetableClient(hostIpaddress, userId);
+				queryClientInfo({
+					clientId: userId,
+					action: 'add',
+					pairedHosts: hostIpaddress
+				})
+				/*queryHostInfo({
+					actionForPairedClients: 'add',
+					hostIpaddress,
+					pairedClients: userId
+				})*/
 			}
+			//console.log(message);
 			exports.sendMsg(socketForWebServer, message);			
 		}
 		else if(message.header.dest === 'DB'){
@@ -195,6 +207,13 @@ let connetoSocketHandler = {
 							error.code = 'ERR_DOUBLE_LOGINED';
 							throw error;
 						}
+						return queryClientInfo({
+							action: 'update',
+							clientId: message.body.userId,
+							socket:socketForConneto,
+							pairedHosts:message.body.hostList,
+							online:true
+						})
 					})
 					.catch((error)=>{
 						console.log(error.code)
@@ -216,7 +235,7 @@ let connetoSocketHandler = {
 				})
 				.then(()=>{
 					socketForConneto.userId = message.body.userId;
-					for(var host in message.body.hostList){
+					/*for(var host in message.body.hostList){
 						if(host.paired){
 							queryHostInfo({
 								hostIpaddress: host.hostIpaddress,
@@ -225,7 +244,7 @@ let connetoSocketHandler = {
 								online: host.online
 							})
 						}
-					}
+					}*/
 					msg.header.statusCode = 200;
 					
 					/**
@@ -237,7 +256,7 @@ let connetoSocketHandler = {
 							throw new SocketError("there's error while sending loginApproval to Conneto");
 						}
 						else {
-							console.log(socketForConneto.remotePort);
+							//console.log(socketForConneto.remotePort);
 						}
 					})
 				})
@@ -368,7 +387,7 @@ let webServerSocketHandler = {
 		})
 		.then((clientInfo)=>{
 			var socketForConneto = clientInfo.socket;
-			if (!socketForConneto) {
+			if (!clientInfo.online) {
 				console.log("Conneto of " + userId + " is offline");
 				switch(message.header.command){
 					case 'getStatus':
@@ -437,12 +456,18 @@ let webServerSocketHandler = {
 							}
 						}
 						try{
-							var pairedClients = queryHostInfo({
+							/*var pairedClients = queryHostInfo({
 								hostIpaddress,
 								action: 'select'
-							}).pairedClients;
+							}).pairedClients;*/
 							message.header.statusCode = 200;
-							message.body.connetableClients = pairedClients;
+							message.body.connetableClients = [];
+							for(var clientId in clients){
+								if(clients[clientId].online){
+									message.body.connetableClients.push(clients[clientId])
+								}
+							}
+							 
 							exports.sendMsg(socketForConneto, message);
 						}
 						catch(err){
@@ -494,7 +519,6 @@ function queryHostInfo({action, hostIpaddress, actionForPairedClients, pairedCli
 			break;
 
 		default:
-			throw new DBError('Invalid command for db');
 			//we need new Error type!
 	}
 }
@@ -506,6 +530,7 @@ function queryClientInfo({clientId, socket, action, pairedHosts, online}){
 			case 'update':
 				if(!clients[clientId]){
 					clients[clientId] = {};
+					clients[clientId].clientId = clientId;
 				};
 				if(socket){
 					clients[clientId].socket = socket;
@@ -521,6 +546,7 @@ function queryClientInfo({clientId, socket, action, pairedHosts, online}){
 				resolve();
 
 			case 'select':
+				console.log(clients);
 				if(!clients[clientId]){
 					var error = new Error('Invalid user, the user doesn\'t exist');
 					error.code = 'ERR_INVALID_USER';
@@ -528,6 +554,17 @@ function queryClientInfo({clientId, socket, action, pairedHosts, online}){
 					//we need new Error type!
 				}
 				resolve(Object.assign({}, clients[clientId]));
+
+			case 'add':
+				if (!clients[clientId]) {
+					var error = new Error('Invalid user, the user doesn\'t exist');
+					error.code = 'ERR_INVALID_USER';
+					reject(error);
+					//we need new Error type!
+				}
+				if(!clients[clientId].pairedHosts.includes(pairedHosts)&& pairedHosts)
+					clients[clientId].pairedHosts.push(pairedHosts);
+				resolve();
 		}
 	})
 }
@@ -698,7 +735,7 @@ function isValidHeader(header){
  * @return {boolean} whether the command is valid
  */
 function isValidCommand(command){
-	let validCommands = ['getStatus', 'getHosts', 'getApps', 'addHost', 'startGame', 'networkTest', 'login']
+	let validCommands = ['getStatus', 'getHosts', 'getApps', 'addHost', 'startGame', 'networkTest', 'login', 'stopGame']
 	return validCommands.includes(command);
 }
 

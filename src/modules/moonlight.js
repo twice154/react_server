@@ -7,41 +7,48 @@ const GET_STATUS_LOADING = "MOONLIGHT/GET_STATUS_LOADING";
 const GET_STATUS_SUCCESS = "MOONLIGHT/GET_STATUS_SUCCESS";
 const GET_STATUS_FAILURE = "MOONLIGHT/GET_STATUS_FAILURE";
 const GET_HOSTS = "MOONLIGHT/GET_HOSTS";
-const GET_HOSTS_LOADING = "MOONLIGHT/GET_HOSTS_LOADING"
-const GET_HOSTS_SUCCESS = "MOONLIGHT/GET_HOSTS_SUCCESS"
-const GET_HOSTS_FAILURE = "MOONLIGHT/GET_HOSTS_FAILURE"
+const GET_HOSTS_LOADING = "MOONLIGHT/GET_HOSTS_LOADING";
+const GET_HOSTS_SUCCESS = "MOONLIGHT/GET_HOSTS_SUCCESS";
+const GET_HOSTS_FAILURE = "MOONLIGHT/GET_HOSTS_FAILURE";
 const GET_APPS = "MOONLIGHT/GET_APPS";
-const GET_APPS_LOADING = "MOONLIGHT/GET_APPS_LOADING"
-const GET_APPS_SUCCESS = "MOONLIGHT/GET_APPS_SUCCESS"
-const GET_APPS_FAILURE = "MOONLIGHT/GET_APPS_FAILURE"
+const GET_APPS_LOADING = "MOONLIGHT/GET_APPS_LOADING";
+const GET_APPS_SUCCESS = "MOONLIGHT/GET_APPS_SUCCESS";
+const GET_APPS_FAILURE = "MOONLIGHT/GET_APPS_FAILURE";
 const ADD_HOST = "MOONLIGHT/ADD_HOST";
-const ADD_HOST_LOADING= "MOONLIGHT/ADD_HOST_LOADING"
-const ADD_HOST_SUCCESS = "MOONLIGHT/ADD_HOST_SUCCESS"
-const ADD_HOST_FAILURE = "MOONLIGHT/ADD_HOST_FAILURE"
+const ADD_HOST_LOADING= "MOONLIGHT/ADD_HOST_LOADING";
+const ADD_HOST_SUCCESS = "MOONLIGHT/ADD_HOST_SUCCESS";
+const ADD_HOST_FAILURE = "MOONLIGHT/ADD_HOST_FAILURE";
 const START_GAME = "MOONLIGHT/START_GAME";
-const START_GAME_LOADING = "MOONLIGHT/START_GAME_LOADING"
-const START_GAME_SUCCESS = "MOONLIGHT/START_GAME_SUCCESS"
-const START_GAME_FAILURE = "MOONLIGHT/START_GAME_FAILURE"
+const START_GAME_LOADING = "MOONLIGHT/START_GAME_LOADING";
+const START_GAME_SUCCESS = "MOONLIGHT/START_GAME_SUCCESS";
+const START_GAME_FAILURE = "MOONLIGHT/START_GAME_FAILURE";
+const STOP_GAME = "MOONLIGH/STOP_GAME";
+const STOP_GAME_LOADING = "MOONLIGHT/STOP_GAME_LOADING";
+const STOP_GAME_SUCCESS = "MOONLIGHT/STOP_GAME_SUCCESS";
+const STOP_GAME_FAILURE = "MOONLIGHT/STOP_GAME_FAILURE";
 
 const initialState = Map({
     status:'INIT',
+    currentGame: 'INIT',
     hostList: Map({
         status: 'INIT',
-        data: List([])
+        data: List([]),
     }),
     appList: Map({
         status: 'INIT',
         data: List([])
     }),
     startGame: Map({
-        status: 'INIT',
-        currentGame: 'INIT'
+        status: 'INIT'
     }),
     newHost: Map({
         status: 'INIT',
         pairingNum: '' //it's not used for now
+    }),
+    stopGame: Map({
+        status: 'INIT'
     })
-})
+});
 
 /**
  * 
@@ -96,11 +103,12 @@ function addHostApiRequest(userId, hostIp, pairingNum){
         pairingNum
     })
     .then(res=>{
+        console.log(res);
         if (res.data.error) {
             return Promise.reject(res.data.error);
         }
 
-        return Promise.resolve(JSON.parse(res.data));
+        return Promise.resolve(res.data);
     })
 }
 
@@ -109,13 +117,26 @@ function startGameApiRequest(userId, hostId, appId, option){
         userId, 
         hostId,
         appId, 
-        option
+        option,
+        command: 'startGame'
     })
     .then(res=>{
         if (res.data.error) {
             return Promise.reject(res.data.error);
         }
         return Promise.resolve(appId);
+    })
+}
+
+function stopGameApiRequest(userId){
+    return axios.post(`/api/${userId}/conneto/apps`, {
+        command: 'stopGame',
+        userId
+    }).then((res)=>{
+        if(res.data.error){
+            return Promise.reject(res.data.error);
+        }
+        return Promise.resolve(res.data.appName);
     })
 }
 
@@ -144,6 +165,12 @@ export const startGameRequest = (userId, hostId, appId, option)=>({
     payload: startGameApiRequest(userId, hostId, appId, option)
 })
 
+export const stopGameRequest = (userId)=>({
+    type: STOP_GAME,
+    payload: stopGameApiRequest(userId)
+})
+
+
 export default handleActions({
     [GET_STATUS_LOADING]: (state, action)=>{
         return state.set('status', 'WAITING')
@@ -162,7 +189,7 @@ export default handleActions({
     },
 
     [GET_HOSTS_SUCCESS]: (state, action)=>{
-        return state.set('hostList', Map({status: 'GET_SUCCESS', data: fromJS(action.payload.list)}))
+        return state.set('hostList', Map({status: 'GET_SUCCESS', data: fromJS(action.payload.hostList)}))
     },
 
     [GET_HOSTS_FAILURE]: (state, action)=>{
@@ -187,8 +214,10 @@ export default handleActions({
     },
 
     [ADD_HOST_SUCCESS]: (state, action)=>{
-        const hostListData = state.getIn(['hostList','data'])
-        return state.set('hostList', Map({status: 'ADD_SUCCESS',data: hostListData.push(fromJS(action.payload))}))
+        const hostListData = state.getIn(['hostList','data']);
+        //console.log("Rftsdfsdfsdfds" + state.getIn(['hostList']));
+        //return state.setIn(['hostList', 'status'], 'ADD_SUCCESS');
+        return state.set('hostList', Map({ status: 'ADD_SUCCESS', data: state.getIn(['hostList', 'data']).push(fromJS(action.payload))}))
     },
 
     [ADD_HOST_FAILURE]: (state, action)=>{
@@ -200,10 +229,24 @@ export default handleActions({
     },
 
     [START_GAME_SUCCESS]: (state, action)=>{
-        return state.set('startGame', Map({status: 'SUCCESS', currentGame: action.payload}));
+        return state.setIn(['startGame', 'status'], 'SUCCESS')
+                    .set('currentGame', action.payload)
     },
 
     [START_GAME_FAILURE]: (state, action)=>{
         return state.setIn(['startGame', 'status'], 'FAILURE');
+    },
+
+    [STOP_GAME_LOADING]: (state, action)=>{
+        return state.setIn(['stopGame', 'status'], 'WAITING');
+    },
+
+    [STOP_GAME_SUCCESS]: (state, action)=>{
+        return state.setIn(['stopGame', 'status'], 'SUCCESS')
+                    .set('currentGame', "")
+    },
+
+    [STOP_GAME_FAILURE]: (state, action)=>{
+        return state.setIn(['stopGame', 'status'], 'FAILURE');
     }
 }, initialState);

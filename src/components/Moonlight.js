@@ -18,7 +18,8 @@ class Moonlight extends React.Component {
 				frameRate:"60",
 				resolution:"1280:720",
 				bitrate:"10",
-				remote_audio_enabled: true
+				remote_audio_enabled: true,
+				optimize_enalbled: true
 			}
 		};
 		this.showApps = this.showApps.bind(this);
@@ -26,6 +27,7 @@ class Moonlight extends React.Component {
 		this.addHost = this.addHost.bind(this);
 		this.handleChange = this.handleChange.bind(this);
 		this.handleCheck = this.handleCheck.bind(this);
+		this.stopGame=this.stopGame.bind(this);
 	}
 
 	componentDidMount(){
@@ -60,11 +62,12 @@ class Moonlight extends React.Component {
 
 	startGame(e){
 		let option = {
-			"frameRate": this.state.streamSettings.fps,
+			"frameRate": this.state.streamSettings.frameRate,
 			"streamWidth": this.state.streamSettings.resolution.split(':')[0],
 			"streamHeight": this.state.streamSettings.resolution.split(':')[1],
 			"remote_audio_enabled": this.state.streamSettings.remote_audio_enabled ? 1 : 0,
-			'bitrate': this.state.streamSettings.bitrate
+			'bitrate': this.state.streamSettings.bitrate,
+			'optimize': this.state.streamSettings.optimize_enabled ? 1 : 0
 		}
 		this.props.startGame(this.state.selectedHost, this.props.currentUser, e.target.id, option)
 			.then((result)=>{
@@ -74,6 +77,18 @@ class Moonlight extends React.Component {
 			.catch(()=>{
 				return window.Materialize.toast('Failed to start the game', 2000);				
 			}) 
+	}
+
+	stopGame(e){
+		this.props.stopGame(this.props.currentUser)
+			.then(()=>{
+				let $toastContent = window.$(`<span style="color: $FFB4BA">Successfully stopped the game</span>`);
+				return window.Materialize.toast($toastContent, 2000);
+			})
+			.catch((err)=>{
+				let $toastContent = window.$(`<span style="color: $FFB4BA">Failed to stopped the game</span>`); 
+				return window.Materialize.toast($toastContent, 2000);
+			})
 	}
 
 	addHost(e){
@@ -93,8 +108,9 @@ class Moonlight extends React.Component {
 					console.log("ADDED SUCCESSFULLY!");
 					window.Materialize.toast("Added Successfullly", 2000);
 				}
-			).catch(()=>{
+			).catch((err)=>{
 				console.log('Failed to add new host');
+				console.log(err);
 				window.Materialize.toast('Failed to add new host', 2000);
 			})
 		}
@@ -129,6 +145,13 @@ class Moonlight extends React.Component {
    					</label>
    					</p>
   				</div>
+				<div className="switch">
+					<label>
+						<input type="checkbox" id="streamSettings" name="optimize_enabled" onChange={this.handleCheck} checked={this.state.streamSettings.optimize_enabled}/>
+						<span className="lever"></span>
+							GFE optimization off/on
+					</label>
+				</div>
 				<div className="row">
 					<div className="input-field col s6">
 						<select id="streamSettings" name="resolution">
@@ -173,13 +196,25 @@ class Moonlight extends React.Component {
 					})
 				)
 			}
-		return (<div>appList is Empty</div>);	
+			return (<div>appList is Empty</div>);	
 		};
+
+		let isGamePlaying = this.props.currentGame !== 'INIT' && this.props.currentGame !== '';
 
 
 		return (
 			<div>
 				{this.props.isMoonlightOnline==='ONLINE'? <div className="col s12">Moonlight-chrome is online</div>: <div>Moonlight-chrome is offline</div>}
+				{isGamePlaying? 
+					<div>
+						<div className="card-content">
+							<div className="row">
+								<a className="waves-effect waves-light btn" onClick={this.stopGame}>Quit Game</a>
+							</div>
+						</div>					
+					</div>
+					: <div>Game is not being played now</div>
+				}
 				{settingView}
 
 				{this.state.mode?
@@ -205,7 +240,7 @@ class Moonlight extends React.Component {
 						}
 
 					</div>
-						: appListView
+						: appListView()
 				}
 			</div>
 		)
