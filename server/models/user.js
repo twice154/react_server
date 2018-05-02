@@ -305,4 +305,149 @@ User.verify = (user, info) => {
 	return user.password == encrypted
 }
 
+/**
+ * 도네이션 세팅을 불러오는 함수.
+ * @param {object} info -info.userId가 유저 아이디.(토큰에서 추출)
+ * by g1. 4.16
+ */
+User.getDonationSetting = (info)=>{
+	var TempDat={}
+    return new Promise( (res,reject)=>{
+		User.db.query("SELECT * FROM DonationSettings WHERE userId='" + info.userId + "'")
+		.then( (results)=>{
+			if( results.length === 0 ){
+				console.log('Not found!')
+				res(TempDat)
+			} else{
+				console.log('found')
+				TempDat = Object.assign({},results[0])
+				res(TempDat);
+			}
+		})
+		.catch((err)=>reject(err))
+    })
+}
+/**
+ * 도네이션 세팅하는 함수
+ * @param {object} info -info에 도네이션 세팅에 필요한 애들이 들어있다.
+ * by g1 4.16
+ */
+User.setDonationSetting = (info)=>{
+	return User.db.query("SELECT * FROM DonationSettings WHERE userId='" + info.userId + "'")
+	.then((result)=>{
+		if(result.length===0){
+			console.log('donationSetting is not found')
+			return User.db.class.get('DonationSettings').then(function(DonationSettings){
+				DonationSettings.create(info)
+				 
+			 });
+		}else{
+			console.log('donationsetting is found')
+			return User.db.query("SELECT @rid FROM DonationSettings WHERE userId='" + info.userId +"'").then(result=>{
+				let rid = result[0].rid
+				//orientJS query사용
+				User.db.update('#'+rid.cluster+':'+rid.position).set(info).one()
+				.then(
+				   function(update){
+					  console.log('Records Updated:', update);
+				   }
+				);
+				console.log('#'+rid.cluster+':'+rid.position)
+			})
+			
+		}
+	})	
+}
+/**
+ * 
+ * @param {object} info userId, [No1-content,No2-content,No3-content,No4-content,No5-content,No6-content],Type:'limitByTime 또는 limitByPercent',PerCent-CriticalPoint,Time-CriticalPoint
+ * @description
+ *  리엑토 세팅하는 함수. dbinit참고.
+ * byG1
+ */
+User.setReactoSetting =(info)=>{
+	return User.db.query("SELECT * FROM ReactoSettings WHERE userId='" + info.userId + "'")
+	.then((result)=>{
+		if(result.length===0){
+			console.log('reactoSetting is not found')
+			return User.db.class.get('ReactoSettings').then(function(ReactoSettings){
+				ReactoSettings.create(info)
+				 
+			 });
+		}else{
+			console.log('ReactoSetting is found')
+			return User.db.query("SELECT @rid FROM ReactoSettings WHERE userId='" + info.userId +"'").then(result=>{
+				let rid = result[0].rid
+				//orientJS query사용
+				User.db.update('#'+rid.cluster+':'+rid.position).set(info).one()
+				.then(
+				   function(update){
+					  console.log('Records Updated:', update);
+				   }
+				);
+				console.log('#'+rid.cluster+':'+rid.position)
+			})
+			
+		}
+	})	
+}
+/**
+ * 리엑토 세팅을 불러오는 함수.
+ * @param {object} info -info.userId가 유저 아이디.(토큰에서 추출)
+ * by g1. 4.16
+ * TODO: 유저가 받아오는 거랑 비제이가 받아오는 거랑 차별을 둬야함.
+ */
+User.getReactoSettingForStreamer =(info)=>{
+	var TempDat={}
+    return new Promise( (res,reject)=>{
+		User.db.query("SELECT * FROM ReactoSettings WHERE userId='" + info.userId + "'")
+		.then( (results)=>{
+			if( results.length === 0 ){
+				console.log('Not found!')
+				res(TempDat)
+			} else{
+				console.log('found')
+				TempDat = Object.assign({},results[0])
+				res(TempDat);
+			}
+		})
+		.catch((err)=>reject(err))
+    })
+}
+User.getReactoSetting = (info)=>{
+	var TempDat={}
+    return new Promise( (res,reject)=>{
+		console.log(info.No+'_duration')
+		User.db.query("SELECT "+info.No+"_duration FROM ReactoSettings WHERE userId='" + info.userId + "'")
+		.then( (results)=>{
+			if( results.length === 0 ){
+				console.log('Not found!')
+				res(TempDat)
+			} else{
+				console.log('found')
+				TempDat = Object.assign({},results[0])
+				res(TempDat);
+			}
+		})
+		.catch((err)=>reject(err))
+    })
+}
+
+User.getReactoSettingForViewer = (streamerId)=>{
+	let TempDat={}
+	return new Promise((resolve,reject)=>{
+		User.db.query("SELECT resetTime,percent FROM ReactoSettings WHERE userId='" + streamerId + "'")
+		.then(results=>{
+			if( results.length === 0 ){
+				console.log('Not found!')
+				resolve(TempDat)
+			} else{
+				console.log('found')
+				TempDat = Object.assign({},results[0])
+				resolve(TempDat);
+			}
+		}).catch(err=>reject(err))
+	})
+}
+
 module.exports = User

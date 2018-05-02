@@ -55,7 +55,8 @@ const initialState = Map({
     status: Map({
         isLoggedIn: false,
         verified: false,
-        currentUser: ''
+        currentUser: '',
+        userId:''
     }),
     findId: Map({
         gottenId:''
@@ -79,8 +80,7 @@ function loginApiRequest(userId, password){
     return axios.post('/api/auth', {userId, password})
             .then((res)=> {
                 if(res.data.success){
-                return Promise.resolve(
-                {userId,verified:res.data.data.verified})}
+                return Promise.resolve(res.data.data)}
                 else{
                     return Promise.reject(res.data.message)
                 }
@@ -97,15 +97,17 @@ function loginApiRequest(userId, password){
  */
 function getStatusApiRequest(){
     return axios.get('/api/auth')
-            .then((res)=>(Promise.resolve(res.data.data.userId)))
+            .then((res)=>(Promise.resolve(res.data.data)))
             .catch(err=>(Promise.reject(err.response.data.message)))
 }
 /**db에 담긴 모든 데이터를 받아온다
  * @param {res.data.info} {object}- 로그인 된 유저의 모든 db정보를 받아온다. pwd제외.
  */
 function getAllInfoRequest(){
-       return axios.get('/api/account/userInfo')
+    console.log('5')
+       return axios.get('/api/users')
             .then((res)=>{
+                console.log(res.data)
                 return Promise.resolve(res.data)})
             .catch(err=>Promise.reject(err.response.data.message))
 }
@@ -144,7 +146,7 @@ function findPwdRequest(userId,email){
                     }
                 },(err)=>Promise.reject(err.response.data.message))
                 
-     
+      
     }
       
  
@@ -185,7 +187,7 @@ export function reSendEmail(email,userId) {
 export function logoutRequest() {
     return (dispatch) => {
         return axios.delete('/api/auth')
-            .then(dispatch({type: LOGOUT}))
+            .then(()=>{dispatch({type: LOGOUT})})
             .catch(err=>Promise.reject(err));
     };
 }
@@ -199,7 +201,7 @@ export function logoutRequest() {
  * @param {string} userId -현재 로그인 되어있던 유저.
  */
 export function verify(token,userId){
-    return (dispatch)=>axios.put(`/api/user/${userId}/verification?token=${token}`).then(dispatch({type:VERIFY}))
+    return (dispatch)=>axios.put(`/api/user/${userId}/verification?token=${token}`).then(()=>{dispatch({type:VERIFY})})
                             .catch(err=>Promise.reject(err.response.data.message))
 }
 
@@ -243,7 +245,7 @@ export default handleActions({
 
     [LOGIN_SUCCESS]: (state, action)=>{
         return state.setIn(['login', 'status'], 'SUCCESS')
-                    .mergeIn(['status'], Map({verified: action.payload.verified, currentUser: action.payload.userId}))
+                    .mergeIn(['status'], Map({verified: action.payload.verified,  currentUser: action.payload.currentUser, userId:action.payload.userId}))
                     .setIn(['status','isLoggedIn'],true)
     },
 
@@ -256,7 +258,7 @@ export default handleActions({
     },
 
     [GET_STATUS_SUCCESS]: (state, action)=>{
-        return state.mergeIn(['status'], Map({isLoggedIn: true, currentUser: action.payload}))
+        return state.mergeIn(['status'], Map({isLoggedIn: true, currentUser: action.payload.currentUser, userId:action.payload.userId}))
     },
 
     [GET_STATUS_FAILURE]: (state, action)=>{

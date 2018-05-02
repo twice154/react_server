@@ -165,8 +165,8 @@ exports.putUsers = (req, res) => {
 	//info.userId = req.decoded.userId
 	var urlParameter = url.parse(req.url).pathname.split('/')
 
-	urlParameter[1]	//userId
-	urlParameter[2] //field
+	// urlParameter[1]	//userId
+	// urlParameter[2] //field
 	
 	const onError = (error) => {
 		res.status(error.status).json({
@@ -189,7 +189,7 @@ exports.putUsers = (req, res) => {
 	.then(info => temp(info))
 	.then(info => User.findOneByUserid(info))
 	.then( user => modify(user, infos))
-	.then( ()=> respond.json({success:true}))
+	.then( ()=> res.json({success:true}))
 	.catch(onError)
 }
 
@@ -202,12 +202,15 @@ exports.putUsers = (req, res) => {
  *  @return	No Return
  */
 exports.getUsers = (req, res) => {
+	console.log('3')
 	const onError = (error) => {
+		console.log('2')
 		res.status(409).json({
 			message: error.message
 		})
 	}
 	const onRespond = (user) => {
+		console.log('1')
 		res.json({
 			userId: user.userId,
 			email: user.email,

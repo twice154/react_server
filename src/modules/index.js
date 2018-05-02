@@ -6,6 +6,7 @@ import speedTest from './speedTest';
 import stream from './stream';
 import register from './register'
 import donation from './donation'
+import reacto from './reacto'
 
 export default combineReducers({
     authentication,
@@ -13,5 +14,6 @@ export default combineReducers({
     speedTest,
     stream,
     register,
-    donation
+    donation,
+    reacto
 });

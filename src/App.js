@@ -6,11 +6,11 @@
 
 import React from 'react';
 import {BrowserRouter, Route, Switch} from 'react-router-dom';
-import {TopBar, Verify, Verified, StreamingView, StreamingListContainer,
-        SpeedTestContainer,Settings, ChangeInfo, PwdCheck, Broadcasting, MainVideo} from './containers';
-import {Payment} from './components';
+import {TopBar,BroadcastSettings, MainVideo, ContentContainer} from './containers';
+
 import {Provider} from 'react-redux';
 import store from './store';
+import styled from 'styled-components'
 
 /** path별 설명
  * '/' -홈페이지를 로딩함 (headerContatiner는 항상 로딩됨)
@@ -31,35 +31,24 @@ import store from './store';
  * 
  */
 const App = ()=>(
-    <div>
+    <div >
         <Route path="/" render={(props)=>(<TopBar {...props}/>)}/>
-        <div className='row' style={{paddingTop:'177px'}}>
-            <Route path='/' exact component={MainVideo}/>
-        </div>
-        <div className='row' style={{height:'1000px'}}>
-        <div className='col-2'>
-        {/* sideBar */}
-            <div style={{border:'5px solid red',position: "sticky",top: '200px',width:'100%',paddingLeft:'50px', height:'400px'}}></div>
-        </div>
-        <div className='col'>
+        <div style={{paddingTop:'88px'}}>
+        <Route path='/' exact component={MainVideo}/>
+
+        <div className='container-fluid'>
         <Switch>
-            <Route path="/" exact component={StreamingListContainer}/>
-            <Route path='/verify' component={Verify}/>
-            <Route path='/verified/:token' component={Verified}/>
-            <Route path="/player/:streamname" component={StreamingView}/>
-            <Route path="/pay" component={Payment} />
-            <Route path="/speedtest" component={SpeedTestContainer}/>
-            <Route path='/settings' exact component={Settings}/>
-            <Route path='/settings/:typename' component={ChangeInfo}/>
-            <Route path='/pwdcheck/:typename' component={PwdCheck}/>
-            <Route path='/broadcast' component={Broadcasting}/>
-            {/* <Route path='/newpassword/:token' component={}/> */}
-        </Switch> 
+        <Route path='/broadcast/settings' component={BroadcastSettings}/>
+        <Route path='/' component={ContentContainer}/>
+        
+     
+        </Switch>        
         </div>
         </div>
         
     </div>
 )
+
 
 const Root = () =>(
     <Provider store = {store}>

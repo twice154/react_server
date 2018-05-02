@@ -2,8 +2,7 @@ import React, { Component } from 'react';
 import {Text,Video,Voice} from '../../components/donation'
 import {connect} from 'react-redux'
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import { getThumbnail, videoDonation } from '../../modules/donation';
-
+import { getThumbnail, donation,getTheNumberOfToken } from '../../modules/donation';
 
 class Donation extends Component {
     constructor(props) {
@@ -12,6 +11,7 @@ class Donation extends Component {
         this.handleSelect=this.handleSelect.bind(this)
     }
     componentDidUpdate(){
+        console.log(this.props.tokenNumber)
         console.log(this.props.thumbnail)
     }
 
@@ -28,6 +28,7 @@ class Donation extends Component {
             <Modal isOpen={this.props.modal} toggle={this.props.toggle} style={{marginTop:'100px',width:'550px'}}>
             <ModalHeader>
             <div style={{paddingTop:"40px",paddingLeft:"50px"}} >
+            <h3>현재 갖고 있는 토큰의 개수 {this.props.tokenNumber}</h3>
 			<h2> {this.props.streamName}에게 도네하기. </h2>
 			</div>
             </ModalHeader>
@@ -43,7 +44,7 @@ class Donation extends Component {
                 return <Voice/>
                 break;
             case 'video':
-                return <Video thumbnail={this.props.thumbnail} getThumbnail={this.props.getThumbnail} donation={this.props.videoDonation}/>
+                return <Video thumbnail={this.props.thumbnail} getThumbnail={this.props.getThumbnail} donation={this.props.donation} currentUser={this.props.currentUser} streamName={this.props.streamName}/>
                 break;
             default:
                 console.log('warning')
@@ -59,7 +60,9 @@ class Donation extends Component {
 }
 const mapStateToProps=(state)=>{
     return{
-        thumbnail:state.donation.thumbnail
+        currentUser: state.authentication.getIn(['status','currentUser']),
+        thumbnail:state.donation.thumbnail,
+        tokenNumber:state.donation.tokenNumber
     }
 }
 
@@ -67,7 +70,8 @@ const mapStateToProps=(state)=>{
 const mapDispatchToProps=(dispatch)=>{
     return{
         getThumbnail:(url)=>dispatch(getThumbnail(url)),
-        videoDonation:(data)=>dispatch(videoDonation(data))
+        donation:(data,streamName)=>dispatch(donation(data,streamName)),
+        getTheNumberOfToken:()=>dispatch(getTheNumberOfToken())
     }
    
 }

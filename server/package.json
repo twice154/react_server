@@ -9,6 +9,7 @@
     "start": "cross-env NODE_PATH=./node_modules/ node ../build/main.js"
   },
   "dependencies": {
+    "aws-sdk": "^2.224.1",
     "axios": "^0.17.1",
     "body-parser": "^1.18.2",
     "cookie-parser": "^1.4.3",
@@ -19,6 +20,7 @@
     "orientjs": "^2.2.7",
     "request": "^2.83.0",
     "socket.io": "^2.0.4",
+    "socket.io-stream": "^0.9.1",
     "speedtest-net": "^1.4.2"
   }
 }

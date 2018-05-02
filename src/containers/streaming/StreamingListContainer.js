@@ -5,7 +5,7 @@
  */
 
 import React, { Component } from 'react';
-import StreamingList from '../../components/StreamingList';
+import {StreamingLists} from '../../components/streamingList';
 import { connect } from 'react-redux';
 import {getStreamsRequest} from '../../modules/stream';
 import {List} from 'immutable'
@@ -37,10 +37,11 @@ class StreamingListContainer extends Component {
     render() {
         return (
             <div>
-                <StreamingList getStreams={this.getStreams}
+                <StreamingLists getStreams={this.getStreams}
                                status={this.props.status}
                                streamingList={this.state.streamingList}
-                               getStreamLink={this.getStreamLink}/>
+                               getStreamLink={this.getStreamLink}
+                               push={()=>this.props.history.push('/player/g1')}/>
             </div>
         );
     }

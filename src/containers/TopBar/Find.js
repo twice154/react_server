@@ -6,7 +6,7 @@
 
 import React from 'react';
 import {FindId,FindPwd} from '../../components/auth'
-import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Modal, ModalBody, ModalFooter } from 'reactstrap';
 
 
 export class Find extends React.Component {

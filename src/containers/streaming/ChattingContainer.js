@@ -10,22 +10,73 @@ import { getStatusRequest } from '../../modules/authentication';
 import update from 'immutability-helper';
 import { Chatting } from './Chatting';
 import Donation from './Donation'
+import styled from 'styled-components'
+import { getReactoSettingForViewer } from '../../modules/reacto';
+import throttle from 'lodash.throttle';
+
 
 var socket = {};
 
 export class ChattingContainer extends Component {
     constructor(props) {
         super(props);
-        this.state = { users: [], messages: [], text: '', room: '', currentUser: "" };
+        this.state = { users: [], messages: [], text: '',count:0,appendchild1:[],appendchild2:[],appendchild3:[],appendchild4:[],appendchild5:[],appendchild6:[],
+                       reactos:[] };
+        new Promise((res,rej)=>{
+            this.props.getReactoSetting(this.props.room).then(()=>{
+                res(1)
+            }).catch(err=>console.log(err))
+        }).then(()=>{
+            this.reactoActiveThrottled=throttle(this.reactoActive,parseInt(this.props.data.resetTime)*1000+10)
+            console.log(parseInt(this.props.data.resetTime))
+
+        }).catch(err=>console.log(err))
         this.init = this.init.bind(this);
         this.onUserJoin = this.onUserJoin.bind(this);
         this.onUserLeft = this.onUserLeft.bind(this);
         this.onReceiveMsg = this.onReceiveMsg.bind(this);
         this.handleMessageSubmit = this.handleMessageSubmit.bind(this);
-        this.getStatus = this.getStatus.bind(this);
         this.connectToIoServer = this.connectToIoServer.bind(this);
         this.leaveRoom = this.leaveRoom.bind(this);
+        this.joinRoom=this.joinRoom.bind(this)
+        this.reactoActived=this.reactoActived.bind(this)
+        this.reactoActive=this.reactoActive.bind(this)
+        this.reactoMinus=this.reactoMinus.bind(this)
+
+       /**
+	 * 소켓으로 서버에 접속 후 방에 join
+     * TODO: getstatus를 여기서 하면 헤더랑 이중으로 정보를 체크하게 된다. 
+	 */
+        this.connectToIoServer()
+        .catch((err) => {
+            console.log(err);
+        })
     }
+    // componentDidMount(){
+    //     this.props.getReactoSetting(this.props.room).catch(err=>console.log(err))
+    //     console.log(this.props.room)
+    // }
+	// static getDerivedStateFromProps(nextProps, prevState){
+    // }
+
+	/**
+	 * 채팅방에서 나간 후 socket 연결 끊기.
+	 */
+	componentWillUnmount() {
+		return this.leaveRoom(this.props.currentUser)
+		.then(this.disconnectToIoServer)
+		.catch(err=>{console.log(err)})
+	}
+    componentDidUpdate(){
+        console.log(this.props.room)
+        if(!this.props.currentUser){
+            
+        }
+        console.log(this.props.currentUser)
+    }
+
+
+
 /**
  * 맨 처음 서버와 연결시켜 정보를 얻어오기 위한 함수. 
  * @param {object} data - 채팅 서버의 정보. 
@@ -37,10 +88,7 @@ export class ChattingContainer extends Component {
         console.log("init has been arrived");
         this.setState({
             users: data.users,
-            messages: [],
-            text: [],
             room: data.room,
-            currentUser: this.props.status.get('currentUser')
         });
         console.log('hihi')
     }
@@ -52,15 +100,16 @@ export class ChattingContainer extends Component {
  *  'user:left' - 유저가 나갔을때 등록하는 이벤트 ,송신 후 ounUserLeft실행.
  */
  connectToIoServer() {
-        return Promise.resolve().then(() => {
+        
             console.log("CONNECTIng to SERVER");
             socket = io.connect("http://localhost:3000", { 'forceNew': true });
             socket.on('init', this.init);
             socket.on('send:message', this.onReceiveMsg);
             socket.on('user:join', this.onUserJoin);
             socket.on('user:left', this.onUserLeft);
-            return true;
-        })
+            socket.on('reacto',this.reactoActived)
+            socket.on('reactoMinus',this.reactoMinus)
+            return Promise.resolve()
     }
 /** 
  * @description
@@ -79,6 +128,8 @@ export class ChattingContainer extends Component {
  *  페이지가 렌더링 되기 전에 방에 입장한다.
  */
     joinRoom(room, userId) {
+        console.log(userId)
+        console.log(this.props.currentUser+'1')
         return Promise.resolve().then(() => {
             return socket.emit('user:join', { userId, room });
         })
@@ -90,12 +141,9 @@ export class ChattingContainer extends Component {
  *  페이지가 unmount될때 실행하여 방을 나간다.
  */
     leaveRoom(userId) {
-        return Promise.resolve().then(() => {
+        
             socket.emit('user:left', { userId, room: this.state.room })
-            return this.setState(update(this.state, {
-                room: { $set: "" }
-            }))
-        })
+            return Promise.resolve()
     }
 /**
  * 메시지를 받아온다.
@@ -108,6 +156,8 @@ export class ChattingContainer extends Component {
         this.setState(update(this.state, {
             messages: { $push: [msg] }
         }));
+        
+        
     }
 /**
  * 다른 사용자가 채팅방에 입장하면 알려준다.
@@ -144,49 +194,141 @@ export class ChattingContainer extends Component {
         //this.onReceiveMsg(msg);
         socket.emit('send:message', { msg: msg, room: this.props.room });
     }
-/**
- * @description
- *  현재 로그인 되어있는지 상태를 불러온다.
- *  이렇게 하는 이유는- 자동로그인 시 유저가 홈페이지를 거치지 않고 바로 비제이 스트리밍 페이지로 갈 수 도 있기 때문.
- *  ->redux.store에 스테이트가 init으로 되어있기 때문.
- */
-    getStatus() {
-        console.log("get Stattus");
-        return this.props.getStatusRequest()
-            .then(() => {
-                    this.setState(update(this.state, {
-                        currentUser: {
-                            $set: this.props.status.get('currentUser')
-                        }
-                    }))
-                    return this.state.currentUser;
-            })
+
+
+    /**
+     * 
+     * @param {object} data - {index:몇번 버튼이 눌렸는지 알기 위해.total:'총 시청자 수',reactos:'버튼을 몇명이 눌렀는지=>리엑토'}
+     * @description
+     *  다른사람이 리엑토를 눌렀을때 +1을 보여주기 위한 함수.
+     * ToDo: on off 시킬 수 있도록 기능을 만든다.
+     */
+    reactoActived(data){
+        console.log(12345)
+        console.log(data)
+        var count = this.state.count++
+        var plusOne = 'appendchild'+data.index
+        var reactoProgress=[]
+        data.reactos.map((value,index)=>{
+            console.log('6번')
+            if(value===0){
+                reactoProgress.push(0)
+            }else{
+                var width=value/data.total/this.props.data.percent*10000
+                console.log('width:',width)
+                if(width>100){
+                    reactoProgress.push(100)
+                }else{
+                    reactoProgress.push(width)
+                }
+            }
+        })
+        console.log(reactoProgress)
+        console.log(plusOne)
+        this.setState({[plusOne]:[...this.state[plusOne],<OneOne id={count+'count'} key={count} onAnimationEnd={()=>{
+            var appendchild= [...this.state[plusOne]]
+            appendchild.shift()
+            this.setState({[plusOne]:[...appendchild]})}}>+1</OneOne>],reactos:reactoProgress})
     }
+    /**
+     * 리엑토를 누르는 함수.
+     */
+    reactoActive(index){
+        var data={index,room:this.props.room}
+        socket.emit('reacto',data)
+        console.log(this.props.data.resetTime)
+        setTimeout(()=>{
+            console.log('123')
+            console.log(data)
+        socket.emit('reactoMinus',data)
+        },this.props.data.resetTime*1000)
+    }
+    reactoMinus(data){
+        var reactoProgress=[]
+        data.reactos.map((value,index)=>{
+            console.log('6번')
+            if(value===0){
+                reactoProgress.push(0)
+            }else{
+                var width=value/data.total/this.props.data.percent*10000
+                if(width>100){
+                    reactoProgress.push(100)
+                }else{
+                    reactoProgress.push(width)
+                }
+            }
+        })
+        console.log(reactoProgress)
+        this.setState({reactos:reactoProgress})
+    }
+// /**
+//  * @description
+//  *  현재 로그인 되어있는지 상태를 불러온다.
+//  *  이렇게 하는 이유는- 자동로그인 시 유저가 홈페이지를 거치지 않고 바로 비제이 스트리밍 페이지로 갈 수 도 있기 때문.
+//  *  ->redux.store에 스테이트가 init으로 되어있기 때문.
+//  */
+//     getStatus() {
+//         console.log("get Stattus");
+//         return this.props.getStatusRequest()
+//             .then(() => {
+//                     this.setState(update(this.state, {
+//                         currentUser: {
+//                             $set: this.props.status.get('currentUser')
+//                         }
+//                     }))
+//                     return this.state.currentUser;
+//             })
+//     }
 
     render() {
         return (
-            <div style={{border:'black solid 2px',height:'100%',width:'300px'}}>
+            <div style={{border:'black solid 2px',height:'100%',width:'340px'}}>
                 <Chatting room={this.props.room}
                     users={this.state.users}
                     messages={this.state.messages}
                     onMessageSubmit={this.handleMessageSubmit}
-                    currentUser={this.props.status.get('currentUser')}
+                    currentUser={this.props.currentUser}
                     connectToServer={this.connectToIoServer}
-                    disconnect={this.disconnectToIoServer}
                     joinRoom={this.joinRoom}
                     leaveRoom={this.leaveRoom}
-                    getStatus={this.getStatus}
+                    getStatus={this.props.getStatusRequest}
                     connected={this.state.connected}
-                    userId={this.state.currentUser} 
-                    donationToggle={this.props.donationToggle}/>
+                    donationToggle={this.props.donationToggle}
+                    reacto={this.reactoActiveThrottled}
+                    reactos={this.state.reactos}
+                    appendchilds={[this.state.appendchild1,this.state.appendchild2,this.state.appendchild3,this.state.appendchild4,this.state.appendchild5,this.state.appendchild6]}
+                    />
+                    {/* <div style={{position:'relative'}}>
+            {this.state.appendchild1.map((value,index)=>{
+                return value
+            })}
+            </div> */}
             </div>
         );
     }
 }
 
+const OneOne = styled.div`
+animation-name: plusone;
+animation-duration: 1s;
+position: absolute
+top: -5px;
+left: 30px;
+
+@keyframes plusone{
+    100%{
+        transform:translate(0,-25px);
+        opacity:0.1
+    }
+}
+
+`
+
+
 const mapStateToProps = (state) => {
     return {
-        status: state.authentication.get('status')
+        currentUser:state.authentication.getIn(['status','currentUser']),
+        data:state.reacto.data
     }
 }
 
@@ -194,7 +336,8 @@ const mapDispatchToProps = (dispatch) => {
     return {
         getStatusRequest: () => {
             return dispatch(getStatusRequest())
-        }
+        },
+        getReactoSetting:(a)=>dispatch(getReactoSettingForViewer(a))
     }
 }
 

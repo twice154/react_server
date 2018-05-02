@@ -25,4 +25,3 @@ module.exports = {
 	'UserDBConfig':  _UserDBConfig
 }
 
-

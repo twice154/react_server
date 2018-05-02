@@ -217,6 +217,7 @@ exports.sendmail = (info) => {
  *  @return	No returns
  */
 exports.fieldCheck = (info, fieldUrl) => {
+	console.log('fieldCheck')
 	return new Promise( (res, reject) => {
 		const bodyField= Object.keys(info)
 		if(fieldUrl == 'verification'){

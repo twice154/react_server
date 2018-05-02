@@ -23,7 +23,7 @@ class TopBar extends Component {
     render() { 
         return ( 
             <div>
-            <HeaderContainer 	onLogin={this.modalToggle} history={this.props.history}/>
+            <HeaderContainer pathname={this.props.location.pathname} onLogin={this.modalToggle} history={this.props.history}/>
             <Modal modal={this.state.modal} toggle={this.modalToggle} history={this.props.history}/>
         </div>
     )

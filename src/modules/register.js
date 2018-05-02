@@ -59,8 +59,7 @@ const initialState ={
     emailCheck:false
     ,
     phoneCheck:false,
-    nickname:{status:'init',
-        check:false}
+    nicknameCheck:false
 }
 
 /**
@@ -95,7 +94,7 @@ function newRegisterApiRequest(msg,id){
 export function quit(id){
     return (dispatch)=>{
        return axios.delete(`/api/users/${id}`)
-            .then(dispatch({type:QUIT}))
+            .then(()=>{dispatch({type:QUIT})})
             .catch((err)=>Promise.reject(err.response.data.message))
     }
 }
@@ -148,6 +147,7 @@ function idApiRequest(userId){
 function nicknameApiRequest(nickname){
     return axios.get(`/api/check/duplication/nickname/${nickname}`)
     .then((res)=>{
+        console.log(res)
         if(res.data.success){
             return Promise.resolve()
         }else{
@@ -246,6 +246,17 @@ export default handleActions({
 },
 [QUIT]:(state,action)=>{
     return{...state}
-}
+},
+[NICKNAME_LOADING]: (state, action)=>{
+    return {...state};
+},
+
+[NICKNAME_SUCCESS]: (state, action)=>{
+    return {...state, nicknameCheck:true};
+},
+
+[NICKNAME_FAILURE]: (state, action)=>{
+    return { ...state, nicknameCheck:false};
+},
 },initialState)
 

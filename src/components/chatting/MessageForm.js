@@ -11,7 +11,14 @@ export default class MessageForm extends React.Component {
 		};
 		this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
-    	}
+		}
+
+		componentDidMount(){
+			this.props.joinRoom(this.props.room,this.props.currentUser)
+		}
+		componentWillUnmount(){
+			this.props.leaveRoom(this.props.currentUser)
+		}
 /**
  * 메세지 제공.
  * @param {object} e 
@@ -40,8 +47,7 @@ export default class MessageForm extends React.Component {
 	render() {
 		return (
 			<div className='message_form'>
-				<button>리엑토</button>
-				<button onClick={this.props.donationToggle}>도네하기</button>
+				<button onClick={this.props.donationToggle}></button>
 					<form className='d-flex' onSubmit={this.handleSubmit} style={{border:'0.5px solid black'}}>
 						
 							<textarea
@@ -52,7 +58,12 @@ export default class MessageForm extends React.Component {
                                 ref={el=>this.textarea=el}
 								style={{resize:'none'}}
 							/>
-							<div style={{backgroundColor:'grey', width:'20%', cursor:'pointer'}} onClick={this.handleSubmit}>입력</div>
+							<div style={{backgroundColor:'grey', width:'20%', cursor:'pointer'}} onClick={this.handleSubmit}>
+							<div className='container'>
+							<div className='row'>입력</div>
+							<div className='row'>도네하기</div>
+							</div>
+							</div>
 						
 					</form>
 			</div>

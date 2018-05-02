@@ -5,6 +5,8 @@ import Setting from './Setting'
 describe('Setting test',()=>{
     var wrapper = shallow(<Setting/>)
     describe('function test',()=>{
-        
+        it('',()=>{
+            
+        })
     })
 })

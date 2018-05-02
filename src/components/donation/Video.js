@@ -24,7 +24,9 @@ class Video extends Component {
         }else{
             var confirm = window.confirm('후원하시겠습니까?')
             if(confirm){
-                this.props.donation(this.state).catch(err=>console.log(err))
+                var a = {...this.state,userId:this.props.currentUser,donationType:'video'}
+
+                this.props.donation(a,this.props.streamName).catch(err=>console.log(err))
             }
         }
        

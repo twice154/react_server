@@ -22,8 +22,7 @@ describe('register test', () => {
     emailCheck:false
     ,
     phoneCheck:false,
-    nickname:{status:'init',
-        check:false}
+    nicknameCheck:false
 }
     describe('actioncreator test',()=>{
         var mock = new MockAdapter(axios);

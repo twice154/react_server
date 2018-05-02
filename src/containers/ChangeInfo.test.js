@@ -48,14 +48,14 @@ describe('ChangeInfo test',()=>{
             describe('submit test',()=>{
                 describe('typename:nickname',()=>{
                     it('nicknameCheck==true',async()=>{
-                        wrapper.setProps({nicknameRequest:jest.fn(),newRegister,nicknameCheck:true,status:Map({currentUser:'g1'})})
+                        wrapper.setProps({nicknameRequest:jest.fn(()=>Promise.resolve()),newRegister,nicknameCheck:true,status:Map({currentUser:'g1'})})
                         wrapper.setState({typeName:'nickname'})
                        await wrapper.instance().submit({nickname:'g1'}).catch((err)=>{console.log(err)})
                         expect(global.alert.mock.calls[1][0]).toBe('변경되었습니다.')
                     })
-                    it('nicknameCheck==false',()=>{
+                    it('nicknameCheck==false',async()=>{
                         wrapper.setProps({nicknameCheck:false})
-                        wrapper.instance().submit({})
+                        await wrapper.instance().submit({}).catch(err=>console.log(err))
                         expect(global.alert.mock.calls[2][0]).toBe('이미 등록된 닉네임입니다.')
                     })
                 })

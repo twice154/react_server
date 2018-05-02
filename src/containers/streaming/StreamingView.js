@@ -7,20 +7,27 @@
 import React, { Component } from 'react';
 import StreamingPlayerContainer from './StreamingPlayerContainer'
 import ChattingContainer from './ChattingContainer';
-import { height } from 'window-size';
+import {getTheNumberOfToken } from '../../modules/donation';
+import {connect} from 'react-redux'
 import Donation from './Donation';
+import styled from 'styled-components'
 
 
-class StreamingView extends Component {
+export class StreamingView extends Component {
 	constructor(props) {
 		super(props);
 		this.state = { donationModal:false }
 		this.donationToggle= this.donationToggle.bind(this)
+
 	}
 	/**
 	 * 도네이션을 토글하는 함수.
 	 */
 	donationToggle(){
+		if(!this.state.donationModal){
+			console.log('222')
+			this.props.getTheNumberOfToken()
+		}
 		console.log('toggle')
 		this.setState({
 			donationModal: !this.state.donationModal
@@ -29,7 +36,7 @@ class StreamingView extends Component {
 	
 	render() { 
 		return( 
-		<div className='row' style={{height:'100%'}}>
+		<div className='row' style={{height:'calc(100vh - 105px)'}}>
 			<StreamingPlayerContainer streamName={this.props.match.params.streamname}/>
 			<ChattingContainer room={this.props.match.params.streamname} donationToggle={this.donationToggle}/>
 			{/* TODO:도네이션 처리를 위한 함수, 리덕스 생성. */}
@@ -37,4 +44,11 @@ class StreamingView extends Component {
 		</div> )
 	}
 }
-export default StreamingView
+
+const mapDispatchToProps=(dispatch)=>{
+	return{
+		getTheNumberOfToken:()=>dispatch(getTheNumberOfToken())
+	}
+	
+}
+export default connect(undefined,mapDispatchToProps)(StreamingView)

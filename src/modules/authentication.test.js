@@ -77,8 +77,8 @@ describe('authentication test',()=>{
 
     })
     it('getAllInfo actionCreator,reducer test',async()=>{
-        mock.onGet('/api/account/userInfo').replyOnce(200,{ email: "jwc2094@naver.com", phone: "000-0000-0000", nickname: "g1"})
-        .onGet('/api/account/userInfo').replyOnce(404,{message:'fail'})
+        mock.onGet('/api/users').replyOnce(200,{ email: "jwc2094@naver.com", phone: "000-0000-0000", nickname: "g1"})
+        .onGet('/api/users').replyOnce(404,{message:'fail'})
         var expectedActions = [{"type": "AUTH/GET_ALLINFO_LOADING"}, {"payload": { email: "jwc2094@naver.com", phone: "000-0000-0000", nickname: "g1"}, "type": "AUTH/GET_ALLINFO_SUCCESS"}, {"type": "AUTH/GET_ALLINFO_LOADING"}, {"error": true, "payload":'fail', "type": "AUTH/GET_ALLINFO_FAILURE"}]
         
         await store.dispatch(getAllInfo()).catch(err=>console.log(err))

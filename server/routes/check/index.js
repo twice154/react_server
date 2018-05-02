@@ -30,7 +30,7 @@ router.get('/duplication/userid/*', controller.userIdcheck)
 
 
 /*
- * @brief - 유저 중복 체크를 위한 라우터
+ * @brief - 폰 중복 체크를 위한 라우터
 **/
 router.get('/duplication/phone/*', controller.phonecheck)
 

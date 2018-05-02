@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import styled from 'styled-components'
 class Setting extends Component {
     constructor(props) {
         super(props);
@@ -13,7 +14,7 @@ class Setting extends Component {
     }
     handleKeyPress(e){
         if(e.charCode===13){
-            this.addHashTag(this.state.value)
+            this.addHashTag()
         }
     }
     deleteTag(a){
@@ -28,73 +29,76 @@ class Setting extends Component {
         this.setState({value:'',tags:arrays})
     }
     render() {
-        
+
         return ( 
-            <div>
+                <Container className='container-fluid'>
                 <div>
+                    <button onClick>방송 번호 받기</button>
+                   
+                </div>
                     {/* publisher부분 */}
-                <div class='row'>
+                <div className='row'>
                     <video width="320" height="240" controls>
                     </video>
                 </div>
-                <div class="row">
-                <div class='col s6'>
-                <div class="row">
-                    <div class="col s12">
+                <div className="row">
+                <div className='col s6'>
+                <div className="row">
+                    <div className="col s12">
                     방송제목:
-                    <div class="input-field inline">
+                    <div className="input-field inline">
                     <input/>
                     </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col s12">
+                <div className="row">
+                    <div className="col s12">
                     방송테마:
                     <div className="input-field inline">
                     <input/>
                     </div>
                     </div>
                 </div>
-                <div class="row">
+                <div className="row">
                 <div style={{border:'1px solid',cursor:'text'}}>
-                    <div class="col s2">
+                    <div className="col s2">
                     태그:
                     </div>
-                    <div class="col s11">
+                    <div className="col s11">
                     <ul id='hashTag'>
                         <li style={{width:'1px'}}>&nbsp;</li>
                         {this.state.tags.map((value,i)=>{
-                            return <li key={i}>
+                            return (<li key={i}>
                             <span >#</span>
                             <span >{value}</span>
                             <span style={{cursor:'pointer'}} onClick={()=>{
                                 this.deleteTag(i)}}>(x)</span>
-                        </li>
+                        </li>)
                         })}
                     </ul>
                     </div>
                     <div className="row">
                     <div className='col s10'>
-                        <input  onBlur={this.addHashTag} onKeyPress={this.handleKeyPress} value ={this.state.value} onChange={this.handleChange}/>
+                        <input  onKeyPress={this.handleKeyPress} value ={this.state.value} onChange={this.handleChange}/>
                         </div>
                         <div className='col s2'>
-                        <a class="waves-effect waves-light btn">확인</a>
+                        <a className="waves-effect waves-light btn">확인</a>
                         </div>
                     </div>
                 </div>
                  </div>
-                <div class="row">
-                    <div class="col s12">
+                <div className="row">
+                    <div className="col s12">
                     방송제목:
-                    <div class="input-field inline">
+                    <div className="input-field inline">
                     <input/>
                     </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col s12">
+                <div className="row">
+                    <div className="col s12">
                     방송제목:
-                    <div class="input-field inline">
+                    <div className="input-field inline">
                     <input/>
                     </div>
                     </div>
@@ -102,10 +106,17 @@ class Setting extends Component {
 
                 </div>
             </div>
-            </div>
-            </div>
+            </Container>
          )
     }
 }
+const Container = styled.div`
+width:100%;
+height:100%
+overflow:auto;
+
+    border:1px solid #cacaca;
+    border-top:0;
+`
  
 export default Setting;

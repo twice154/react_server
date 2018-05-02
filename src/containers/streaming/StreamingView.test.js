@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow} from 'enzyme';
-import StreamingView from './StreamingView'
+import {StreamingView} from './StreamingView'
 
 
 /**

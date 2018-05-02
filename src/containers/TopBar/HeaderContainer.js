@@ -17,6 +17,10 @@ export class HeaderContainer extends React.Component{
 		this.state={modal:false, dropdownOpen:false}
 		this.handleLogout = this.handleLogout.bind(this);
 		this.dropdownToggle=this.dropdownToggle.bind(this)
+		this.props.getStatusRequest()
+		.catch((err)=>{
+			console.log('not logined');
+		})
 	}
 	/**
 	 * 리덕스로 로그아웃 해달라고 요청을 보내는 함수
@@ -24,16 +28,13 @@ export class HeaderContainer extends React.Component{
 	handleLogout(){
 		this.props.logoutRequest().then(
 			()=> {
+				var firstOfPathname = this.props.pathname.split('/')[1]
+				if(firstOfPathname==='broadcasting'||firstOfPathname==='settings')
 				this.props.history.push('/')
 			}
 		)
 	}
-	componentWillMount(){
-		this.props.getStatusRequest()
-		.catch((err)=>{
-			console.log('not logined');
-		})
-	}
+	
 	dropdownToggle(){
 		this.setState({
 			dropdownOpen: !this.state.dropdownOpen
@@ -48,7 +49,6 @@ export class HeaderContainer extends React.Component{
 		let re = /(login|register)/;
 		let isAuth = re.test(this.props.history.location.pathname);
 		//let isAuth=false;
-		console.log(this.props.history.location.pathname)
 		let currentUser=this.props.status.get('currentUser')
 
 		return(

@@ -47,7 +47,7 @@ class LoginComponent extends React.Component {
 			
 
 		return (
-			<Modal isOpen={this.props.modal} toggle={this.props.toggle} className={this.props.className}style={{marginTop:'100px',width:'350px'}}>
+			<Modal isOpen={this.props.modal} toggle={this.props.toggle} style={{marginTop:'100px',width:'350px'}}>
 			<div style={{paddingTop:"40px",paddingLeft:"50px"}} className="d-flex flex-row">
 			<h2 >Splendy</h2>
 			<h3 style={{margin:0,paddingLeft:'10px',paddingTop:'5px'}}>로그인</h3>

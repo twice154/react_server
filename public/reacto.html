@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>reacto관리페이지</title>
+    <style>
+        #reactoButton{
+            alt:'이미지파일';width:100%;height:120px;display:none;
+            margin:auto;
+        }
+    </style>
+</head>
+<body>
+    'reacto'
+   
+    <div style='margin:auto;width:240px'>
+        <img id='reactoButton' >
+
+    </img >
+    </div>
+    <audio>
+
+    </audio>
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+       var a
+        let reacto =document.getElementById('reactoButton')
+        let audio = document.getElementsByTagName('audio')[0]
+        let streamerSocketId = window.location.href.split('/')[4]
+        console.log(streamerSocketId)
+        const socket = io('http://localhost:3001');
+        socket.emit('joinReactoRoom',streamerSocketId)
+        // data={imgsrc='이미지파일 주소.', imgEffect:'이미지파일 이펙트',imgDuration:'이미지파일지속시간', mp3:'reacto효과음'}
+        socket.on('reactoEmit',(data)=>{
+            
+            console.log('reacto come')
+           clearTimeout(a)
+            reacto.src=data.imgsrc;
+            reacto.style.display='block'
+            audio.src=data.mp3
+            audio.play()
+                    
+            console.log(data.imgDuration)
+            a = setTimeout(()=>{
+            console.log(123)
+            reacto.src=''
+            reacto.style.display='none'
+            audio.src=data.mp3
+        },parseInt(data.imgDuration)*1000)
+
+
+        })
+        
+        
+    </script>
+</body>
+</html>

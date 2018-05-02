@@ -48,12 +48,19 @@ exports.postAuth = (req, res) => {
     const temp = (user) => {
 		return new Promise( (resolve, reject)=> {
 			res.cookie('token', user.token)
-			res.json({
-				success:	true,
-				data:	{verified:	user.verified}
-				,token:	user.token
-			})
+			if(user.nickname){//수정함.4.9
+				res.json({
+					success:true,
+					data:{currentUser:user.nickname,userId:user.userId,verified:	user.verified}
+				})
+			}
+			else
+				res.json({
+					success: true,
+					data:{userId: user.userId,currentUser:user.userId,verified:	user.verified}
+				})
 		})
+
     }
 	//
 	// Promise Chains
@@ -101,10 +108,16 @@ exports.getAuth = (req, res) => {
 					status: 400,
 					message: "The field was able to modify"
 				})
+			else if(user.nickname){//수정함.4.9
+				res.json({
+					success:true,
+					data:{currentUser:user.nickname,userId:user.userId}
+				})
+			}
 			else
 				res.json({
 					success: true,
-					data:{userId: user.userId}
+					data:{userId: user.userId,currentUser:user.userId}
 				})
 		})
 	}

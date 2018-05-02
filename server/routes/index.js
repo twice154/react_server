@@ -6,7 +6,8 @@ import users from './users';
 import auth from './auth';
 import checks from './check';
 import recovery from './recovery';
-import functions from './functions'
+import reacto from './reacto'
+import donation from './donation'
 const router = express.Router();
 
 router.use('/*', (req, res, next) => {
@@ -23,9 +24,11 @@ router.use('/stream', stream);
 router.use('/moonlight', moonlight);
 router.use('/speedtest', speedtest);
 
-//리엑토와 도네이션같은 기술들을 위한 라우터.
-router.use('/functions',functions)
-// router.use('/reacto',reacto);
+//도네이션을 위한 라우터
+router.use('/donation',donation);
+
+//리엑토를 위한 라우터
+router.use('/reacto',reacto);
 
 export default router;
 

@@ -1,75 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Header test 로그인 되어있다면 1`] = `
-<div
-  className="container-fluid"
-  style={
-    Object {
-      "marginTop": "10px",
-    }
-  }
->
+<styled.div>
   <div
     className="row text-center"
   >
     <div
-      className="col-sm text-left"
-      style={
-        Object {
-          "marginLeft": "30px",
-        }
-      }
+      className="col left"
     >
-      <button
-        className="btn btn-danger"
+      <div
+        className="reacto"
       >
         <div
-          className="d-flex"
+          className="font"
         >
-          Reacto
-          <h4>
-            |
-          </h4>
-          Connecto
+          Reacto | Connecto
         </div>
-      </button>
+      </div>
     </div>
     <div
-      className="col-sm"
+      className="col"
     >
-      <Link
-        className="text-danger"
-        replace={false}
-        style={
-          Object {
-            "textDecoration": "none",
-          }
-        }
+      <Styled(Link)
         to="/"
       >
-         
-        <h1>
-          5437!
-        </h1>
-      </Link>
+        splendy
+      </Styled(Link)>
     </div>
     <div
-      className="col-sm text-right"
-      style={
-        Object {
-          "marginRight": "30px",
-        }
-      }
+      className="col text-right d-flex flex-row-reverse right"
     >
       <div>
         <ButtonDropdown>
-          <DropdownToggle
-            aria-haspopup={true}
+          <Styled(DropdownToggle)
             caret={true}
-            color="btn btn-outline-danger"
+            color="btn btn-outline-primary"
           >
             g1
-          </DropdownToggle>
+          </Styled(DropdownToggle)>
           <DropdownMenu
             flip={true}
             tag="div"
@@ -97,7 +65,7 @@ exports[`Header test 로그인 되어있다면 1`] = `
               <li>
                 <Link
                   replace={false}
-                  to="/broadcast/setting"
+                  to="/broadcast/settings/broadcast"
                 >
                   방송국
                 </Link>
@@ -112,249 +80,234 @@ exports[`Header test 로그인 되어있다면 1`] = `
               tag="button"
               toggle={true}
             >
-              <li>
-                <a>
-                  <i
-                    className="material-icons"
-                  >
-                    lock_open
-                  </i>
-                </a>
-              </li>
+              <a>
+                <i
+                  className="material-icons"
+                >
+                  lock_open
+                </i>
+              </a>
             </DropdownItem>
           </DropdownMenu>
         </ButtonDropdown>
       </div>
+      <styled.input
+        placeholder="search"
+      />
     </div>
   </div>
-  <nav
-    className="navbar navbar-expand-lg navbar-light bg-light"
-  >
-    <div
-      className="nav-wrapper blue darken-1"
-    >
-      <ul
-        className="navbar-nav mr-auto"
+  <styled.div>
+    <div>
+      <Link
+        replace={false}
+        to="/streamingList"
       >
-        <li
-          className="nav-item active"
+        <span
+          id="all"
+          onClick={[Function]}
         >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/streamingList"
-          >
-            전체
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            팔로우
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            스토리보드
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            클립
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            소통
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            커뮤니티
-          </Link>
-        </li>
-      </ul>
+          전체
+        </span>
+      </Link>
     </div>
-  </nav>
-</div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+         
+        <span
+          id="follow"
+          onClick={[Function]}
+        >
+          팔로우
+        </span>
+      </Link>
+    </div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+        <span
+          id="storyboard"
+          onClick={[Function]}
+        >
+          스토리보드
+        </span>
+      </Link>
+    </div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+        <span
+          id="clip"
+          onClick={[Function]}
+        >
+          클립
+        </span>
+      </Link>
+    </div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+        <span
+          id="communication"
+          onClick={[Function]}
+        >
+          소통
+        </span>
+      </Link>
+    </div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+        <span
+          id="community"
+          onClick={[Function]}
+        >
+          커뮤니티
+        </span>
+      </Link>
+    </div>
+    <styled.span
+      id="slider"
+    />
+  </styled.div>
+</styled.div>
 `;
 
 exports[`Header test 로그인 되어있지 않다면 1`] = `
-<div
-  className="container-fluid"
-  style={
-    Object {
-      "marginTop": "10px",
-    }
-  }
->
+<styled.div>
   <div
     className="row text-center"
   >
     <div
-      className="col-sm text-left"
-      style={
-        Object {
-          "marginLeft": "30px",
-        }
-      }
+      className="col left"
     >
-      <button
-        className="btn btn-danger"
+      <div
+        className="reacto"
       >
         <div
-          className="d-flex"
+          className="font"
         >
-          Reacto
-          <h4>
-            |
-          </h4>
-          Connecto
+          Reacto | Connecto
         </div>
-      </button>
+      </div>
     </div>
     <div
-      className="col-sm"
+      className="col"
     >
-      <Link
-        className="text-danger"
-        replace={false}
-        style={
-          Object {
-            "textDecoration": "none",
-          }
-        }
+      <Styled(Link)
         to="/"
       >
-         
-        <h1>
-          5437!
-        </h1>
-      </Link>
+        splendy
+      </Styled(Link)>
     </div>
     <div
-      className="col-sm text-right"
-      style={
-        Object {
-          "marginRight": "30px",
-        }
-      }
+      className="col text-right d-flex flex-row-reverse right"
     >
-      <li>
-        <i
-          className="material-icons"
-        >
-          vpn_key
-        </i>
-      </li>
+      <styled.button
+        className="btn-outline-primary"
+      >
+        <div>
+          login
+        </div>
+      </styled.button>
+      <styled.input
+        placeholder="search"
+      />
     </div>
   </div>
-  <nav
-    className="navbar navbar-expand-lg navbar-light bg-light"
-  >
-    <div
-      className="nav-wrapper blue darken-1"
-    >
-      <ul
-        className="navbar-nav mr-auto"
+  <styled.div>
+    <div>
+      <Link
+        replace={false}
+        to="/streamingList"
       >
-        <li
-          className="nav-item active"
+        <span
+          id="all"
+          onClick={[Function]}
         >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/streamingList"
-          >
-            전체
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            팔로우
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            스토리보드
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            클립
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            소통
-          </Link>
-        </li>
-        <li
-          className="nav-item active"
-        >
-          <Link
-            className="nav-link"
-            replace={false}
-            to="/moonlight"
-          >
-            커뮤니티
-          </Link>
-        </li>
-      </ul>
+          전체
+        </span>
+      </Link>
     </div>
-  </nav>
-</div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+         
+        <span
+          id="follow"
+          onClick={[Function]}
+        >
+          팔로우
+        </span>
+      </Link>
+    </div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+        <span
+          id="storyboard"
+          onClick={[Function]}
+        >
+          스토리보드
+        </span>
+      </Link>
+    </div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+        <span
+          id="clip"
+          onClick={[Function]}
+        >
+          클립
+        </span>
+      </Link>
+    </div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+        <span
+          id="communication"
+          onClick={[Function]}
+        >
+          소통
+        </span>
+      </Link>
+    </div>
+    <div>
+      <Link
+        replace={false}
+        to="/moonlight"
+      >
+        <span
+          id="community"
+          onClick={[Function]}
+        >
+          커뮤니티
+        </span>
+      </Link>
+    </div>
+    <styled.span
+      id="slider"
+    />
+  </styled.div>
+</styled.div>
 `;

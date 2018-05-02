@@ -3,7 +3,8 @@ import {shallow, mount} from 'enzyme'
 import {ChattingContainer} from './ChattingContainer'
 import {Map} from 'immutable'
 describe('ChattingContainer test',()=>{
-    var wrapper =shallow(<ChattingContainer room='1' status={Map({currentUser:'g1'})}/>)
+    var getStatusRequest = jest.fn(()=>Promise.resolve())
+    var wrapper =shallow(<ChattingContainer room='1' status={Map({currentUser:'g1'})} getStatusRequest={getStatusRequest}/>)
     describe('funtion test, order',()=>{
         it('init test',()=>{
             var data = {users:['g2','g3'],room:'1'}

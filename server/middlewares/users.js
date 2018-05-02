@@ -52,13 +52,14 @@ const usersMiddleware = (req, res, next) => {
 						message:	"there is no userId in token"
 					})
 				}
-				else if(decoded.userId != urlParameter[3]){
-					//유효하지 않은 토큰
-					reject({
-						status:	403,
-						message:	"url was not matched to token"
-					})
-				}
+				// else if(decoded.userId != urlParameter[3]){ 굳이 확인 할 필요가 있을까??? 이중으로 처리하는 느낌.
+				// 	console.log(decoded.userId , '111', urlParameter)
+				// 	//유효하지 않은 토큰
+				// 	reject({
+				// 		status:	403,
+				// 		message:	"url was not matched to token"
+				// 	})
+				// }
 				else {
 					//올바른 토큰
 					res(decoded)
@@ -73,11 +74,11 @@ const usersMiddleware = (req, res, next) => {
 			})
 		}
 
-		tokenDecode()
-		.then(decoded => urlCheck(decoded))
-		.then((decoded)=>{
-			req.decoded = decoded
-			next()
+	tokenDecode()
+	.then(decoded => urlCheck(decoded))
+	.then((decoded)=>{
+		req.decoded = decoded
+		next()
     }).catch(onError)
 }
 

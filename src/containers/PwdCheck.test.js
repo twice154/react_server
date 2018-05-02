@@ -5,6 +5,7 @@ import {PwdCheck} from './PwdCheck'
 describe('PwdCheck test',()=>{
     var pwdVerify = jest.fn(()=>Promise.resolve())
     var match = {params:{typename:'quit'}}
+    var spy = jest.spyOn(PwdCheck.prototype,'quit')
     var quit = jest.fn(()=>Promise.resolve())
     var history= {push:jest.fn()}
     global.confirm = jest.fn(()=>true)

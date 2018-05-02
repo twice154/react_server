@@ -53,7 +53,7 @@ export class ChangeInfo extends React.Component {
         if(this.state.typeName!=='password')
             switch(this.state.typeName){
                 case 'nickname': 
-                this.props.nicknameRequest(msg.nickname)
+                await this.props.nicknameRequest(msg.nickname).catch(err=>console.log(err))
                 if(!this.props.nicknameCheck){
                     alert('이미 등록된 닉네임입니다.')
                     return 0
@@ -110,9 +110,9 @@ const mapStateToProps = (state) =>{
 	return{
         allInfo: state.authentication.get('allInfo'),
         pwdVerified: state.authentication.get('pwdVerified'),
-        emailCheck:state.register.email.check,
-        phoneCheck:state.register.phone.check,
-        nicknameCheck:state.register.nickname.check,
+        emailCheck:state.register.emailCheck,
+        phoneCheck:state.register.phoneCheck,
+        nicknameCheck:state.register.nicknameCheck,
         status:state.authentication.get('status')
 	};
 };

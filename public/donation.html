@@ -5,25 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>donation관리페이지</title>
+    <style>
+        #slideContent{
+            animation: scroll 10s linear 0s infinite;
+             position: absolute;
+        }
+        @keyframes scroll {
+            0% {
+                transform: translate(0,0);
+            }
+
+            100% {
+                transform: translate(-854px,0);
+            }
+        }
+    </style>
 </head>
 <body>
     'donation'
     <iframe id='ytvideo' width="854" height="480" src="" 
             frameborder="0" allow="autoplay; encrypted-media" allowfullscreen
             style="display:none"></iframe>
+    <div style='margin:auto;width:480px'>
+        <img id='gif' style="alt:'이미지파일';width:100%;height:480px;display:none;">
+
+    </img >
+    </div>
+   
+    <div style="width:854px;overflow:hidden;height:35px;position: relative;">
+        <div id='slideContent'></div>
+    </div>
+    <div>
+        <audio>
+
+        </audio>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
+    
     <script>
-        var ytvideo = document.getElementById('ytvideo')
+        let ytvideo = document.getElementById('ytvideo')
+        let slideContent = document.getElementById('slideContent')
+        let streamerSocketId = window.location.href.split('/')[4]
+        let audio = document.getElementsByTagName('audio')[0]
+        let gif =document.getElementById('gif')
+        console.log(streamerSocketId)
         const socket = io('http://localhost:3001');
-        socket.on('videoUrl',(data,fn)=>{
-            fn()
+        socket.emit('joinRoom',streamerSocketId)
+
+
+        socket.on('messageDonation',(data)=>{
+            console.log('come')
+
+            gif.src=data.imgsrc;
+            gif.style.display='block'
+            audio.src=(window.URL || window.webkitURL).createObjectURL(new Blob([new Uint8Array(data.mp3)]))
+            audio.playbackRate=0.9
+            audio.play()
+            
+            slideContent.innerHTML=`${data.userId}님이 샤${data.token}개를 영상으로 후원해주셨어요`
+
+            slideContent.style.left=`${850-slideContent.offsetWidth}px`
+            audio.onended=()=>{
+                console.log(audio.duration)
+                if(audio.duration<5){
+                    setTimeout(()=>{
+                        gif.src=''
+                        gif.style.display='none'
+                        slideContent.innerHTML=''
+                        console.log('hihi')
+                        socket.emit('donaEnd',streamerSocketId,(a)=>{
+                            console.log('videoEnd 실행',a)
+                        })
+                    },3000)
+                }else{
+                    gif.src=''
+                        gif.style.display='none'
+                slideContent.innerHTML=''
+                console.log('hihi')
+                socket.emit('donaEnd',streamerSocketId,(a)=>{
+                    console.log('videoEnd 실행',a)
+                })
+                }
+
+            }
+                
+
+        })
+        socket.on('videoDonation',(data)=>{
+            
+            console.log('come')
             ytvideo.setAttribute('src',data.url)
             ytvideo.style.display='block';
+            slideContent.innerHTML=`${data.userId}님이 샤${data.token}개를 영상으로 후원해주셨어요`
+            slideContent.style.left=`${850-slideContent.offsetWidth}px`
             setTimeout(()=>{
                 ytvideo.setAttribute('src','')
                 ytvideo.style.display='none'
-            },data.endTime*1000)
+                slideContent.innerHTML=''
+                console.log('hihi')
+                socket.emit('donaEnd',streamerSocketId,(a)=>{
+                    console.log('videoEnd 실행',a)
+                })
+            },(data.token*1000+2000))
+
         })
+        window.onbeforeunload = function(event)
+                {
+                    return  socket.emit('donaEnd',streamerSocketId,(a)=>{
+                    console.log('videoEnd 실행',a)
+                })
+                };
+
         
     </script>
 </body>

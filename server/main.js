@@ -5,12 +5,15 @@ import cookieParser from 'cookie-parser'
 import morgan from 'morgan';
 import orientDB from 'orientjs';
 
+
 import webpack from 'webpack';
 import WebpackDevServer from 'webpack-dev-server';
 import api from './routes';
 import fs from 'fs';
 import http from 'http';
 import socket_io from 'socket.io';
+import { shiftDonation,donationFunctions } from './routes/donation/donation.controller';
+import { emitReactoButton } from './routes/reacto/reacto.controller';
 
 const appToClient = express();
 const appToDonation = express();
@@ -26,12 +29,15 @@ const serverToDonation = http.Server(appToDonation);
 const ioToclient = socket_io(serverToClient);
 const ioToDonation = socket_io(serverToDonation);
 
+var reactos={}//streamerId를 property로 같고있고 이들은 다 배열이다.
+
 appToClient.use(morgan('dev'));
 appToClient.use(cookieParser());
 appToClient.use(bodyParser.json());
 appToClient.use(bodyParser.urlencoded({extended: false}))
-appToClient.use('/api', api);
 
+
+appToClient.use('/api', api);
 
 var resourceDirectory = "";
 if(process.env.NODE_ENV === 'development'){ 
@@ -40,6 +46,8 @@ if(process.env.NODE_ENV === 'development'){
 else{
     resourceDirectory = path.resolve(__dirname, './../build');
 }
+//localhost:3000으로 접속하면 볼 수 있음.
+appToClient.use('/static',express.static(__dirname+'./../images'))//img파일,음성파일들을 읽어서 쓸 수 있게 하기 위함 byG1
 
 appToClient.use('/', express.static(resourceDirectory));
 
@@ -56,11 +64,11 @@ serverToClient.listen(port, () => {
 
 
 //donation, reacto server 
-appToDonation.get('/donation',(req,res)=>{
+appToDonation.get('/donation/:streamSocketId',(req,res)=>{
     res.sendFile(resourceDirectory +'/donation.html')
 })
-appToDonation.get('/',(req,res)=>{
-
+appToDonation.get('/reacto/:streamSocketId',(req,res)=>{
+    res.sendFile(resourceDirectory +'/reacto.html')
 })
 serverToDonation.listen(3001,()=>{
     console.log('donation server is listening on port')
@@ -71,8 +79,24 @@ serverToDonation.listen(3001,()=>{
 /**
  * socket for donation&Reacto
  */
+exports.ioToDonation = ioToDonation;
 ioToDonation.on('connection',(socket)=>{
-    exports.socketToDonation=socket
+    socket.on('joinDonaRoom',(streamSocketId)=>{
+        socket.join(streamSocketId)
+        console.log('joined at ',streamSocketId,'donation')
+    })
+
+    socket.on('joinReactoRoom',(streamSocketId)=>{
+        socket.join(streamSocketId)
+        console.log('joined at ',streamSocketId,'reacto')
+    })
+   
+    socket.on('donaEnd',(streamSocketId)=>{
+        console.log(111)
+        shiftDonation(streamSocketId)
+        donationFunctions(streamSocketId)
+        return 0;
+    }) 
 console.log("socketToDonation is connected")
     
 })
@@ -139,6 +163,75 @@ ioToclient.on('connection', (socket) => {
             })
         })
     });
+    /**
+     * reacto 버튼을 누군가 누르면 본인을 포함해서 reacto 버튼에 +1효과를 준다.
+     * TODO: progress bar 연결하기.
+     * by g1
+     */
+    socket.on('reacto',(data)=>{
+        console.log(data)
+        if(!reactos[data.room]){
+            console.log('리엑토를 처음 사용.')
+            reactos[data.room]=[0,0,0,0,0,0]
+            reactos[data.room][data.index-1]=1
+        }else{
+            console.log('reacto +1')
+            reactos[data.room][data.index-1]++
+        }
+        console.log('reacto plus',reactos[data.room][data.index-1])
+        var reactoInfo = {index:data.index,reactos:reactos[data.room]} //index(몇번 버튼이 눌렸는지),que의 length(몇명이 눌렀는지),시청자수(몇명이 보는지 )
+        new Promise((resolve,reject)=>{
+            ioToclient.in(data.room).clients((error, clients)=>{
+                if(error){
+                    throw new Error("");
+                }
+                console.log(clients)
+               reactoInfo.total=clients.length
+                console.log(reactoInfo.total+'123')
+                resolve(1)
+            })
+        }).then(()=>{
+            console.log('reacto btn');
+            console.log('reactoInfo: ',reactoInfo)
+            // client에 reacto를 활성화 시켜 +1효과를 준다.
+            ioToclient.to(data.room).emit("reacto",reactoInfo)
+            emitReactoButton({streamerId:data.room,total:reactoInfo.total,reactos:reactos[data.room]})
+        }).catch(err=>console.log(err))
+        
+
+    })
+    /**
+     * reacto 버튼을 누르고 5초가 지나면 클라이언트가 다음을 실행한다.
+     * count에서 -1을 해준다.
+     */
+    socket.on('reactoMinus',(data)=>{
+        
+        console.log(reactos[data.room][data.index-1])
+        if(reactos[data.room][data.index-1]<0){
+            reactos[data.room][data.index-1]=0
+        }else{
+            reactos[data.room][data.index-1]--
+        }
+        console.log('reacto minused' + reactos[data.room])
+        var reactoInfo = {index:data.index,reactos:reactos[data.room]} //index(몇번 버튼이 눌렸는지),que의 length(몇명이 눌렀는지),시청자수(몇명이 보는지 )
+        new Promise((resolve,reject)=>{
+            ioToclient.in(data.room).clients((error, clients)=>{
+                if(error){
+                    throw new Error("");
+                }
+                console.log(clients)
+               reactoInfo.total=clients.length
+                console.log(reactoInfo.total+'123')
+                resolve(1)
+            })
+        }).then(()=>{
+            console.log('reacto btn');
+            console.log('reactoInfo: ',reactoInfo)
+            // client에 reacto를 활성화 시켜 +1효과를 준다.
+            ioToclient.to(data.room).emit("reactoMinus",reactoInfo)
+        }).catch(err=>console.log(err))
+    })
+    
 });
 
 function initialize(socket, data){
