@@ -6,7 +6,7 @@
 
 import React from 'react';
 import {BrowserRouter, Route, Switch} from 'react-router-dom';
-import {TopBar,BroadcastSettings, MainVideo, ContentContainer} from './containers';
+import {TopBar,BroadcastSettings, MainVideo, ContentContainer, Test} from './containers';
 
 import {Provider} from 'react-redux';
 import store from './store';
@@ -35,7 +35,6 @@ const App = ()=>(
         <Route path="/" render={(props)=>(<TopBar {...props}/>)}/>
         <div style={{paddingTop:'88px'}}>
         <Route path='/' exact component={MainVideo}/>
-
         <div className='container-fluid'>
         <Switch>
         <Route path='/broadcast/settings' component={BroadcastSettings}/>
