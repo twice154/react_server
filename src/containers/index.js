@@ -12,9 +12,8 @@ import {StreamingView, StreamingListContainer} from './streaming'
 import MainVideo from './MainVideo'
 import SideBar from './SideBar'
 import ContentContainer from './ContentContainer'
-import Test from './Test';
 //import asyncRoute from 'lib/asyncRoute';
 
 export {BroadcastSettings, Verify, Verified, SpeedTestContainer, TopBar, StreamingView, StreamingListContainer, MainVideo,
-       Settings, ChangeInfo, PwdCheck, SideBar, ContentContainer, Test};
+       Settings, ChangeInfo, PwdCheck, SideBar, ContentContainer};
 //export const Login = asyncRoute(() =>import("containers/Login"))																
