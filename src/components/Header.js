@@ -1,18 +1,20 @@
 import React, { Component } from 'react';
 import {Link} from 'react-router-dom';
-import { ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import styled from 'styled-components'
 import {Input} from '../styles/styles'
+import Dropdowns from '../function/Dropdowns';
 
 
 class Header extends Component {
 	constructor(props) {
 		super(props);
-		this.state = { left:'',width:'',search:'' }
+		this.state = { left:'',width:'',search:'', dropdownOpen:false }
 		this.setSliderCss=this.setSliderCss.bind(this)
 		this.searchBarClick=this.searchBarClick.bind(this)
 		this.handleChange=this.handleChange.bind(this)
 		this.searching=this.searching.bind(this)
+		this.dropdownToggle=this.dropdownToggle.bind(this)
+
 		// this.all=React.createRef()
 		// this.follow=React.createRef()
 		// this.storyBoard=React.createRef()
@@ -25,6 +27,15 @@ class Header extends Component {
 		
 		
 	}
+	/**
+	 * dropdonw toggle함수.
+	 */
+	dropdownToggle(){
+		console.log(1)
+		this.setState({
+			dropdownOpen: !this.state.dropdownOpen
+		})
+	}
 	componentDidMount(){
 		var width= window.innerWidth
 		if(width>1368){
@@ -34,6 +45,13 @@ class Header extends Component {
 			this.input.style.width='120px'
 		}
 		this.setSliderCss('all');
+	}
+	/**
+	 * navigate 하는 함수.
+	 * @param {string} a -가고자 하는 주소.
+	 */
+	link(a){
+		this.props.history.push('/'+a)
 	}
 	/**
 	 * 실제로 검색하는 함수. 
@@ -79,24 +97,19 @@ class Header extends Component {
 	);
 /**로그아웃 버튼 */
 	const logoutButton = (
-			<a onClick={this.props.onLogout}><i className="material-icons">lock_open</i></a>
+			<a onClick={()=>{this.dropdownToggle();this.props.onLogout();}} href="#"><i className="material-icons">lock_open</i></a>
 	);
 /**개인정보 수정,방송국 */
 	const editPersonalInfo = (
-		<div>
-		<ButtonDropdown isOpen={this.props.dropdownOpen} toggle={this.props.toggle} >
-        <StyledDropdownToggle caret color="btn btn-outline-primary">
-		{this.props.currentUser}
-        </StyledDropdownToggle>
-        <DropdownMenu>
-          <DropdownItem header> <li><Link to='/settings'> 정보수정 </Link></li></DropdownItem>
-          <DropdownItem> <li><Link to='/broadcast/settings/broadcast'>방송국</Link></li></DropdownItem>
-          <DropdownItem divider />
-          <DropdownItem>{logoutButton}</DropdownItem>
-        </DropdownMenu>
-      </ButtonDropdown>
-			
-		</div>
+		<StyledDropdowns title={this.props.currentUser} toggle={this.dropdownToggle} open={this.state.dropdownOpen}>
+			<div className='menu'>
+				<div> <Link to='/settings'> 정보수정 </Link></div>
+				<div> <Link to='/broadcast/settings/broadcast'>방송국</Link></div>
+				<hr/>
+				<div>{logoutButton}</div>
+			</div>
+        </StyledDropdowns>
+
 	)
 
 	return (
@@ -108,7 +121,7 @@ class Header extends Component {
 				<div className='reacto'><div className='font'>Reacto | Connecto</div></div>
 				</div>
 				<div className="col">
-				<CenterName to="/" >splendy</CenterName>
+				<Link className='centerName' to="/" >splendy</Link>
 				</div>
 				<div className="col text-right d-flex flex-row-reverse right">
 				{this.props.isLoggedIn? editPersonalInfo : loginButton}
@@ -146,10 +159,21 @@ position: absolute;
     background: #65a7ff;
 	transition: left .5s ease, width .5s ease;
 `
-const StyledDropdownToggle = styled(DropdownToggle)`
-boruder-color:#65a7ff!important;
-color:#65a7ff!important;
-` 
+
+const StyledDropdowns = styled(Dropdowns)`
+	color:#65a7ff;
+	margin-top:5px;
+	.menu a{
+		display:block;
+		color:#777;
+		text-align:center;
+	}
+
+`
+
+
+
+
 const LoginButton = styled.button`
 	width: 94px;
 	height: 33px;
@@ -206,6 +230,24 @@ const Container = styled.div`
 	.right{
 		margin-right:calc(10px + 5%);
 	}
+	.centerName{
+		width: 105px;
+		height: 34px;
+		font-family: Cabin;
+		font-size: 28px;
+		font-weight: bold;
+		font-style: normal;
+		font-stretch: normal;
+		line-height: normal;
+		letter-spacing: 0.6px;
+		text-align: center;
+		color: #65a7ff;
+		text-decoration:none !important;
+		&:hover{
+			color: #65a7ff !important;
+	
+		}
+	}
 `;
 const SearchingBar= styled.div`
 	position:relative;
@@ -244,24 +286,7 @@ const SearchingBar= styled.div`
 		}
 		
 `
-const CenterName = styled(Link)`
-	width: 105px;
-	height: 34px;
-	font-family: Cabin;
-	font-size: 28px;
-	font-weight: bold;
-	font-style: normal;
-	font-stretch: normal;
-	line-height: normal;
-	letter-spacing: 0.6px;
-	text-align: center;
-	color: #65a7ff;
-	text-decoration:none !important;
-	&:hover{
-		color: #65a7ff !important;
 
-	}
-`
 const Nav = styled.div`
 height: 30px;
 margin-left:calc(10px + 5%);

@@ -125,5 +125,8 @@
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "globals": {
+    "window": true
   }
 }

@@ -8,15 +8,20 @@ const StreamingList = ({src,person}) => {
            <div className='info'>
                <div className='streamingName'>이름은 김지원이요 호는 멋쟁이라. 그래서 사람들은 그를 멋쟁이 김지원이라 불렀다.</div>
                <img src='https://t1.daumcdn.net/thumb/R200x0/?fname=http%3A%2F%2Fimg1.daumcdn.net%2Fkakaotv%2FCHANNEL%2F2927669%2Fprofile%2F20171018002429' className='streamerThumbnail' alt='streamerThumbnail' />
-               <div className='streamerName'>bj호빗</div>
+               <div className='streamerName'>해피 유희열</div>
                <div className='viewerCounts'><img src={person} className="person"alt='person'width='15' height='15'/>5000</div>
+               
            </div>
+           <div className='resolution'>720P</div>
+               <div className='live'>LIVE</div>
         </Container>
     )
 }
 const Container =styled.div`
-position:relative;
+position:absolute;
+top:0;
 height:100%
+width:100%
 border-radius: 10px;
 overflow:hidden;
 .streamingName{
@@ -73,15 +78,53 @@ overflow:hidden;
     background-color:white;
     bottom:0;
     width:100%;
-    height:55px;
+    height:30.77%;
 }
 .thumbnail{
-    width:232px;
-    height:130.5px;
+    width:100%;
+    height:69.23%;
 }
 .person{
     padding-bottom:2px;
     filter: opacity(0.7);
+}
+.resolution{
+    padding-top:4px;
+    position:absolute;
+    top: calc(69.23% - 26px);
+    right: 48px;
+    width: 36px;
+    height: 18px;
+    border-radius: 2px;
+    background-color: #65a7ff;
+    font-family: Cabin;
+    font-size: 11px;
+    font-weight: 500;
+    font-style: normal;
+    font-stretch: normal;
+    line-height: normal;
+    letter-spacing: 0.2px;
+    text-align: center;
+    color: #ffffff;
+}
+.live{
+    padding-top:4px;
+    position:absolute;
+    top: calc(69.23% - 26px);
+    right: 8px;
+    width: 36px;
+    height: 18px;
+    border-radius: 2px;
+    background-color: #f57676;
+    font-family: AppleSDGothicNeo;
+    font-size: 11px;
+    font-weight: 500;
+    font-style: normal;
+    font-stretch: normal;
+    line-height: normal;
+    letter-spacing: 0.2px;
+    text-align: center;
+    color: #ffffff;
 }
  &:hover{
 
@@ -90,7 +133,7 @@ overflow:hidden;
     }
     .info{
         z-index:3;
-        height:80px;
+        height:calc(30.77% + 25px);
     }
     .streamingName{
         height:50px;

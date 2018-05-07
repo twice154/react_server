@@ -7,14 +7,14 @@
 import React, { Component } from 'react';
 import {StreamingLists} from '../../components/streamingList';
 import { connect } from 'react-redux';
-import {getStreamsRequest} from '../../modules/stream';
+import {getStreamLists} from '../../modules/stream';
 import {List} from 'immutable'
 
 
 class StreamingListContainer extends Component {
     constructor(props){
         super(props);
-        this.state = {streamingStatus: false, streamingList:List([])}
+        this.state = {streamingStatus: false, streamingList:''}
         this.getStreams = this.getStreams.bind(this)
 
     }
@@ -24,7 +24,7 @@ class StreamingListContainer extends Component {
                 .then(()=>{
                     if(this.props.status === "SUCCESS"){
                         this.setState({
-                            streamingStatus: true, streamingList: this.props.streamList.toJS()
+                            streamingStatus: true, streamingList: ''
                         })
                         return true;
                     }
@@ -50,18 +50,18 @@ class StreamingListContainer extends Component {
         return '/player/' + streamName;
     }
 }
-
+// todo 전반적으로 전체 다 고치기
 const mapStateToProps=(state)=>{
     return {
-        status: state.stream.get('status'),
-        streamList: state.stream.get('streamList')
+        status: '123',
+        streamList: '123'
     }
 }
 
 const mapDispatchToProps = (dispatch)=>{
     return {
         getStreamsRequest: () =>{
-            return dispatch(getStreamsRequest());
+            return dispatch(getStreamLists());
         }
     }
 }

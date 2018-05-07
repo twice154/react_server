@@ -8,7 +8,6 @@ const RangeSlider = ({min, max, value, onChange, name}) => {
 }
  
 
-//TODO:색깔 채우기. -->일단 react input rage를 사용한다.
 const StyledInput = styled.input`
     width: 100%;
     height: 10px;

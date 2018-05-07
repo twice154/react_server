@@ -14,9 +14,8 @@ export class HeaderContainer extends React.Component{
 
 	constructor(props){
 		super(props);
-		this.state={modal:false, dropdownOpen:false}
+		this.state={modal:false}
 		this.handleLogout = this.handleLogout.bind(this);
-		this.dropdownToggle=this.dropdownToggle.bind(this)
 		this.props.getStatusRequest()
 		.catch((err)=>{
 			console.log('not logined');
@@ -29,21 +28,15 @@ export class HeaderContainer extends React.Component{
 		this.props.logoutRequest().then(
 			()=> {
 				var firstOfPathname = this.props.pathname.split('/')[1]
-				if(firstOfPathname==='broadcasting'||firstOfPathname==='settings')
+				if(firstOfPathname==='broadcast'||firstOfPathname==='settings')
 				this.props.history.push('/')
 			}
 		)
 	}
 	
-	dropdownToggle(){
-		this.setState({
-			dropdownOpen: !this.state.dropdownOpen
-		})
-	}
 
-	/**
-	 * 로그인, 회원가입의 경우 헤드 컴포넌트가 보이지 않는다 --> TODO: pwd도 적용을 해주던지, 이미지 작업해야됨
-	 */
+
+	
 	render(){
 
 		let re = /(login|register)/;
@@ -57,8 +50,7 @@ export class HeaderContainer extends React.Component{
 												onLogout={this.handleLogout}
 												currentUser={currentUser}
 												onLogin={this.props.onLogin}
-												toggle={this.dropdownToggle}
-												dropdownOpen={this.state.dropdownOpen}/>}
+												/>}
 			{/* <Register/> */}
 			</div>
 		);

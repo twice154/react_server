@@ -2,6 +2,11 @@ import React, { Component } from 'react';
 import {connect} from 'react-redux'
 import styled from 'styled-components'
 import filterIcon from '../images/filterIcon.png'
+import profile1 from '../images/profile1.jpeg'
+import profile2 from '../images/profile2.png'
+import profile3 from '../images/profile3.jpeg'
+import profile4 from '../images/profile4.jpeg'
+
 import {Tooltip} from 'reactstrap'
 class SideBar extends Component {
     constructor(props) {
@@ -19,16 +24,16 @@ class SideBar extends Component {
                     </Buttons>
                     <Live>Live</Live>
                     <Buttons>
-                         <Images src={filterIcon}/>
+                         <img className='profile' src={profile1}/>
                     </Buttons>
                     <Buttons>
-                         <Images src={filterIcon}/>
+                         <img className='profile' src={profile2}/>
                     </Buttons>
                     <Buttons>
-                         <Images src={filterIcon}/>
+                         <img className='profile' src={profile3}/>
                     </Buttons>
                     <Buttons>
-                         <Images src={filterIcon}/>
+                         <img className='profile' src={profile4}/>
                     </Buttons>
 
                 </SideRemocon>
@@ -43,6 +48,12 @@ border-radius: 100%;
 border : solid 1px #65a7ff;
 display:flex;
 margin-bottom:5px;
+.profile{
+    width:100%;
+    height:100%;
+    border-radius:50%
+    overflow:hidden;
+}
 `
 const Images = styled.img`
 width:60%;
@@ -51,7 +62,7 @@ margin:auto;
 display:block;
 `
 const SideRemocon = styled.div`
-margin-left: 50%;
+margin-left: calc(5vw + 10px);
 width:48px;
 margin-top:50px;
 position:sticky;

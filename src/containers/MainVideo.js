@@ -4,14 +4,15 @@ import styled from 'styled-components'
 const MainVideo = () => {
     return (
         <Container>
-        <video width='1100px' height='100%'/>
-        <img src='https://cdn0.iconfinder.com/data/icons/startup-and-design-1/24/29-128.png'/>
+        <video />
+        {/* todo width 상황별로 크기 맞추기. */}
         </Container>
     )
 }
 const Container = styled.div`
 position:relative
-background-color:black;
+background-image:url('http://www.futureearth.org/sites/default/files/styles/full_width_desktop/public/p6050044_0.jpg?itok=TbqgXAAK');
+background-size: 100% 100%;
 height:300px;
 width:100%;
  video{

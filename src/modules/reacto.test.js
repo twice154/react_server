@@ -1,3 +1,8 @@
+/**
+ * todo: reacto test 고치가
+ */
+
+
 import configureMockStore from 'redux-mock-store'; //mocking store
 import promiseMiddleware from 'redux-promise-middleware';//for mocking store
 import thunk from 'redux-thunk'//for mocking store
@@ -15,8 +20,8 @@ describe('reacto test',()=>{
   const mockStore = configureMockStore(middlewares);
 
   const initialState ={
-    reactoSettingForViewer:{No1_content:'빈칸',No2_content:'빈칸',No3_content:'빈칸',No4_content:'빈칸',No5_content:'빈칸',No6_content:'빈칸'},
-    reactoSettingForStreamer:'234'
+    reactoSettingForStreamer:{percent:50,resetTime:'5'},
+    data:{resetTime:5,percent:50}
 }
 
     var mock = new MockAdapter(axios);

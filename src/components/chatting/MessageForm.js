@@ -10,7 +10,8 @@ export default class MessageForm extends React.Component {
 			modal:false
 		};
 		this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleChange = this.handleChange.bind(this);
+		this.handleChange = this.handleChange.bind(this);
+		this.handleKeyPress = this.handleKeyPress.bind(this)
 		}
 
 		componentDidMount(){
@@ -19,6 +20,15 @@ export default class MessageForm extends React.Component {
 		componentWillUnmount(){
 			this.props.leaveRoom(this.props.currentUser)
 		}
+	
+	handleKeyPress(e){
+		if(e.charCode===13&&e.shiftKey){
+			return 0;
+
+		}else if(e.charCode===13){
+			this.handleSubmit(e)
+		}
+	}
 /**
  * 메세지 제공.
  * @param {object} e 
@@ -47,7 +57,7 @@ export default class MessageForm extends React.Component {
 	render() {
 		return (
 			<div className='message_form'>
-				<button onClick={this.props.donationToggle}></button>
+		
 					<form className='d-flex' onSubmit={this.handleSubmit} style={{border:'0.5px solid black'}}>
 						
 							<textarea
@@ -57,11 +67,12 @@ export default class MessageForm extends React.Component {
                                 value={this.state.text}
                                 ref={el=>this.textarea=el}
 								style={{resize:'none'}}
+								onKeyPress={this.handleKeyPress}
 							/>
-							<div style={{backgroundColor:'grey', width:'20%', cursor:'pointer'}} onClick={this.handleSubmit}>
+							<div style={{backgroundColor:'grey', width:'20%', cursor:'pointer'}}>
 							<div className='container'>
-							<div className='row'>입력</div>
-							<div className='row'>도네하기</div>
+							<div className='row' onClick={this.handleSubmit}>입력</div>
+							<div className='row' onClick={this.props.donationToggle}>도네하기</div>
 							</div>
 							</div>
 						

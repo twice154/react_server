@@ -1,58 +1,37 @@
 /**
- * red5pro로 업데이트 예정
+ * thumbnail 받아오기 업데이트
  * @author G1
- * @logs // 18.2.25
+ * @logs // 18.5.5
  */
-
-import { Map, List, fromJS} from 'immutable';
 import {handleActions } from 'redux-actions';
 import axios from 'axios';
 
-const GET_STREAMS = 'STREAM/GET_STREAM';
-const GET_STREAMS_LOADING= 'STREAM/GET_STREAMS_LOADING';
-const GET_STREAMS_SUCCESS = 'STREAM/GET_STREAMS_SUCCESS';
-const GET_STREAMS_FAILURE = 'STREAM/GET_STREAMS_FAILURE';
+const GET_STREAMLISTS = 'STREAM/GET_STREAMLISTS';
 
-const initialState = Map({
-    status: 'INIT', 
-    streamList: List([])
-});
 
-function getStreamApiRequest(){
-    return axios.get('api/stream/list')
-        .then((res)=>{
-            let parser = new DOMParser();
-            let xmlDoc = parser.parseFromString(res.data, "text/xml");
-            let streamList = [];
-            for (let i = 0; i < xmlDoc.getElementsByTagName("Stream").length; i++) {
-                let name = xmlDoc.getElementsByTagName("Stream")[i].childNodes[0].childNodes[0].nodeValue;
-                let thumbnail = "http://localhost:8086/thumbnail?application=live&streamname=" + name + "&size=640x360&fitmode=letterbox";
-                streamList.push(Map({name, thumbnail}));
-            }
-            return Promise.resolve(streamList);
-        })
-        .catch(err=>{
-            return Promise.reject(err);
-        })
+const initialState = {
+    lists:{}
+}
+/**
+ * 홈페이지의 리스트를 받아오는 함수.(todo: thumbnail받아오는 작업 해주어야함. 홈페이지에서!!)
+ * res.data.data.list = {room:{description,시청자수,sessionId}, ...}인 객체를 불러온다.
+ */
+export function getStreamLists(){
+    return (dispatch)=>{
+        return axios.get('/api/media/list')
+            .then((res)=>{dispatch({type: GET_STREAMLISTS,payload:res.data.data.list})}
+            )
+            .catch((err)=>{
+                console.log(err.response.data.message)
+                return Promise.reject(err.response.data.message)})
+    };
 }
 
-export const getStreamsRequest = ()=>({
-    type: GET_STREAMS,
-    payload: getStreamApiRequest()
-})
-
 export default handleActions({
-    [GET_STREAMS_LOADING]: (state, action)=>{
-        return state.set('status', 'WAITING');
+    [GET_STREAMLISTS]: (state, action)=>{
+        return {...state, lists:action.payload}
     },
-    [GET_STREAMS_SUCCESS]: (state, action)=>{
-        return state.set('status', 'SUCCESS')
-                    .set('streamList', fromJS(action.payload))
-    },
-    [GET_STREAMS_FAILURE]: (action, state)=>{
-        return state.set('status', 'FAILURE')
-                    .set('streamList', List([]))
-    }
+    
 }, initialState)
 
 

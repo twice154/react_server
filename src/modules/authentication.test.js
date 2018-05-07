@@ -20,7 +20,8 @@ describe('authentication test',()=>{
     status: Map({
         isLoggedIn: false,
         verified: false,
-        currentUser: ''
+        currentUser: '',
+        userId:''
     }),
     findId: Map({
         gottenId:''
@@ -32,7 +33,7 @@ describe('authentication test',()=>{
     pwdVerified:false
 
 
-})
+});
     var mock = new MockAdapter(axios);
     const store = mockStore(initialState)
     afterEach(() => {
@@ -44,19 +45,19 @@ describe('authentication test',()=>{
         mock.onPost('/api/auth',{userId:'g1', password:''}).replyOnce(200,{success:true,data:{verified:true}})
             .onPost('/api/auth',{userId:'g1', password:''}).replyOnce(200,{success:false,message:'로그인 실패'})
             .onPost('/api/auth',{userId:'', password:''}).reply(400,{message:'fail'})
-        var expectedActions = [{"type": "AUTH/LOGIN_LOADING"}, {"payload": {"userId": "g1", "verified": true}, "type": "AUTH/LOGIN_SUCCESS"}, {"type": "AUTH/LOGIN_LOADING"}, {"error": true, "payload": "로그인 실패", "type": "AUTH/LOGIN_FAILURE"}, {"type": "AUTH/LOGIN_LOADING"}, {"error": true, "payload": "fail", "type": "AUTH/LOGIN_FAILURE"}]
+        var expectedActions = [{"type": "AUTH/LOGIN_LOADING"}, {"payload": {"verified": true}, "type": "AUTH/LOGIN_SUCCESS"}, {"type": "AUTH/LOGIN_LOADING"}, {"error": true, "payload": "로그인 실패", "type": "AUTH/LOGIN_FAILURE"}, {"type": "AUTH/LOGIN_LOADING"}, {"error": true, "payload": "fail", "type": "AUTH/LOGIN_FAILURE"}]
         //action creator
         await store.dispatch(loginRequest('g1','')).catch((a)=>console.log(a))
         await store.dispatch(loginRequest('g1','')).catch((a)=>{expect(a).toBe('로그인 실패')})
         await store.dispatch(loginRequest('','')).catch((a)=>{
-            expect(store.getActions()).toEqual(expectedActions)//성공, 실패 순.
+                        expect(store.getActions()).toEqual(expectedActions)//성공, 실패 순.
             expect(a).toBe('fail')
         })
         
         //reducer
         expect(reducers(undefined,{type:'AUTH/LOGIN_LOADING'})).toEqual(initialState.setIn(['login', 'status'], 'WAITING'))
         expect(reducers(undefined,{type:'AUTH/LOGIN_SUCCESS',payload:{userId:'g1',verified:true}})).toEqual(initialState.setIn(['login', 'status'], 'SUCCESS')
-                                                                                    .mergeIn(['status'], Map({verified: true, currentUser: 'g1'}))
+                                                                                    .mergeIn(['status'], Map({verified: true, currentUser: undefined, userId:'g1'}))
                                                                                     .setIn(['status','isLoggedIn'],true))
         expect(reducers(undefined,{type:'AUTH/LOGIN_FAILURE'})).toEqual(initialState.setIn(['login','status'], 'FAILURE'))
 
@@ -64,7 +65,7 @@ describe('authentication test',()=>{
     it('getStatus actionCreator,reducer test',async()=>{
         mock.onGet('/api/auth').replyOnce(200,{data:{userId:'g1'}})
         .onGet('/api/auth').replyOnce(404,{message:'fail'})
-        var expectedActions = [{"type": "AUTH/GET_STATUS_LOADING"}, {"payload": "g1", "type": "AUTH/GET_STATUS_SUCCESS"}, {"type": "AUTH/GET_STATUS_LOADING"}, {"error": true, "payload": "fail", "type": "AUTH/GET_STATUS_FAILURE"}]
+        var expectedActions = [{"type": "AUTH/GET_STATUS_LOADING"}, {"payload": {"userId": "g1"}, "type": "AUTH/GET_STATUS_SUCCESS"}, {"type": "AUTH/GET_STATUS_LOADING"}, {"error": true, "payload": "fail", "type": "AUTH/GET_STATUS_FAILURE"}]
         
         await store.dispatch(getStatusRequest()).catch((a)=>console.log(a))
         await store.dispatch(getStatusRequest()).catch((a)=>{
@@ -72,7 +73,7 @@ describe('authentication test',()=>{
             expect(a).toBe('fail')
         })
         expect(reducers(undefined,{type:'AUTH/GET_STATUS_LOADING'})).toEqual(initialState.setIn(['status','isLoggedIn'], true))
-        expect(reducers(undefined,{type:'AUTH/GET_STATUS_SUCCESS',payload:'g1'})).toEqual(initialState.mergeIn(['status'], Map({isLoggedIn: true, currentUser: 'g1'})))
+        expect(reducers(undefined,{type:'AUTH/GET_STATUS_SUCCESS',payload:{userId:'g1',currentUser:'g1'}})).toEqual(initialState.mergeIn(['status'], Map({isLoggedIn: true, currentUser: 'g1', userId:'g1'})))
         expect(reducers(undefined,{type:'AUTH/GET_STATUS_FAILURE'})).toEqual(initialState.setIn(['status','isLoggedIn'], false))
 
     })
@@ -94,9 +95,9 @@ describe('authentication test',()=>{
     it('logout actionCreator,reducer test',()=>{
         mock.onDelete('api/auth').reply(200)
         var expectedActions=[{"type": "AUTH/LOGOUT"}]
-        store.dispatch(logoutRequest()).then(
+        store.dispatch(logoutRequest()).then(()=>{
             expect(store.getActions()).toEqual(expectedActions)
-        ).catch(err=>console.log(err))
+        }).catch(err=>console.log(err))
         expect(reducers(initialState.setIn(['status','isLoggedIn'], true),{type:'AUTH/LOGOUT'})).toEqual(initialState.mergeIn(['status'], Map({isLoggedIn: false, currentUser: ''})))
     })
     // it('clean actionCreator,reducer test',()=>{
@@ -106,8 +107,8 @@ describe('authentication test',()=>{
     //     expect(reducers(initialState,{type:['AUTH/CLEAN']})).toEqual(initialState.setIn(['status','currentUser'],''))
     // })
     it('findId actionCreator,reducer test',async()=>{
-        var nameEnc = btoa('g1')
-        var emailEnc = btoa('g1')
+        var nameEnc = window.btoa('g1')
+        var emailEnc = window.btoa('g1')
         var failEnc = btoa('g2')
 
         mock.onGet(`/api/recovery/userid?name=${nameEnc}&email=${emailEnc}`).reply(200,{data:{userId:'g1'},success:true})
@@ -172,7 +173,7 @@ describe('authentication test',()=>{
         mock.onPut(`/api/user/g1/verification?token=1234`).reply(200)
         store.dispatch(verify('1234','g1'))
         .then(
-            expect(store.getActions()).toEqual([{"type": "AUTH/VERIFY"}])
+           ()=>{ expect(store.getActions()).toEqual([{"type": "AUTH/VERIFY"}])}
         ).catch(err=>console.log(err))
     })
 

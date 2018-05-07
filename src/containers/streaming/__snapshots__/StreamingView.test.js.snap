@@ -5,7 +5,7 @@ exports[`Streaming veiw test snapshot test 1`] = `
   className="row"
   style={
     Object {
-      "height": "100%",
+      "height": "calc(100vh - 105px)",
     }
   }
 >

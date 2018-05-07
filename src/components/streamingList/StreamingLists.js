@@ -33,7 +33,7 @@ function onGetStreams(props){
 const StreamingLists = ({push}) => {
     return (
         <Container>
-            <div style={{paddingLeft:'10px'}}>
+            <div style={{paddingLeft:'16px'}}>
             전체
             </div>
 
@@ -124,45 +124,39 @@ margin-top:36px;
 font-family: NanumSquareB;
 font-size: 20px;
 letter-spacing: 0.4px;
-margin:auto;
+width:100%
     .float{
+        position:relative;
         float:left;
+        cursor:pointer;
         margin-top:10px;
         margin-bottom:25px;
-        padding:0 10px;
-        cursor:pointer;
-        height:185px;
-        
+        margin-left: 16px;
+        width:calc(33.3% - 16px);
+        padding-top:calc(81.25% * 0.333);
+        height:0;
     }
-@media screen and (min-width: 763px){
-    // 210+790
-    width:508px;
+@media screen and (min-width: 1010px){
+    .float{
+        width:calc(25% - 16px);
+        padding-top:calc(81.25% * 0.25);
+    }
 }
-@media screen and (min-width: 1015px){
-    // 210+790
-    width:760px;
+@media screen and (min-width: 1265px){
+    .float{
+        width:calc(20% - 16px);
+        padding-top:calc(81.25% * 0.2);
+    }
 }
-@media screen and (min-width: 1267px){
-    margin:auto;
-    width:1012px;
-}
-@media screen and (min-width: 1519px){
-    margin:auto;
-    width:1264px;
-}
-@media screen and (min-width: 1771px){
-    margin:auto;
-    width:1516px;
+@media screen and (min-width: 1591px){
+    .float{
+        width:calc(16.66% - 16px);
+        padding-top:calc(81.25% * 0.1667);
+    }
 }
 
+
 `
-const Images = styled.img`
-width:232px;
-height:130.5px;
-`
-const ListContainer=styled.div`
-height:200px;
-width:100px
-`
+
 
 export default StreamingLists;
