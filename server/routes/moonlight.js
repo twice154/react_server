@@ -67,12 +67,10 @@ router.get('/status', (req, res)=>{
 				}
 			},
 			socket: req.app.socketForCentralServer
-	});
-	addHttpResponse({
-		command: 'getStatus',
-		httpResponses: req.app.httpResponses,
-		res,
-		userId
+	})
+	.then(handleMsg)
+	.then(({msg, statusCode})=>{
+		sendResponse({res, msg, statusCode});
 	});
 })
 
@@ -102,12 +100,10 @@ router.route('/hosts')
 				}
 			},
 			socket: req.app.socketForCentralServer
-		});
-		addHttpResponse({
-			command: 'getHosts',
-			httpResponses: req.app.httpResponses,
-			res,
-			userId
+		})
+		.then(handleMsg)
+		.then(({ msg, statusCode }) => {
+			sendResponse({ res, msg, statusCode });
 		});
 	})
 	.post((req, res) => {
@@ -128,13 +124,11 @@ router.route('/hosts')
 				}
 			},
 			socket: req.app.socketForCentralServer
-		});
-		addHttpResponse({
-			command: 'addHost',
-			httpResponses: req.app.httpResponses,
-			res,
-			userId
 		})
+		.then(handleMsg)
+		.then(({ msg, statusCode }) => {
+			sendResponse({ res, msg, statusCode });
+		});
 	})
 
 /**
@@ -166,13 +160,11 @@ router.route('/apps')
 				}
 			},
 			socket: req.app.socketForCentralServer
-		});
-		addHttpResponse({
-			command:'getApps',
-			httpResponses: req.app.httpResponses,
-			res,
-			userId
 		})
+		.then(handleMsg)
+		.then(({ msg, statusCode }) => {
+			sendResponse({ res, msg, statusCode });
+		});		
 	})
 	.post((req, res)=> {
 		let userId = getUserIdFromURI(req.baseUrl);
@@ -194,6 +186,10 @@ router.route('/apps')
 					}
 				},
 				socket: req.app.socketForCentralServer
+			})
+			.then(handleMsg)
+			.then(({ msg, statusCode }) => {
+				sendResponse({ res, msg, statusCode });
 			});
 		}
 		else if(req.body.command === 'stopGame'){
@@ -211,42 +207,41 @@ router.route('/apps')
 					}
 				},
 				socket: req.app.socketForCentralServer
-			})	
+			})
+			.then(handleMsg)
+			.then(({ msg, statusCode }) => {
+				sendResponse({ res, msg, statusCode });
+			});
 		}
-		addHttpResponse({
-			httpResponses:req.app.httpResponses,
-			command: req.body.command,
-			userId,
-			res
-		});
 	})
 
 router.get('/connetables', (req, res)=>{
 	let userId = getUserIdFromURI(req.baseUrl);
 	let hostIpaddress = getDatainAuthHeader(req).hostIpaddress;
 	
-	sendMsgToCentralServer({
-		msg: {
-			header: {
-				type: 'Request',
-				token: '',
-				command: 'getClients',
-				source: 'WEB',
-				dest: 'CONNETO'
+	req.app.getUsersInRoom(req.app.io, userId).then((userList)=>{
+		sendMsgToCentralServer({
+			msg: {
+				header: {
+					type: 'Request',
+					token: '',
+					command: 'getClients',
+					source: 'WEB',
+					dest: 'CONNETO'
+				},
+				body: {
+					userId,
+					hostIpaddress,
+					userList		 
+				}
 			},
-			body: {
-				userId,
-				hostIpaddress
-			}
-		},
-		socket: req.app.socketForCentralServer
-	});
-	addHttpResponse({
-		httpResponses:req.app.httpResponses,
-		command: 'getClients',
-		userId,
-		res
-	});
+			socket: req.app.socketForCentralServer
+		})
+		.then(handleMsg)
+		.then(({ msg, statusCode }) => {
+			sendResponse({ res, msg, statusCode });
+		});
+	})
 })
 
 /** 
@@ -262,13 +257,37 @@ router.get('/connetables', (req, res)=>{
 function sendMsgToCentralServer({msg, socket}){
 	return new Promise((resolve, reject)=>{
 		//console.log(socket);
+		msg.callback_id = available_callback_id;
+		available_callback_id++;
 		socket.write(JSON.stringify(msg), (err)=>{
 			if(err){
 				reject(err);
 			}
-			resolve();
+			callbackForCentralServer[msg.callback_id] = resolve;
 		})
 	})
+}
+
+function handleMsg({msg, io}){
+	try{
+		isValidHeader(msg.header);
+		if(msg.header.command === 'getClients'){
+			getUsersInRoom(io, msg.body.userId).then((userList)=>{
+				msg.body.userList = userList;
+				return {response: msg.body, statusCode: msg.header.statusCode}
+			})
+		}
+		else{
+			return {response: msg.body, statusCode: msg.header.statusCode};
+		}
+	}
+	catch(e){
+		return {response: e, statusCode: 400}
+	}
+}
+
+function sendResponse({res, msg, statusCode}){
+	res.status(statusCode).json(msg);
 }
 
 /**
@@ -297,19 +316,57 @@ function getOverlapElements(array1, array2){
 	})
 }
 
-
-function addHttpResponse({httpResponses, command, userId, res}){
-	if(!httpResponses[command]){
-		throw new InvalidFormatError(`Invalid command: this command(${command}) is not in httpResponses`);
-	}
-	if(!httpResponses[command][userId]){
-		httpResponses[command][userId] = [];
-	}
-	httpResponses[command][userId].push(res);
-}
-
 function getUserIdFromURI(URI){
 	return URI.split('/')[2];
+}
+
+/**
+ * 
+ * @param {Object} header - the header field of the message you want to check its validation 
+ * @return {boolean} whether the header is valid
+ * @throws {InvalidFormatError} throws it when essential field of header is blank
+ * @throws {TokenError} throws it when token is unvalid
+ */
+function isValidHeader(header) {
+	let error = new Error();
+	if (!checkEssentialFields(header)) {
+		error.code = 'ERR_BLANK_ESSENTIAL_FIELD';
+		throw error;
+	}
+	if (!isValidCommand(header.command)
+		|| (header.type !== 'Request' && header.type !== 'Response')
+		|| (header.source !== 'WEB' && header.source !== 'CONNETO' && header.source !== 'DB')
+		|| (header.dest !== 'WEB' && header.dest !== "CONNETO" && header.dest !== 'DB')
+	) {
+		error.code = 'ERR_INVALID_VALUE'
+		throw error;
+	}
+	else if (!isValidToken(header.token)) {
+		error.code = "ERR_INVALID_TOKEN"
+		throw error;
+	}
+	return true;
+}
+
+/**
+ * @description check whetehr the command of the message is valid
+ * @param {string} command - command you want to check 
+ * @return {boolean} whether the command is valid
+ */
+function isValidCommand(command) {
+	let validCommands = ['getStatus', 'getHosts', 'getApps', 'addHost', 'startGame', 'networkTest', 'login', 'stopGame']
+	return validCommands.includes(command);
+}
+
+/**
+ * 
+ * @param {string} token
+ * @description it returns true if token is valid, otherwise return false 
+ * @todo not implemented yet
+ * @return {boolean} whether the token is valid
+ */
+function isValidToken(token) {
+	return true;
 }
 
 export default router;

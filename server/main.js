@@ -36,16 +36,10 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use('/api', api);
 app.io = io;
-var httpResponses = {
-    getStatus: {},
-    getHosts: {},
-    getApps: {},
-    addHost: {},
-    startGame: {},
-    stopGame: {},
-    getClients: {}
-};
-app.httpResponses = httpResponses;
+
+app.callbackForCentralServer = {};
+app.available_callback_id = 1;
+app.getUsersInRoom = getUsersInRoom;
 
 var resourceDirectory = "";
 if(process.env.NODE_ENV === 'development'){
@@ -115,37 +109,10 @@ function commandHandler(data, io) { //handler for data from central server
     data = JSON.parse(data);
     console.log("IN CommandHandler: " + JSON.stringify(data));
     console.log("Receiver msg: " + data.header.command);
-    if (data.header.type === 'Response') {
-        if (data.header.command === 'getClients') {
-            if(data.header.statusCode === 200){
-                getUsersInRoom(io, data.body.userId).then((userList) => {
-                    let qualifiedUser = getOverlapElements(data.body.connetableClients, userList);
-                    processResponseQueue({
-                        responseQueue: httpResponses['getClients'][data.body.userId],
-                        data: data.body,
-                        status: data.header.statusCode
-                    });
-                })
-            }
-            else if(data.header.statusCode === 400){
-                processResponseQueue({
-                    responseQueue: httpResponses['getClients'][data.body.userId],
-                    data: data.body,
-                    status: data.header.statusCode
-                })
-            }
-        }
-        else {
-            if (httpResponses[data.header.command]) {
-                processResponseQueue({
-                    responseQueue: httpResponses[data.header.command][data.body.userId], 
-                    data: data.body, 
-                    status: data.header.statusCode
-                });
-            }
-        }
+    if(data.header.type === 'Response'){
+        returnCallback(data, data.callback_id);
     }
-    else if (data.header.type === 'Request') {
+    else if(data.header.type === 'Request'){
         switch (data.header.command) {
             case "networkTest":
                 let msg = {};
@@ -199,6 +166,15 @@ function commandHandler(data, io) { //handler for data from central server
         }
     );
 }*/
+
+function returnCallback(msg, callbackId){
+    if(!app.callbackForCentralServer[callbackId]){
+        throw new Error('Invalid callback id');
+    }
+    app.callbackForCentralServer[callbackId](msg);
+    delete app.callbackForCentralServer[callbackId];
+}
+
 
 ///////////////////////////////
 ///socket.io 설정 부분/////////

@@ -156,9 +156,8 @@ let connetoSocketHandler = {
 		}
 		catch (e) {
 			console.log(e);
-			message.header.statusCode = 400;
-			message.body.error = e;
-			return exports.sendMsg(socketForConneto, message);
+			let errormessage = {header: {statusCode: 400}, body:{error: e}};
+			return exports.sendMsg(socketForConneto, errormessage);
 		}
 
 		if(message.header.dest === 'WEB'){
@@ -370,12 +369,15 @@ let webServerSocketHandler = {
 		try{
 			message = JSON.parse(message);
 			console.log(message);
-			isValidHeader(message.header);
+			isValidMessage(message);
 		}
 		catch(e){
-			message.header.statusCode = 400;
-			message.body.error = e;
-			return exports.sendMsg(socketForWebServer, message);
+			let errormessage = { 
+				callback_id: message.callback_id, 
+				header: {statusCode: 400}, 
+				body: {error: e}
+			};
+			return exports.sendMsg(socketForWebServer, errormessage);
 		}
 		var userId = message.body.userId;
 		console.log(userId);
@@ -392,6 +394,7 @@ let webServerSocketHandler = {
 				switch(message.header.command){
 					case 'getStatus':
 						return exports.sendMsg(socketForWebServer, {
+							callback_id: message.callback_id,
 							header: {
 								type: 'Response',
 								token: '',
@@ -408,6 +411,7 @@ let webServerSocketHandler = {
 					default:
 						const error = new UntreatableError('Conneto of the client is offline');
 						return exports.sendMsg(socketForWebServer, {
+							callback_id: message.callback_id,
 							header: {
 								command:message.header.command,
 								statusCode: 400
@@ -426,6 +430,7 @@ let webServerSocketHandler = {
 					
 					case "getStatus":
 						exports.sendMsg(socketForWebServer, {
+							callback_id: message.callback_id,
 							header: {
 								type: 'Response',
 								token: '',
@@ -443,6 +448,7 @@ let webServerSocketHandler = {
 					case "getClients":
 						var hostIpaddress = message.body.hostIpaddress;
 						var msg = {
+							callback_id: message.callback_id,
 							header: {
 								type: 'Response',
 								token: '',
@@ -456,10 +462,6 @@ let webServerSocketHandler = {
 							}
 						}
 						try{
-							/*var pairedClients = queryHostInfo({
-								hostIpaddress,
-								action: 'select'
-							}).pairedClients;*/
 							message.header.statusCode = 200;
 							message.body.connetableClients = [];
 							for(var clientId in clients){
@@ -693,9 +695,10 @@ function getConnetoSocket(userId){
 
 /**
  * @description check whether the message is valid
- * @param {Object} msg - message you want to check its validation 
+ * @param {Object} msg - message whose you want to check validation 
  */
 function isValidMessage(msg){
+	
 	return isValidHeader(msg.header);
 }
 
@@ -707,8 +710,8 @@ function isValidMessage(msg){
  * @throws {TokenError} throws it when token is unvalid
  */
 function isValidHeader(header){
+	let error = new InvalidFormatError();
 	if(!checkEssentialFields(header)){
-		let error = new InvalidFormatError();
 		error.code = 'ERR_BLANK_ESSENTIAL_FIELD';
 		throw error;
 	}
@@ -717,12 +720,10 @@ function isValidHeader(header){
 		|| (header.source!=='WEB' && header.source!=='CONNETO' && header.source!=='DB')
 		|| (header.dest!== 'WEB' &&header.dest!=="CONNETO" && header.dest!=='DB')
 	){
-		let error = new InvalidFormatError();
 		error.code = 'ERR_INVALID_VALUE'
 		throw error;
 	}
 	else if(!isValidToken(header.token)){
-		let error = new TokenError();
 		error.code = "ERR_INVALID_TOKEN"
 		throw error;
 	}
