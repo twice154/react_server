@@ -73,7 +73,7 @@
   },
   "scripts": {
     "development": "concurrently \"cross-env PORT=4000 node scripts/start.js\" \"cd server && yarn development\"",
-    "build": "node scripts/build.js && cd server && yarn build",
+    "build": "cross-env NODE_ENV=production node scripts/build.js && cd server && yarn build",
     "start": "cd server && yarn start",
     "test": "node scripts/test.js --env=jsdom"
   },

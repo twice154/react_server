@@ -7,22 +7,51 @@
     <title>reacto관리페이지</title>
     <style>
         #reactoButton{
-            alt:'이미지파일';width:100%;height:120px;display:none;
+            height:120px;display:none;
             margin:auto;
+            animation-name: bounceInRight;
+            animation-duration: 2s;
+            animation-iteration-count: infinite;
+            font-size: 120px;
+            color:#2e5bad;
         }
+        @keyframes bounceInRight {
+   0% {
+      opacity: 0;
+      transform: rotate(20deg)
+   }
+   17% {
+      opacity: 1;
+      transform: rotate(-20deg)
+   }
+   34% {
+
+      transform: rotate(20deg)
+   }
+   51% {
+      transform: rotate(-15deg)
+   }
+   68% {
+
+      transform: rotate(10deg)
+   }
+   85% {
+      transform: rotate(0)
+   }
+   100% {
+      transform: scale(1.2,1.2)
+   }
+} 
     </style>
 </head>
 <body>
     'reacto'
    
-    <div style='margin:auto;width:240px'>
-        <img id='reactoButton' >
-
-    </img >
+    <div style='margin:auto;width:272px;'>
+        <div id='reactoButton' >
+            꿀잼~
+        </div >
     </div>
-    <audio>
-
-    </audio>
     <script src="/socket.io/socket.io.js"></script>
     
     <script>
@@ -35,21 +64,22 @@
         socket.emit('joinReactoRoom',streamerSocketId)
         // data={imgsrc='이미지파일 주소.', imgEffect:'이미지파일 이펙트',imgDuration:'이미지파일지속시간', mp3:'reacto효과음'}
         socket.on('reactoEmit',(data)=>{
-            
-            console.log('reacto come')
-           clearTimeout(a)
-            reacto.src=data.imgsrc;
-            reacto.style.display='block'
-            audio.src=data.mp3
-            audio.play()
+            reacto.style.display='block';
+            // reacto.src='http://localhost:3000/'
+        //     console.log('reacto come')
+        //    clearTimeout(a)
+        //     reacto.src=data.imgsrc;
+        //     reacto.style.display='block'
+        //     audio.src=data.mp3
+        //     audio.play()
                     
-            console.log(data.imgDuration)
-            a = setTimeout(()=>{
-            console.log(123)
-            reacto.src=''
-            reacto.style.display='none'
-            audio.src=data.mp3
-        },parseInt(data.imgDuration)*1000)
+        //     console.log(data.imgDuration)
+        //     a = setTimeout(()=>{
+        //     console.log(123)
+        //     reacto.src=''
+        //     reacto.style.display='none'
+        //     audio.src=data.mp3
+        // },parseInt(data.imgDuration)*1000)
 
 
         })

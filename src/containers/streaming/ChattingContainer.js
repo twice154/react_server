@@ -22,15 +22,13 @@ export class ChattingContainer extends Component {
         super(props);
         this.state = { users: [], messages: [], text: '',count:0,appendchild1:[],appendchild2:[],appendchild3:[],appendchild4:[],appendchild5:[],appendchild6:[],
                        reactos:[] };
-        new Promise((res,rej)=>{
-            this.props.getReactoSetting(this.props.room).then(()=>{
-                res(1)
-            }).catch(err=>console.log(err))
-        }).then(()=>{
-            this.reactoActiveThrottled=throttle(this.reactoActive,parseInt(this.props.data.resetTime)*1000+10)
-            console.log(parseInt(this.props.data.resetTime))
+        // new Promise((res,rej)=>{
+            
+        // }).then(()=>{
+        //     this.reactoActiveThrottled=throttle(this.reactoActive,parseInt(this.props.data.resetTime)*1000+10)
+        //     console.log(parseInt(this.props.data.resetTime))
 
-        }).catch(err=>console.log(err))
+        // }).catch(err=>console.log(err))
         this.init = this.init.bind(this);
         this.onUserJoin = this.onUserJoin.bind(this);
         this.onUserLeft = this.onUserLeft.bind(this);
@@ -42,7 +40,7 @@ export class ChattingContainer extends Component {
         this.reactoActived=this.reactoActived.bind(this)
         this.reactoActive=this.reactoActive.bind(this)
         this.reactoMinus=this.reactoMinus.bind(this)
-
+        this.props.getReactoSetting(this.props.room).catch(err=>console.log(err))
        /**
 	 * 소켓으로 서버에 접속 후 방에 join
      * TODO: getstatus를 여기서 하면 헤더랑 이중으로 정보를 체크하게 된다. 
@@ -214,18 +212,18 @@ export class ChattingContainer extends Component {
             if(value===0){
                 reactoProgress.push(0)
             }else{
-                var width=value/data.total/this.props.data.percent*10000
-                console.log('width:',width)
-                if(width>100){
+                var height=value/data.total/this.props.data.percent*10000
+                console.log('width:',height)
+                if(height>100){
                     reactoProgress.push(100)
                 }else{
-                    reactoProgress.push(width)
+                    reactoProgress.push(height)
                 }
             }
         })
         console.log(reactoProgress)
         console.log(plusOne)
-        this.setState({[plusOne]:[...this.state[plusOne],<OneOne id={count+'count'} key={count} onAnimationEnd={()=>{
+        this.setState({[plusOne]:[...this.state[plusOne],<OneOne id={count+'count'} style={{position:'absolute',right:`${(count%2)*(Math.random()*5+5)+Math.random()*5}px`}} key={count} onAnimationEnd={()=>{
             var appendchild= [...this.state[plusOne]]
             appendchild.shift()
             this.setState({[plusOne]:[...appendchild]})}}>+1</OneOne>],reactos:reactoProgress})
@@ -294,7 +292,7 @@ export class ChattingContainer extends Component {
                     getStatus={this.props.getStatusRequest}
                     connected={this.state.connected}
                     donationToggle={this.props.donationToggle}
-                    reacto={this.reactoActiveThrottled}
+                    reacto={this.reactoActive}
                     reactos={this.state.reactos}
                     appendchilds={[this.state.appendchild1,this.state.appendchild2,this.state.appendchild3,this.state.appendchild4,this.state.appendchild5,this.state.appendchild6]}
                     />
@@ -310,10 +308,12 @@ export class ChattingContainer extends Component {
 
 const OneOne = styled.div`
 animation-name: plusone;
-animation-duration: 1s;
-position: absolute
+animation-duration: 1.5s;
+text-align:right;
+position: absolute;
 top: -5px;
-left: 30px;
+z-index:9999;
+
 
 @keyframes plusone{
     100%{

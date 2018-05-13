@@ -3,20 +3,24 @@ import styled from 'styled-components'
 const ProgressBar = ({length}) => {
     return (
         <Container>
-            <div style={{width:`${length}%`}}></div>
+            <div style={{height:`${length}%`}}></div>
         </Container>
     )
 }
 const Container = styled.div`
-background-color: #cacaca;
-width:100%;
-height:10px;
+position:absolute;
+right:3px;
+top:3px;
+width:10px;
+height:41px;
 border:solid 1px black;
 border-radius: 5px;
  div{
+     position:absolute;
      background-color:#65a7ff;
-     height:10px;
-     width:0
+     height:0;
+     bottom:0;
+     width:100%
      z-index:1
  }
 `

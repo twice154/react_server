@@ -49,7 +49,6 @@ export class Chatting extends React.Component {
 	render() {
 		return (
 			<div style={{height:'100%'}}>
-				<UserList users={this.props.users} />
 				<MessageList messages={this.props.messages} scrollRef={(el)=>{this.listScroll=el}}/>
 				<Reacto reacto={this.props.reacto} room={this.props.room} appendchilds={this.props.appendchilds} reactos={this.props.reactos}/>
 				{this.props.currentUser !== "" ?

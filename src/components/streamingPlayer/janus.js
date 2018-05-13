@@ -38,7 +38,6 @@
 var server = "https://125.133.241.232:8089/janus";
 var username = "kks";
 var remoteFeed;
-var myroom;
 var adapter=window.adapter;
 var Spinner=window.Spinner;
 var jQuery;
@@ -2497,8 +2496,7 @@ function Janus(gatewayCallbacks) {
 										if(Janus.webRTCAdapter.browserDetails.browser == "safari")
 											timePassed = timePassed/1000;	// Apparently the timestamp is in microseconds, in Safari
 										var bitRate = Math.round((config.bitrate.bsnow - config.bitrate.bsbefore) * 8 / timePassed);
-										config.bitrate.value = bitRate + ' kbits/sec';
-										Janus.log(bitRate)
+										config.bitrate.value = bitRate;
 										//~ Janus.log("Estimated bitrate is " + config.bitrate.value);
 										config.bitrate.bsbefore = config.bitrate.bsnow;
 										config.bitrate.tsbefore = config.bitrate.tsnow;
@@ -2888,9 +2886,8 @@ function Janus(gatewayCallbacks) {
 /**
  * init하는 함수.
  */
-export const initailize = (sessionId,roomNumber)=>{
-    id = sessionId;
-    myroom= roomNumber;
+export const initailize = (roomNumber)=>{
+	var getbit = 0;
     Janus.init({debug: "all", callback: function() {
         janus = new Janus(
         {
@@ -2901,72 +2898,83 @@ export const initailize = (sessionId,roomNumber)=>{
                         plugin: "janus.plugin.videoroom",
                         opaqueId: opaqueId,
                         success: function(pluginHandle) {
-                            remoteFeed = pluginHandle;
-                            remoteFeed.simulcastStarted = false;
-                            Janus.log("Plugin attached! (" + remoteFeed.getPlugin() + ", id=" + remoteFeed.getId() + ")");
-                            Janus.log("  -- This is a subscriber");
-                            // We wait for the plugin to send us an offer
-                            var listen = { "request": "join", "room": myroom, "ptype": "subscriber", "feed": id };
-                            // In case you don't want to receive audio, video or data, even if the
-                            // publisher is sending them, set the 'offer_audio', 'offer_video' or
-                            // 'offer_data' properties to false (they're true by default), e.g.:
-                            // 		listen["offer_video"] = false;
-                            // For example, if the publisher is VP8 and this is Safari, let's avoid video
-                            //if(video !== "h264" && Janus.webRTCAdapter.browserDetails.browser === "safari") {
-                            //	if(video)
-                            //		video = video.toUpperCase()
-                            //	toastr.warning("Publisher is using " + video + ", but Safari doesn't support it: disabling video");
-                            //	listen["offer_video"] = false;
-                            //}
-                            if(id>0)
-                                remoteFeed.send({"message": listen});
-                        },
+							remoteFeed = pluginHandle;
+							remoteFeed.simulcastStarted = false;
+							Janus.log("Plugin attached! (" + remoteFeed.getPlugin() + ", id=" + remoteFeed.getId() + ")");
+							Janus.log("  -- This is a subscriber");
+
+							var reg = { "request": "listparticipants", "room" : roomNumber }
+							remoteFeed.send({"message": reg, "success":(data)=>{
+								if(data !== undefined && data.participants[0] !== undefined && data.participants[0].id !==undefined){
+									id=data.participants[0].id
+									var listen = { "request": "join", "room": roomNumber, "ptype": "subscriber", "feed": data.participants[0].id };
+									remoteFeed.send({"message": listen});
+								}
+								else{
+									id = 0
+									var listen = { "request": "join", "room": roomNumber, "ptype": "subscriber", "feed": 0, "private_id": mypvtid };
+									remoteFeed.send({"message": listen});
+								}
+							}});
+						},
                         error: function(error) {
                             Janus.error("  -- Error attaching plugin...", error);
                             console.log("Error attaching plugin... " + error);
                         },
                         onmessage: function(msg, jsep) {
-                            Janus.debug(" ::: Got a message (listener) :::");
                             Janus.debug(msg);
                             var event = msg["videoroom"];
                             Janus.debug("Event: " + event);
                             if(msg["error"] !== undefined && msg["error"] !== null) {
-                                console.log(msg["error"]);
+								// feed가 없을 때, (방송이 끊겼을 때 에러 처리)
+								// Error code 428 means "no video feed"
+								var timer = 5000;
+								if(msg["error_code"]==428){
+									setTimeout(function() {
+										var register = { "request": "listparticipants", "room" : roomNumber }
+										remoteFeed.send({"message": register, "success":(data)=>{
+											if(data !== undefined && data.participants[0] !== undefined && data.participants[0].id !==undefined){
+												var listen = { "request": "join", "room": roomNumber, "ptype": "subscriber", "feed": data.participants[0].id };
+												remoteFeed.send({"message": listen});
+											}
+												else{var listen = { "request": "join", "room": roomNumber, "ptype": "subscriber", "feed": 0 };
+												remoteFeed.send({"message": listen});
+											}
+										}});
+									}, timer);
+								}
+								else{
+									Janus.error(msg["error"]);
+								}
                             } else if(event != undefined && event != null) {
                                 if(event === "attached") {
-                                    // Subscriber created and attached
-                                    for(var i=1;i<2;i++) {
-                                        if(feeds[i] === undefined || feeds[i] === null) {
-                                            feeds[i] = remoteFeed;
-                                            remoteFeed.rfindex = i;
-                                            break;
-                                        }
-                                    }
-                                    remoteFeed.rfid = msg["id"];
-                                    remoteFeed.rfdisplay = msg["display"];
-                                    if(remoteFeed.spinner === undefined || remoteFeed.spinner === null) {
-                                        var target = document.getElementById('viewer');
-                                        remoteFeed.spinner = new Spinner({top:100}).spin(target);
-                                    } else {
-                                        remoteFeed.spinner.spin();
-                                    }
-                                    Janus.log("Successfully attached to feed " + remoteFeed.rfid + " (" + remoteFeed.rfdisplay + ") in room " + msg["room"]);
-                                } else if(event === "event") {
+									if(feeds[1] === undefined || feeds[1] === null) {
+										feeds[1] = remoteFeed;
+									}
+									remoteFeed.rfid = msg["id"];
+									if(remoteFeed.spinner === undefined || remoteFeed.spinner === null) {
+										var target = document.getElementById('viewer');
+										remoteFeed.spinner = new Spinner({top:100}).spin(target);
+									} else {
+										remoteFeed.spinner.spin();
+									}
+									Janus.log("Successfully attached to feed " + remoteFeed.rfid + " in room " + msg["room"]);
+									} else if(event === "event") {
                                     // Check if we got an event on a simulcast-related event from this publisher
-                                    var substream = msg["substream"];
-                                    var temporal = msg["temporal"];
-                                    if((substream !== null && substream !== undefined) || (temporal !== null && temporal !== undefined)) {
-                                        if(!remoteFeed.simulcastStarted) {
-                                            remoteFeed.simulcastStarted = true;
-                                            // Add some new buttons
-                                            // addSimulcastButtons(remoteFeed.rfindex);
-                                        }
-                                        // We just received notice that there's been a switch, update the buttons
-                                        // updateSimulcastButtons(remoteFeed.rfindex, substream, temporal);
-                                    }
-                                } else {
-                                    // What has just happened?
-                                }
+                                    
+                                } else if(event === "event") {
+									// Check if we got an event on a simulcast-related event from this publisher
+									var substream = msg["substream"];
+									var temporal = msg["temporal"];
+									if((substream !== null && substream !== undefined) || (temporal !== null && temporal !== undefined)) {
+										if(!remoteFeed.simulcastStarted) {
+											remoteFeed.simulcastStarted = true;
+										}
+									}
+								} else {
+									// What has just happened?
+									
+								}
                             }
                             if(jsep !== undefined && jsep !== null) {
                                 Janus.debug("Handling SDP as well...");
@@ -2981,7 +2989,7 @@ export const initailize = (sessionId,roomNumber)=>{
                                         success: function(jsep) {
                                             Janus.debug("Got SDP!");
                                             Janus.debug(jsep);
-                                            var body = { "request": "start", "room": myroom };
+                                            var body = { "request": "start", "room": roomNumber };
                                             remoteFeed.send({"message": body, "jsep": jsep});
                                         },
                                         error: function(error) {
@@ -2994,44 +3002,57 @@ export const initailize = (sessionId,roomNumber)=>{
                         webrtcState: function(on) {
                             Janus.log("Janus says this WebRTC PeerConnection (feed #" + remoteFeed.rfindex + ") is " + (on ? "up" : "down") + " now");
                         },
-                        onlocalstream: function(stream) {
-                            // The subscriber stream is recvonly, we don't expect anything here
-                        },
                         onremotestream: function(stream) {
                             Janus.debug("Remote feed #" + remoteFeed.rfindex);
                             var addButtons = false;
-                                // No remote video yet
+                            // No remote video yet
     
-                                var target = document.getElementById('viewer');
-                                if(target !== undefined && target !== null){
-                                    // $("#viewer").bind("playing", function () {
-                                        document.getElementById('viewer').onplaying = function () {
-                                        if(remoteFeed.spinner !== undefined && remoteFeed.spinner !== null)
-                                            remoteFeed.spinner.stop();
-                                        remoteFeed.spinner = null;
-                                        var width = this.videoWidth;
-                                        var height = this.videoHeight;
+                            var target = document.getElementById('viewer');
+                            if(target !== undefined && target !== null){
+                                // $("#viewer").bind("playing", function () {
+                                    document.getElementById('viewer').onplaying = function () {
+                                    if(remoteFeed.spinner !== undefined && remoteFeed.spinner !== null)
+                                        remoteFeed.spinner.stop();
+                                    remoteFeed.spinner = null;
+                                    var width = this.videoWidth;
+                                    var height = this.videoHeight;
                                     
-                                    }
                                 }
-                                else
-                                    return;
-                                    //Janus.attachMediaStream($('#viewer').get(0), stream);
+                            }
+                            else
+                                return;
+                            //Janus.attachMediaStream($('#viewer').get(0), stream);
                             Janus.attachMediaStream(document.getElementById('viewer'), stream);
     
                             var videoTracks = stream.getVideoTracks();
                             if(videoTracks === null || videoTracks === undefined || videoTracks.length === 0) {
                                 return;	
-                            }
+							}
+							/*
                             if(Janus.webRTCAdapter.browserDetails.browser === "chrome" || Janus.webRTCAdapter.browserDetails.browser === "firefox" ||
                                 Janus.webRTCAdapter.browserDetails.browser === "safari") {
                                 bitrateTimer[remoteFeed.rfindex] = setInterval(function() {
                                     // Display updated bitrate, if supported
-                                    var bitrate = remoteFeed.getBitrate();	
+									var bitrate = remoteFeed.getBitrate();
+									
+									if(bitrate === 0){
+										if(getbit < 10)
+											getbit += 1;
+										else{
+											Janus.log("bitrate 0")
+											getbit = 0;
+											id = 0;
+											janus.destroy()
+											initailize(roomNumber)
+										}
+									}
+									else{
+										getbit = 0;
+									}
+									
                                 }, 1000);
-                            }
-                            if(!addButtons)
-                                return;
+							}
+							*/
                             
                         },
                         oncleanup: function() {
@@ -3054,7 +3075,7 @@ export const initailize = (sessionId,roomNumber)=>{
                     
                 },
                 destroyed: function() {
-                    window.location.reload();
+                    //window.location.reload();
                 }
             });
         }});

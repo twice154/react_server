@@ -14,7 +14,7 @@ class StreamingPlayer extends React.Component{
 	}
 	//todo: initailize 고치기
 	componentDidMount(){
-		initailize(2951133320520011,1234)
+		initailize(1234)
 	}
 	render(){
 		return(

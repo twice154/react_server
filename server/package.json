@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "development": "cross-env NODE_ENV=development nodemon --exec babel-node --presets=env ./main.js --watch ./",
-    "build": "npx babel ./ --out-dir ../build --presets=env --ignore ./node_modules",
+    "build": "cross-env NODE_ENV=production npx babel ./ --out-dir ../build --presets=env --ignore ./node_modules",
     "start": "cross-env NODE_PATH=./node_modules/ node ../build/main.js"
   },
   "dependencies": {
